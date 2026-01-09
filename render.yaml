@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: oura-clinical-dashboard
+    env: python
+    buildCommand: pip install -r requirements_deploy.txt
+    startCommand: gunicorn app:app
+    plan: free
+    envVars:
+      - key: FLASK_DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.12.0
