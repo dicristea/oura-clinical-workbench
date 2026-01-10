@@ -150,4 +150,3 @@ Cornell Medicine Research
 
 ---
 
-*Built with ❤️ for clinical research*
