@@ -1,4 +1,4 @@
-# 🏥 Clinical Coordinator Dashboard
+# Clinical Coordinator Dashboard
 
 > **Oura Ring Study Data Monitoring Platform**
 
@@ -6,13 +6,13 @@ A web-based dashboard for clinical coordinators to monitor patient participation
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
 👉 **[View Live Dashboard](https://oura-clinical-dashboard.onrender.com)**
 
 ---
 
-## 📸 Dashboard Preview
+## Dashboard Preview
 
 ![Clinical Coordinator Dashboard](https://github.com/AlbinaKrasykova/oura-clinical-dashboard/blob/main/mockup.png?raw=true)
 
@@ -150,4 +150,3 @@ Cornell Medicine Research
 
 ---
 
-*Built with ❤️ for clinical research*
