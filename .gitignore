@@ -28,4 +28,4 @@ __pycache__/
 Thumbs.db
 
 # Don't commit real patient data!
-# data.xlsx  # Uncomment this if you want to exclude real data
+data.xlsx

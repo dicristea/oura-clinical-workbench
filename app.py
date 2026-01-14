@@ -63,8 +63,10 @@ def load_patient_data():
                 status = "outreach"
                 last_sync_str = "Never"
             
-            # Generate sparkline data
-            sparkline = [random.randint(60, 90) for _ in range(12)]
+            # Generate sparkline data for 3 metrics
+            sleep_score = [random.randint(65, 95) for _ in range(12)]
+            hrv_average = [random.randint(25, 55) for _ in range(12)]
+            activity_score = [random.randint(50, 90) for _ in range(12)]
             
             patients.append({
                 'id': f"PT-{str(int(mrn))[-4:]}",
@@ -79,7 +81,9 @@ def load_patient_data():
                 'participation_start': format_date(inpatient_start or admit_date),
                 'hospital_start': format_date(admit_date),
                 'hospital_end': format_date(discharge_date),
-                'sparkline': sparkline
+                'sleep_score': sleep_score,
+                'hrv_average': hrv_average,
+                'activity_score': activity_score
             })
         
         return patients
@@ -134,6 +138,44 @@ def dashboard():
 def get_patients():
     patients = load_patient_data()
     return jsonify(patients)
+
+
+@app.route('/patient/<patient_id>')
+def patient_detail(patient_id):
+    """Show detailed patient metrics view."""
+    patients = load_patient_data()
+    patient = next((p for p in patients if p['id'] == patient_id), None)
+    
+    if not patient:
+        return "Patient not found", 404
+    
+    # Generate 14 days of detailed metric data
+    import random
+    random.seed(hash(patient_id))  # Consistent data for same patient
+    
+    dates = []
+    hrv_data = []
+    activity_data = []
+    sleep_data = []
+    
+    from datetime import datetime, timedelta
+    base_date = datetime(2024, 12, 12)
+    
+    for i in range(14):
+        date = base_date + timedelta(days=i)
+        dates.append(date.strftime("%b %d"))
+        
+        # Generate realistic data patterns
+        hrv_data.append(random.randint(5000, 7500))
+        activity_data.append(random.randint(20, 100))
+        sleep_data.append(random.randint(10, 95))
+    
+    patient['dates'] = dates
+    patient['hrv_data'] = hrv_data
+    patient['activity_data'] = activity_data
+    patient['sleep_data'] = sleep_data
+    
+    return render_template('patient_detail.html', patient=patient)
 
 
 if __name__ == '__main__':

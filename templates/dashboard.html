@@ -279,16 +279,36 @@
             color: #475569;
         }
         
-        /* Sparkline */
-        .sparkline-container {
-            height: 40px;
+        /* Sparklines - 3 metrics */
+        .sparklines-container {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            gap: 4px;
         }
         
-        .sparkline {
-            width: 120px;
-            height: 36px;
+        .sparkline-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sparkline-label {
+            font-size: 9px;
+            color: #64748b;
+            width: 45px;
+            text-align: right;
+        }
+        
+        .sparkline-mini {
+            width: 70px;
+            height: 18px;
+        }
+        
+        .sparkline-value {
+            font-size: 10px;
+            font-weight: 600;
+            width: 25px;
+            color: #334155;
         }
         
         /* Dates */
@@ -404,7 +424,7 @@
                 {% for patient in patients %}
                 <div class="patient-row" data-status="{{ patient.status }}" data-has-oura="{{ patient.has_oura }}" data-has-ehr="{{ patient.has_ehr }}">
                     <!-- Patient ID -->
-                    <a href="#" class="patient-id">{{ patient.id }}</a>
+                    <a href="/patient/{{ patient.id }}" class="patient-id">{{ patient.id }}</a>
                     
                     <!-- Data Collection -->
                     <div class="data-collection">
@@ -432,34 +452,50 @@
                         </div>
                     </div>
                     
-                    <!-- Sparkline -->
-                    <div class="sparkline-container">
-                        <svg class="sparkline" viewBox="0 0 120 36">
-                            <defs>
-                                <linearGradient id="sparkGradient{{ loop.index }}" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
-                                    <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.05" />
-                                </linearGradient>
-                            </defs>
-                            {% set points = [] %}
-                            {% for i in range(patient.sparkline|length) %}
-                                {% set x = (i * 10) + 5 %}
-                                {% set y = 36 - ((patient.sparkline[i] - 50) * 0.8) %}
-                                {% set _ = points.append(x|string + ',' + y|string) %}
-                            {% endfor %}
-                            <polygon 
-                                points="5,36 {{ points|join(' ') }} 115,36" 
-                                fill="url(#sparkGradient{{ loop.index }})"
-                            />
-                            <polyline 
-                                points="{{ points|join(' ') }}" 
-                                fill="none" 
-                                stroke="#3b82f6" 
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
+                    <!-- Sparklines - 3 Metrics -->
+                    <div class="sparklines-container">
+                        <!-- Sleep Score -->
+                        <div class="sparkline-row">
+                            <span class="sparkline-label">Sleep</span>
+                            <svg class="sparkline-mini" viewBox="0 0 70 18">
+                                {% set sleep_points = [] %}
+                                {% for i in range(patient.sleep_score|length) %}
+                                    {% set x = (i * 6) + 2 %}
+                                    {% set y = 18 - ((patient.sleep_score[i] - 50) * 0.3) %}
+                                    {% set _ = sleep_points.append(x|string + ',' + y|string) %}
+                                {% endfor %}
+                                <polyline points="{{ sleep_points|join(' ') }}" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="sparkline-value" style="color:#8b5cf6">{{ patient.sleep_score[-1] }}</span>
+                        </div>
+                        <!-- HRV Average -->
+                        <div class="sparkline-row">
+                            <span class="sparkline-label">HRV</span>
+                            <svg class="sparkline-mini" viewBox="0 0 70 18">
+                                {% set hrv_points = [] %}
+                                {% for i in range(patient.hrv_average|length) %}
+                                    {% set x = (i * 6) + 2 %}
+                                    {% set y = 18 - ((patient.hrv_average[i] - 10) * 0.4) %}
+                                    {% set _ = hrv_points.append(x|string + ',' + y|string) %}
+                                {% endfor %}
+                                <polyline points="{{ hrv_points|join(' ') }}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="sparkline-value" style="color:#10b981">{{ patient.hrv_average[-1] }}</span>
+                        </div>
+                        <!-- Activity Score -->
+                        <div class="sparkline-row">
+                            <span class="sparkline-label">Activity</span>
+                            <svg class="sparkline-mini" viewBox="0 0 70 18">
+                                {% set activity_points = [] %}
+                                {% for i in range(patient.activity_score|length) %}
+                                    {% set x = (i * 6) + 2 %}
+                                    {% set y = 18 - ((patient.activity_score[i] - 40) * 0.3) %}
+                                    {% set _ = activity_points.append(x|string + ',' + y|string) %}
+                                {% endfor %}
+                                <polyline points="{{ activity_points|join(' ') }}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span class="sparkline-value" style="color:#f59e0b">{{ patient.activity_score[-1] }}</span>
+                        </div>
                     </div>
                     
                     <!-- Participation Dates -->

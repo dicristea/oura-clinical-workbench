@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient {{ patient.id }} - Metrics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+        
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .header-left p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        .back-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .view-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+        }
+        
+        .view-btn:hover {
+            background: #f1f5f9;
+        }
+        
+        .view-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        /* Chart Container */
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .chart-date-range {
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .chart-area {
+            height: 300px;
+            position: relative;
+        }
+        
+        .separate-chart-area {
+            height: 150px;
+            position: relative;
+            margin-bottom: 24px;
+        }
+        
+        .separate-chart-area:last-child {
+            margin-bottom: 0;
+        }
+        
+        .chart-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #475569;
+        }
+        
+        .legend-line {
+            width: 24px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        /* Timeline Slider */
+        .timeline-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+        
+        .timeline-container {
+            position: relative;
+            height: 60px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .timeline-track {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            height: 20px;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #cbd5e1;
+            transform: translateY(-50%);
+        }
+        
+        .timeline-selection {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: rgba(59, 130, 246, 0.15);
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            cursor: move;
+        }
+        
+        .timeline-handle {
+            position: absolute;
+            top: -5px;
+            width: 12px;
+            height: 30px;
+            background: #3b82f6;
+            border-radius: 4px;
+            cursor: ew-resize;
+        }
+        
+        .timeline-handle.left {
+            left: -6px;
+        }
+        
+        .timeline-handle.right {
+            right: -6px;
+        }
+        
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            margin-top: 8px;
+        }
+        
+        .timeline-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .timeline-instructions {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .timeline-instructions span {
+            color: #3b82f6;
+            font-weight: 500;
+        }
+        
+        /* SVG Chart */
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .axis-label {
+            font-size: 11px;
+            fill: #64748b;
+        }
+        
+        .grid-line {
+            stroke: #e2e8f0;
+            stroke-width: 1;
+        }
+        
+        .data-line {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .thin-line {
+            fill: none;
+            stroke-width: 1.5;
+        }
+        
+        .data-dot {
+            cursor: pointer;
+        }
+        
+        .data-dot:hover {
+            r: 6;
+        }
+        
+        /* Colors */
+        .hrv-color { stroke: #3b82f6; fill: #3b82f6; }
+        .activity-color { stroke: #f59e0b; fill: #f59e0b; }
+        .sleep-color { stroke: #06b6d4; fill: #06b6d4; }
+        
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back Link -->
+        <a href="/" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Dashboard
+        </a>
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Patient {{ patient.id }}</h1>
+                <p>MRN: {{ patient.mrn }}</p>
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" id="combinedBtn" onclick="showCombinedView()">Combined View</button>
+                <button class="view-btn" id="separateBtn" onclick="showSeparateView()">Separate Views</button>
+            </div>
+        </div>
+        
+        <!-- Combined View Chart -->
+        <div class="chart-card" id="combinedView">
+            <div class="chart-header">
+                <span class="chart-title">Combined Metrics (Lines)</span>
+                <span class="chart-date-range" id="dateRangeLabel">Dec 17 - Dec 21</span>
+            </div>
+            <div class="chart-area">
+                <svg class="chart-svg" id="combinedChart"></svg>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #3b82f6;"></div>
+                    HRV Average
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #f59e0b;"></div>
+                    Activity Score
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #06b6d4;"></div>
+                    Sleep Score
+                </div>
+            </div>
+        </div>
+        
+        <!-- Separate Views Charts -->
+        <div class="chart-card hidden" id="separateView">
+            <div class="separate-chart-area">
+                <div class="chart-label">HRV Average</div>
+                <svg class="chart-svg" id="hrvChart"></svg>
+            </div>
+            <div class="separate-chart-area">
+                <div class="chart-label">Activity Score</div>
+                <svg class="chart-svg" id="activityChart"></svg>
+            </div>
+            <div class="separate-chart-area">
+                <div class="chart-label">Sleep Score</div>
+                <svg class="chart-svg" id="sleepChart"></svg>
+            </div>
+        </div>
+        
+        <!-- Timeline Slider -->
+        <div class="timeline-card">
+            <div class="timeline-title">Overview Timeline</div>
+            <div class="timeline-container" id="timelineContainer">
+                <div class="timeline-track">
+                    <div class="timeline-line"></div>
+                    <svg class="chart-svg" id="timelineMini" style="position:absolute;top:-10px;left:0;right:0;height:40px;"></svg>
+                    <div class="timeline-selection" id="timelineSelection">
+                        <div class="timeline-handle left" id="leftHandle"></div>
+                        <div class="timeline-handle right" id="rightHandle"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-labels">
+                <span class="timeline-label" id="startLabel">Dec 12</span>
+                <span class="timeline-label" id="midLabel">Dec 19</span>
+                <span class="timeline-label" id="endLabel">Dec 25</span>
+            </div>
+            <div class="timeline-instructions">
+                <span>• Drag left handle</span> to expand/shrink window from left side
+                <span>• Drag right handle</span> to expand/shrink window from right side
+                <span>• Drag middle</span> to move window
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Patient data from server
+        const patientData = {
+            hrv: {{ patient.hrv_data | tojson }},
+            activity: {{ patient.activity_data | tojson }},
+            sleep: {{ patient.sleep_data | tojson }},
+            dates: {{ patient.dates | tojson }}
+        };
+        
+        // Timeline state
+        let timelineState = {
+            startPercent: 30,
+            endPercent: 70,
+            isDragging: null
+        };
+        
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            initTimeline();
+            updateCharts();
+        });
+        
+        function showCombinedView() {
+            document.getElementById('combinedView').classList.remove('hidden');
+            document.getElementById('separateView').classList.add('hidden');
+            document.getElementById('combinedBtn').classList.add('active');
+            document.getElementById('separateBtn').classList.remove('active');
+        }
+        
+        function showSeparateView() {
+            document.getElementById('combinedView').classList.add('hidden');
+            document.getElementById('separateView').classList.remove('hidden');
+            document.getElementById('combinedBtn').classList.remove('active');
+            document.getElementById('separateBtn').classList.add('active');
+            drawSeparateCharts();
+        }
+        
+        function getVisibleDataRange() {
+            const totalPoints = patientData.dates.length;
+            const startIdx = Math.floor(totalPoints * timelineState.startPercent / 100);
+            const endIdx = Math.ceil(totalPoints * timelineState.endPercent / 100);
+            return { startIdx, endIdx };
+        }
+        
+        function updateCharts() {
+            drawCombinedChart();
+            drawSeparateCharts();
+            drawTimelineMini();
+            updateDateRangeLabel();
+        }
+        
+        function updateDateRangeLabel() {
+            const range = getVisibleDataRange();
+            const startDate = patientData.dates[range.startIdx] || patientData.dates[0];
+            const endDate = patientData.dates[range.endIdx - 1] || patientData.dates[patientData.dates.length - 1];
+            document.getElementById('dateRangeLabel').textContent = `${startDate} - ${endDate}`;
+        }
+        
+        function drawCombinedChart() {
+            const svg = document.getElementById('combinedChart');
+            const rect = svg.getBoundingClientRect();
+            const width = rect.width || 800;
+            const height = rect.height || 300;
+            const padding = { top: 20, right: 60, bottom: 40, left: 60 };
+            
+            const range = getVisibleDataRange();
+            const visibleDates = patientData.dates.slice(range.startIdx, range.endIdx);
+            const visibleHrv = patientData.hrv.slice(range.startIdx, range.endIdx);
+            const visibleActivity = patientData.activity.slice(range.startIdx, range.endIdx);
+            const visibleSleep = patientData.sleep.slice(range.startIdx, range.endIdx);
+            
+            // Scale functions
+            const xScale = (i) => padding.left + (i / (visibleDates.length - 1)) * (width - padding.left - padding.right);
+            const yScaleHrv = (v) => padding.top + (1 - (v - 0) / 8000) * (height - padding.top - padding.bottom);
+            const yScaleScore = (v) => padding.top + (1 - v / 100) * (height - padding.top - padding.bottom);
+            
+            let html = '';
+            
+            // Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (i / 4) * (height - padding.top - padding.bottom);
+                html += `<line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"/>`;
+                // Left axis labels (HRV scale)
+                html += `<text class="axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${8000 - i * 2000}</text>`;
+                // Right axis labels (Score scale)
+                html += `<text class="axis-label" x="${width - padding.right + 10}" y="${y + 4}" text-anchor="start">${100 - i * 25}</text>`;
+            }
+            
+            // X-axis labels
+            const step = Math.max(1, Math.floor(visibleDates.length / 4));
+            for (let i = 0; i < visibleDates.length; i += step) {
+                const x = xScale(i);
+                html += `<text class="axis-label" x="${x}" y="${height - 10}" text-anchor="middle">${visibleDates[i]}</text>`;
+            }
+            
+            // Draw thin lines (not shapes)
+            // HRV line (blue)
+            let hrvPath = `M ${xScale(0)} ${yScaleHrv(visibleHrv[0])}`;
+            for (let i = 1; i < visibleHrv.length; i++) {
+                hrvPath += ` L ${xScale(i)} ${yScaleHrv(visibleHrv[i])}`;
+            }
+            html += `<path d="${hrvPath}" fill="none" stroke="#3b82f6" stroke-width="1.5"/>`;
+            
+            // Activity line (orange)
+            let activityPath = `M ${xScale(0)} ${yScaleScore(visibleActivity[0])}`;
+            for (let i = 1; i < visibleActivity.length; i++) {
+                activityPath += ` L ${xScale(i)} ${yScaleScore(visibleActivity[i])}`;
+            }
+            html += `<path d="${activityPath}" fill="none" stroke="#f59e0b" stroke-width="1.5"/>`;
+            
+            // Sleep line (cyan)
+            let sleepPath = `M ${xScale(0)} ${yScaleScore(visibleSleep[0])}`;
+            for (let i = 1; i < visibleSleep.length; i++) {
+                sleepPath += ` L ${xScale(i)} ${yScaleScore(visibleSleep[i])}`;
+            }
+            html += `<path d="${sleepPath}" fill="none" stroke="#06b6d4" stroke-width="1.5"/>`;
+            
+            svg.innerHTML = html;
+        }
+        
+        function drawSeparateCharts() {
+            drawDotChart('hrvChart', patientData.hrv, '#3b82f6', 8000);
+            drawDotChart('activityChart', patientData.activity, '#f59e0b', 100);
+            drawDotChart('sleepChart', patientData.sleep, '#06b6d4', 100);
+        }
+        
+        function drawDotChart(svgId, data, color, maxVal) {
+            const svg = document.getElementById(svgId);
+            if (!svg) return;
+            
+            const rect = svg.getBoundingClientRect();
+            const width = rect.width || 800;
+            const height = rect.height || 150;
+            const padding = { top: 20, right: 40, bottom: 30, left: 50 };
+            
+            const range = getVisibleDataRange();
+            const visibleData = data.slice(range.startIdx, range.endIdx);
+            const visibleDates = patientData.dates.slice(range.startIdx, range.endIdx);
+            
+            const xScale = (i) => padding.left + (i / (visibleData.length - 1)) * (width - padding.left - padding.right);
+            const yScale = (v) => padding.top + (1 - v / maxVal) * (height - padding.top - padding.bottom);
+            
+            let html = '';
+            
+            // Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (i / 4) * (height - padding.top - padding.bottom);
+                html += `<line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"/>`;
+                html += `<text class="axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${Math.round(maxVal - i * maxVal / 4)}</text>`;
+            }
+            
+            // X-axis labels
+            const step = Math.max(1, Math.floor(visibleDates.length / 4));
+            for (let i = 0; i < visibleDates.length; i += step) {
+                const x = xScale(i);
+                html += `<text class="axis-label" x="${x}" y="${height - 5}" text-anchor="middle">${visibleDates[i]}</text>`;
+            }
+            
+            // Draw dots
+            for (let i = 0; i < visibleData.length; i++) {
+                html += `<circle class="data-dot" cx="${xScale(i)}" cy="${yScale(visibleData[i])}" r="4" fill="${color}"/>`;
+            }
+            
+            svg.innerHTML = html;
+        }
+        
+        function drawTimelineMini() {
+            const svg = document.getElementById('timelineMini');
+            const rect = svg.getBoundingClientRect();
+            const width = rect.width || 600;
+            const height = 40;
+            const padding = { left: 0, right: 0 };
+            
+            const xScale = (i) => padding.left + (i / (patientData.dates.length - 1)) * (width - padding.left - padding.right);
+            const yScale = (v) => 35 - (v / 100) * 25;
+            
+            let html = '';
+            
+            // Mini sleep line
+            let path = `M ${xScale(0)} ${yScale(patientData.sleep[0])}`;
+            for (let i = 1; i < patientData.sleep.length; i++) {
+                path += ` L ${xScale(i)} ${yScale(patientData.sleep[i])}`;
+            }
+            html += `<path d="${path}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`;
+            
+            svg.innerHTML = html;
+        }
+        
+        // Timeline slider interaction
+        function initTimeline() {
+            const container = document.getElementById('timelineContainer');
+            const selection = document.getElementById('timelineSelection');
+            const leftHandle = document.getElementById('leftHandle');
+            const rightHandle = document.getElementById('rightHandle');
+            
+            updateSelectionPosition();
+            
+            // Left handle drag
+            leftHandle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                timelineState.isDragging = 'left';
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onDragEnd);
+            });
+            
+            // Right handle drag
+            rightHandle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                timelineState.isDragging = 'right';
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onDragEnd);
+            });
+            
+            // Middle drag (move whole selection)
+            selection.addEventListener('mousedown', (e) => {
+                if (e.target === leftHandle || e.target === rightHandle) return;
+                timelineState.isDragging = 'middle';
+                timelineState.dragStartX = e.clientX;
+                timelineState.dragStartLeft = timelineState.startPercent;
+                timelineState.dragStartRight = timelineState.endPercent;
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onDragEnd);
+            });
+        }
+        
+        function onDrag(e) {
+            const container = document.getElementById('timelineContainer');
+            const rect = container.getBoundingClientRect();
+            const trackLeft = 20;
+            const trackWidth = rect.width - 40;
+            
+            const mouseX = e.clientX - rect.left - trackLeft;
+            const percent = Math.max(0, Math.min(100, (mouseX / trackWidth) * 100));
+            
+            if (timelineState.isDragging === 'left') {
+                timelineState.startPercent = Math.min(percent, timelineState.endPercent - 10);
+            } else if (timelineState.isDragging === 'right') {
+                timelineState.endPercent = Math.max(percent, timelineState.startPercent + 10);
+            } else if (timelineState.isDragging === 'middle') {
+                const deltaX = e.clientX - timelineState.dragStartX;
+                const deltaPercent = (deltaX / trackWidth) * 100;
+                const width = timelineState.dragStartRight - timelineState.dragStartLeft;
+                
+                let newStart = timelineState.dragStartLeft + deltaPercent;
+                let newEnd = timelineState.dragStartRight + deltaPercent;
+                
+                if (newStart < 0) {
+                    newStart = 0;
+                    newEnd = width;
+                }
+                if (newEnd > 100) {
+                    newEnd = 100;
+                    newStart = 100 - width;
+                }
+                
+                timelineState.startPercent = newStart;
+                timelineState.endPercent = newEnd;
+            }
+            
+            updateSelectionPosition();
+            updateCharts();
+        }
+        
+        function onDragEnd() {
+            timelineState.isDragging = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', onDragEnd);
+        }
+        
+        function updateSelectionPosition() {
+            const selection = document.getElementById('timelineSelection');
+            selection.style.left = timelineState.startPercent + '%';
+            selection.style.width = (timelineState.endPercent - timelineState.startPercent) + '%';
+        }
+    </script>
+</body>
+</html>
