@@ -21,7 +21,7 @@ A web-based dashboard for clinical coordinators to monitor patient participation
 
 ---
 
-## ✨ Features
+## Features
 
 ### Main Dashboard
 - **Patient Overview Table** - View all patients at a glance
@@ -37,7 +37,7 @@ A web-based dashboard for clinical coordinators to monitor patient participation
 - **Combined View** - All 3 metrics on one line chart
   - 🔵 HRV Average (blue)
   - 🟠 Activity Score (orange)  
-  - 🔵 Sleep Score (cyan)
+  - 🟢 Sleep Score (cyan)
 - **Separate Views** - Individual dot charts for each metric
 - **Interactive Timeline Slider**
   - Drag left handle to expand/shrink from left
