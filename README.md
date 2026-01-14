@@ -14,7 +14,10 @@ A web-based dashboard for clinical coordinators to monitor patient participation
 
 ## 📸 Dashboard Preview
 
-![Clinical Coordinator Dashboard](https://github.com/AlbinaKrasykova/oura-clinical-dashboard/blob/main/mockup.png?raw=true)
+![Clinical Coordinator Dashboard](https://raw.githubusercontent.com/AlbinaKrasykova/oura-clinical-dashboard/main/view1.png)
+![Clinical Coordinator Dashboard](https://raw.githubusercontent.com/AlbinaKrasykova/oura-clinical-dashboard/main/view2.png)
+![Clinical Coordinator Dashboard](https://raw.githubusercontent.com/AlbinaKrasykova/oura-clinical-dashboard/main/view2.2.png)
+
 
 ---
 
@@ -170,6 +173,3 @@ This project handles Protected Health Information (PHI). Ensure compliance with:
 **Albina Krasykova**  
 Cornell Medicine Research
 
----
-
-*Built with ❤️ for clinical research*
