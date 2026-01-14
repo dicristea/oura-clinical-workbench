@@ -173,6 +173,3 @@ This project handles Protected Health Information (PHI). Ensure compliance with:
 **Albina Krasykova**  
 Cornell Medicine Research
 
----
-
-*Built with ❤️ for clinical research*
