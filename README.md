@@ -14,7 +14,9 @@ A web-based dashboard for clinical coordinators to monitor patient participation
 
 ## 📸 Dashboard Preview
 
-![Clinical Coordinator Dashboard](https://github.com/AlbinaKrasykova/oura-clinical-dashboard/blob/main/mockup.png?raw=true)
+![Clinical Coordinator Dashboard](https://github.com/AlbinaKrasykova/oura-clinical-dashboard/blob/main/view1?raw=true)
+![Clinical Coordinator Dashboard](https://github.com/AlbinaKrasykova/oura-clinical-dashboard/blob/main/view2?raw=true)
+![Clinical Coordinator Dashboard](https://github.com/AlbinaKrasykova/oura-clinical-dashboard/blob/main/view3?raw=true)
 
 ---
 
