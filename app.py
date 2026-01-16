@@ -149,31 +149,40 @@ def patient_detail(patient_id):
     if not patient:
         return "Patient not found", 404
     
-    # Generate 14 days of detailed metric data
+    # Generate 14 days (2 weeks) of detailed metric data
     import random
     random.seed(hash(patient_id))  # Consistent data for same patient
     
     dates = []
-    hrv_data = []
-    activity_data = []
-    sleep_data = []
+    heart_rate_data = []      # Lowest heart rate during sleep (bpm)
+    respiratory_data = []      # Respiratory rate (breaths/min)
+    hrv_data = []             # Heart Rate Variability (ms)
+    sleep_duration_data = []   # Sleep duration (hours)
+    steps_data = []           # Daily steps
+    temperature_data = []      # Temperature deviation (°C)
     
     from datetime import datetime, timedelta
-    base_date = datetime(2024, 12, 12)
+    base_date = datetime(2024, 12, 1)
     
-    for i in range(14):
+    for i in range(14):  # 2 weeks of data
         date = base_date + timedelta(days=i)
         dates.append(date.strftime("%b %d"))
         
-        # Generate realistic data patterns
-        hrv_data.append(random.randint(5000, 7500))
-        activity_data.append(random.randint(20, 100))
-        sleep_data.append(random.randint(10, 95))
+        # Generate realistic clinical data patterns
+        heart_rate_data.append(random.randint(48, 72))           # Resting HR 48-72 bpm
+        respiratory_data.append(round(random.uniform(12, 18), 1)) # RR 12-18 br/min
+        hrv_data.append(random.randint(20, 80))                  # HRV 20-80 ms
+        sleep_duration_data.append(round(random.uniform(5, 9), 1)) # Sleep 5-9 hours
+        steps_data.append(random.randint(2000, 15000))           # Steps 2k-15k
+        temperature_data.append(round(random.uniform(-1.0, 1.0), 2)) # Temp deviation -1 to +1°C
     
     patient['dates'] = dates
+    patient['heart_rate_data'] = heart_rate_data
+    patient['respiratory_data'] = respiratory_data
     patient['hrv_data'] = hrv_data
-    patient['activity_data'] = activity_data
-    patient['sleep_data'] = sleep_data
+    patient['sleep_duration_data'] = sleep_duration_data
+    patient['steps_data'] = steps_data
+    patient['temperature_data'] = temperature_data
     
     return render_template('patient_detail.html', patient=patient)
 

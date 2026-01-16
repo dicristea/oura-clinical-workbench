@@ -326,15 +326,15 @@
                 <p>MRN: {{ patient.mrn }}</p>
             </div>
             <div class="view-toggle">
-                <button class="view-btn active" id="combinedBtn" onclick="showCombinedView()">Combined View</button>
-                <button class="view-btn" id="separateBtn" onclick="showSeparateView()">Separate Views</button>
+                <button class="view-btn active" id="combinedBtn" onclick="showCombinedView()">Overview</button>
+                <button class="view-btn" id="separateBtn" onclick="showSeparateView()">Detailed View</button>
             </div>
         </div>
         
-        <!-- Combined View Chart -->
+        <!-- Overview Chart -->
         <div class="chart-card" id="combinedView">
             <div class="chart-header">
-                <span class="chart-title">Combined Metrics (Lines)</span>
+                <span class="chart-title">Overview - Key Biometrics</span>
                 <span class="chart-date-range" id="dateRangeLabel">Dec 17 - Dec 21</span>
             </div>
             <div class="chart-area">
@@ -342,33 +342,45 @@
             </div>
             <div class="legend">
                 <div class="legend-item">
+                    <div class="legend-line" style="background: #ef4444;"></div>
+                    Heart Rate
+                </div>
+                <div class="legend-item">
                     <div class="legend-line" style="background: #3b82f6;"></div>
-                    HRV Average
+                    HRV
                 </div>
                 <div class="legend-item">
-                    <div class="legend-line" style="background: #f59e0b;"></div>
-                    Activity Score
-                </div>
-                <div class="legend-item">
-                    <div class="legend-line" style="background: #06b6d4;"></div>
-                    Sleep Score
+                    <div class="legend-line" style="background: #10b981;"></div>
+                    Sleep Duration
                 </div>
             </div>
         </div>
         
-        <!-- Separate Views Charts -->
+        <!-- Detailed View Charts -->
         <div class="chart-card hidden" id="separateView">
             <div class="separate-chart-area">
-                <div class="chart-label">HRV Average</div>
+                <div class="chart-label">Heart Rate (Lowest During Sleep)</div>
+                <svg class="chart-svg" id="heartRateChart"></svg>
+            </div>
+            <div class="separate-chart-area">
+                <div class="chart-label">Respiratory Rate</div>
+                <svg class="chart-svg" id="respiratoryChart"></svg>
+            </div>
+            <div class="separate-chart-area">
+                <div class="chart-label">Heart Rate Variability (HRV)</div>
                 <svg class="chart-svg" id="hrvChart"></svg>
             </div>
             <div class="separate-chart-area">
-                <div class="chart-label">Activity Score</div>
-                <svg class="chart-svg" id="activityChart"></svg>
+                <div class="chart-label">Sleep Duration (Hours)</div>
+                <svg class="chart-svg" id="sleepDurationChart"></svg>
             </div>
             <div class="separate-chart-area">
-                <div class="chart-label">Sleep Score</div>
-                <svg class="chart-svg" id="sleepChart"></svg>
+                <div class="chart-label">Daily Steps</div>
+                <svg class="chart-svg" id="stepsChart"></svg>
+            </div>
+            <div class="separate-chart-area">
+                <div class="chart-label">Temperature Deviation (°C)</div>
+                <svg class="chart-svg" id="tempChart"></svg>
             </div>
         </div>
         
@@ -401,16 +413,19 @@
     <script>
         // Patient data from server
         const patientData = {
+            heartRate: {{ patient.heart_rate_data | tojson }},
+            respiratory: {{ patient.respiratory_data | tojson }},
             hrv: {{ patient.hrv_data | tojson }},
-            activity: {{ patient.activity_data | tojson }},
-            sleep: {{ patient.sleep_data | tojson }},
+            sleepDuration: {{ patient.sleep_duration_data | tojson }},
+            steps: {{ patient.steps_data | tojson }},
+            temperature: {{ patient.temperature_data | tojson }},
             dates: {{ patient.dates | tojson }}
         };
         
-        // Timeline state
+        // Timeline state - default to 2 weeks (full view)
         let timelineState = {
-            startPercent: 30,
-            endPercent: 70,
+            startPercent: 0,
+            endPercent: 100,
             isDragging: null
         };
         
@@ -465,14 +480,15 @@
             
             const range = getVisibleDataRange();
             const visibleDates = patientData.dates.slice(range.startIdx, range.endIdx);
+            const visibleHeartRate = patientData.heartRate.slice(range.startIdx, range.endIdx);
             const visibleHrv = patientData.hrv.slice(range.startIdx, range.endIdx);
-            const visibleActivity = patientData.activity.slice(range.startIdx, range.endIdx);
-            const visibleSleep = patientData.sleep.slice(range.startIdx, range.endIdx);
+            const visibleSleepDuration = patientData.sleepDuration.slice(range.startIdx, range.endIdx);
             
             // Scale functions
-            const xScale = (i) => padding.left + (i / (visibleDates.length - 1)) * (width - padding.left - padding.right);
-            const yScaleHrv = (v) => padding.top + (1 - (v - 0) / 8000) * (height - padding.top - padding.bottom);
-            const yScaleScore = (v) => padding.top + (1 - v / 100) * (height - padding.top - padding.bottom);
+            const xScale = (i) => padding.left + (i / Math.max(1, visibleDates.length - 1)) * (width - padding.left - padding.right);
+            const yScaleHR = (v) => padding.top + (1 - (v - 40) / 50) * (height - padding.top - padding.bottom); // HR 40-90
+            const yScaleHrv = (v) => padding.top + (1 - v / 100) * (height - padding.top - padding.bottom); // HRV 0-100
+            const yScaleSleep = (v) => padding.top + (1 - v / 12) * (height - padding.top - padding.bottom); // Sleep 0-12 hrs
             
             let html = '';
             
@@ -494,63 +510,68 @@
             }
             
             // Draw thin lines (not shapes)
+            // Heart Rate line (red)
+            let hrPath = `M ${xScale(0)} ${yScaleHR(visibleHeartRate[0])}`;
+            for (let i = 1; i < visibleHeartRate.length; i++) {
+                hrPath += ` L ${xScale(i)} ${yScaleHR(visibleHeartRate[i])}`;
+            }
+            html += `<path d="${hrPath}" fill="none" stroke="#ef4444" stroke-width="2"/>`;
+            
             // HRV line (blue)
             let hrvPath = `M ${xScale(0)} ${yScaleHrv(visibleHrv[0])}`;
             for (let i = 1; i < visibleHrv.length; i++) {
                 hrvPath += ` L ${xScale(i)} ${yScaleHrv(visibleHrv[i])}`;
             }
-            html += `<path d="${hrvPath}" fill="none" stroke="#3b82f6" stroke-width="1.5"/>`;
+            html += `<path d="${hrvPath}" fill="none" stroke="#3b82f6" stroke-width="2"/>`;
             
-            // Activity line (orange)
-            let activityPath = `M ${xScale(0)} ${yScaleScore(visibleActivity[0])}`;
-            for (let i = 1; i < visibleActivity.length; i++) {
-                activityPath += ` L ${xScale(i)} ${yScaleScore(visibleActivity[i])}`;
+            // Sleep Duration line (green)
+            let sleepPath = `M ${xScale(0)} ${yScaleSleep(visibleSleepDuration[0])}`;
+            for (let i = 1; i < visibleSleepDuration.length; i++) {
+                sleepPath += ` L ${xScale(i)} ${yScaleSleep(visibleSleepDuration[i])}`;
             }
-            html += `<path d="${activityPath}" fill="none" stroke="#f59e0b" stroke-width="1.5"/>`;
-            
-            // Sleep line (cyan)
-            let sleepPath = `M ${xScale(0)} ${yScaleScore(visibleSleep[0])}`;
-            for (let i = 1; i < visibleSleep.length; i++) {
-                sleepPath += ` L ${xScale(i)} ${yScaleScore(visibleSleep[i])}`;
-            }
-            html += `<path d="${sleepPath}" fill="none" stroke="#06b6d4" stroke-width="1.5"/>`;
+            html += `<path d="${sleepPath}" fill="none" stroke="#10b981" stroke-width="2"/>`;
             
             svg.innerHTML = html;
         }
         
         function drawSeparateCharts() {
-            drawDotChart('hrvChart', patientData.hrv, '#3b82f6', 8000);
-            drawDotChart('activityChart', patientData.activity, '#f59e0b', 100);
-            drawDotChart('sleepChart', patientData.sleep, '#06b6d4', 100);
+            drawDotChart('heartRateChart', patientData.heartRate, '#ef4444', 100, 'bpm');
+            drawDotChart('respiratoryChart', patientData.respiratory, '#8b5cf6', 25, 'br/min');
+            drawDotChart('hrvChart', patientData.hrv, '#3b82f6', 100, 'ms');
+            drawDotChart('sleepDurationChart', patientData.sleepDuration, '#10b981', 12, 'hrs');
+            drawDotChart('stepsChart', patientData.steps, '#f59e0b', 20000, 'steps');
+            drawDotChart('tempChart', patientData.temperature, '#06b6d4', 2, '°C', -2);
         }
         
-        function drawDotChart(svgId, data, color, maxVal) {
+        function drawDotChart(svgId, data, color, maxVal, unit = '', minVal = 0) {
             const svg = document.getElementById(svgId);
             if (!svg) return;
             
             const rect = svg.getBoundingClientRect();
             const width = rect.width || 800;
             const height = rect.height || 150;
-            const padding = { top: 20, right: 40, bottom: 30, left: 50 };
+            const padding = { top: 20, right: 40, bottom: 30, left: 60 };
             
             const range = getVisibleDataRange();
             const visibleData = data.slice(range.startIdx, range.endIdx);
             const visibleDates = patientData.dates.slice(range.startIdx, range.endIdx);
             
-            const xScale = (i) => padding.left + (i / (visibleData.length - 1)) * (width - padding.left - padding.right);
-            const yScale = (v) => padding.top + (1 - v / maxVal) * (height - padding.top - padding.bottom);
+            const dataRange = maxVal - minVal;
+            const xScale = (i) => padding.left + (i / Math.max(1, visibleData.length - 1)) * (width - padding.left - padding.right);
+            const yScale = (v) => padding.top + (1 - (v - minVal) / dataRange) * (height - padding.top - padding.bottom);
             
             let html = '';
             
             // Grid lines
             for (let i = 0; i <= 4; i++) {
                 const y = padding.top + (i / 4) * (height - padding.top - padding.bottom);
+                const labelVal = maxVal - i * dataRange / 4;
                 html += `<line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"/>`;
-                html += `<text class="axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${Math.round(maxVal - i * maxVal / 4)}</text>`;
+                html += `<text class="axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${labelVal.toFixed(1)}</text>`;
             }
             
             // X-axis labels
-            const step = Math.max(1, Math.floor(visibleDates.length / 4));
+            const step = Math.max(1, Math.floor(visibleDates.length / 5));
             for (let i = 0; i < visibleDates.length; i += step) {
                 const x = xScale(i);
                 html += `<text class="axis-label" x="${x}" y="${height - 5}" text-anchor="middle">${visibleDates[i]}</text>`;
@@ -558,7 +579,7 @@
             
             // Draw dots
             for (let i = 0; i < visibleData.length; i++) {
-                html += `<circle class="data-dot" cx="${xScale(i)}" cy="${yScale(visibleData[i])}" r="4" fill="${color}"/>`;
+                html += `<circle class="data-dot" cx="${xScale(i)}" cy="${yScale(visibleData[i])}" r="5" fill="${color}"/>`;
             }
             
             svg.innerHTML = html;
@@ -576,10 +597,11 @@
             
             let html = '';
             
-            // Mini sleep line
-            let path = `M ${xScale(0)} ${yScale(patientData.sleep[0])}`;
-            for (let i = 1; i < patientData.sleep.length; i++) {
-                path += ` L ${xScale(i)} ${yScale(patientData.sleep[i])}`;
+            // Mini heart rate line for timeline preview
+            const yScaleMini = (v) => 35 - ((v - 40) / 50) * 25;
+            let path = `M ${xScale(0)} ${yScaleMini(patientData.heartRate[0])}`;
+            for (let i = 1; i < patientData.heartRate.length; i++) {
+                path += ` L ${xScale(i)} ${yScaleMini(patientData.heartRate[i])}`;
             }
             html += `<path d="${path}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`;
             
