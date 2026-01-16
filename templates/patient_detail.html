@@ -335,7 +335,7 @@
         <div class="chart-card" id="combinedView">
             <div class="chart-header">
                 <span class="chart-title">Overview - Key Biometrics</span>
-                <span class="chart-date-range" id="dateRangeLabel">Dec 17 - Dec 21</span>
+                <span class="chart-date-range" id="dateRangeLabel">14-Day Window</span>
             </div>
             <div class="chart-area">
                 <svg class="chart-svg" id="combinedChart"></svg>
@@ -386,7 +386,7 @@
         
         <!-- Timeline Slider -->
         <div class="timeline-card">
-            <div class="timeline-title">Overview Timeline</div>
+            <div class="timeline-title">14-Day Timeline Window</div>
             <div class="timeline-container" id="timelineContainer">
                 <div class="timeline-track">
                     <div class="timeline-line"></div>
@@ -398,9 +398,9 @@
                 </div>
             </div>
             <div class="timeline-labels">
-                <span class="timeline-label" id="startLabel">Dec 12</span>
-                <span class="timeline-label" id="midLabel">Dec 19</span>
-                <span class="timeline-label" id="endLabel">Dec 25</span>
+                <span class="timeline-label" id="startLabel"></span>
+                <span class="timeline-label" id="midLabel"></span>
+                <span class="timeline-label" id="endLabel"></span>
             </div>
             <div class="timeline-instructions">
                 <span>• Drag left handle</span> to expand/shrink window from left side
@@ -433,7 +433,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             initTimeline();
             updateCharts();
+            updateTimelineLabels();
         });
+        
+        function updateTimelineLabels() {
+            // Set timeline labels to show exact 14-day range
+            document.getElementById('startLabel').textContent = patientData.dates[0];
+            document.getElementById('midLabel').textContent = patientData.dates[Math.floor(patientData.dates.length / 2)];
+            document.getElementById('endLabel').textContent = patientData.dates[patientData.dates.length - 1];
+        }
         
         function showCombinedView() {
             document.getElementById('combinedView').classList.remove('hidden');
@@ -468,7 +476,8 @@
             const range = getVisibleDataRange();
             const startDate = patientData.dates[range.startIdx] || patientData.dates[0];
             const endDate = patientData.dates[range.endIdx - 1] || patientData.dates[patientData.dates.length - 1];
-            document.getElementById('dateRangeLabel').textContent = `${startDate} - ${endDate}`;
+            const daysShown = range.endIdx - range.startIdx;
+            document.getElementById('dateRangeLabel').textContent = `${startDate} - ${endDate} (${daysShown} days)`;
         }
         
         function drawCombinedChart() {
