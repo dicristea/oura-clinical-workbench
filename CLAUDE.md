@@ -8,15 +8,16 @@ This is a **clinician-facing web workbench** built on the JupyterHealth platform
 
 The workbench supports **three disease contexts** through a unified interface:
 
-| Context | Data Source | Condition | PI / Study |
-|---------|------------|-----------|------------|
+| Context       | Data Source                       | Condition                          | PI / Study                          |
+| ------------- | --------------------------------- | ---------------------------------- | ----------------------------------- |
 | Liver Disease | Oura Ring V2 API + EHR Flowsheets | Hepatic Encephalopathy (cirrhosis) | Dr. Adam Buckholz, Cornell/Columbia |
-| Parkinson's | PPMI Dataset (LONI IDA) | PD Motor Progression | ML for Health course project |
-| Synthetic | Synthea FHIR Bundles | Multiple (demo/testing) | Future development |
+| Parkinson's   | PPMI Dataset (LONI IDA)           | PD Motor Progression               | ML for Health course project        |
+| Synthetic     | Synthea FHIR Bundles              | Multiple (demo/testing)            | Future development                  |
 
 ## Clinical Context
 
 ### Liver Disease / Hepatic Encephalopathy (Primary Study)
+
 - **Condition**: Hepatic encephalopathy — confusion caused by liver failing to clear toxins (ammonia)
 - **Patient cohort**: ~140 patients enrolled across Cornell/Columbia (target 150)
 - **Data collected**: 20,000+ days of Oura ring data over 6 years
@@ -26,7 +27,8 @@ The workbench supports **three disease contexts** through a unified interface:
 - **Important features**: REM Sleep %, Deep Sleep %, HRV Balance, Body Temp Deviation, Resting HR, Step Count, Inactivity Alerts, Sleep Latency
 - **Confounders to watch**: sleep apnea, narcotics use, alcohol use
 
-### Parkinson's Disease (ML for Health Project)
+### Parkinson's Disease
+
 - **Dataset**: PPMI (Parkinson's Progression Markers Initiative) from LONI IDA
 - **Cohort**: 423 de novo PD patients, 196 healthy controls, 65 prodromal participants
 - **Target variable**: MDS-UPDRS Part III (Motor Examination Score)
@@ -108,6 +110,7 @@ oura-clinical-workbench/
 ## Key Design Decisions
 
 ### 1. Data Adapter Pattern
+
 All data sources output `PatientTimeSeries` objects. The UI never knows or cares whether data came from Oura, PPMI, or Synthea. Each adapter handles its own parsing, cleaning, and normalization.
 
 ```python
@@ -122,6 +125,7 @@ class PatientTimeSeries:
 ```
 
 ### 2. Feature Registry
+
 Each data source registers its available features and how they group in the UI:
 
 - **Oura**: Sleep Architecture (REM %, Deep %, Latency), Physiological (HRV, Body Temp, Resting HR), Activity (Steps, Inactivity, Sedentary Time)
@@ -129,40 +133,46 @@ Each data source registers its available features and how they group in the UI:
 - **Synthea**: Varies by generated condition
 
 ### 3. Model Lab is Disease-Agnostic
+
 The Model Lab template renders whatever features/models are available for the current patient's data source. The feature checkboxes, model dropdown, hyperparameter fields, results cards, and feature importance chart all populate dynamically from the experiment config.
 
 ### 4. No Client-Side Frameworks
+
 The frontend uses vanilla HTML/CSS/JS with Jinja2 templating. SVG charts are generated server-side or with minimal client-side JS. This keeps the stack simple and avoids build tooling. Plotly is used only in the Jupyter notebooks, not in the production Flask app.
 
 ### 5. Explainability Pipeline (Phase 2)
+
 ```
 Model Prediction → SHAP Values → LLM (Llama 3 / GPT-4o) → Clinical Rationale Text
                                                           → Cognitive Match Score (hallucination check)
 ```
+
 The Cognitive Match Score = IR Precision of generated text against top-3 SHAP features. If the LLM mentions a feature not in the top-3 SHAP contributors, the score drops. Below a threshold → output "Uncertain" instead of a potentially hallucinated explanation.
 
 ## Routes (Flask)
 
-| Route | Template | Description |
-|-------|----------|-------------|
-| `GET /` | dashboard.html | Patient list with sparklines, status badges, filters |
-| `GET /patient/<id>` | patient_detail.html | Overview tab — biometric time series |
-| `GET /patient/<id>/data-explorer` | data_explorer.html | Raw signal overlay, feature browsing |
-| `GET /patient/<id>/model-lab` | model_lab.html | ML model selection, training, results |
-| `GET /patient/<id>/tournament` | tournament.html | Side-by-side model comparison table |
-| `GET /patient/<id>/ai-assistant` | ai_assistant.html | LLM explainability interface |
-| `POST /api/run-experiment` | JSON | Run a model experiment, return results |
-| `GET /api/experiments/<patient_id>` | JSON | List saved experiments for a patient |
-| `GET /api/patients` | JSON | Patient list data |
+| Route                               | Template            | Description                                          |
+| ----------------------------------- | ------------------- | ---------------------------------------------------- |
+| `GET /`                             | dashboard.html      | Patient list with sparklines, status badges, filters |
+| `GET /patient/<id>`                 | patient_detail.html | Overview tab — biometric time series                 |
+| `GET /patient/<id>/data-explorer`   | data_explorer.html  | Raw signal overlay, feature browsing                 |
+| `GET /patient/<id>/model-lab`       | model_lab.html      | ML model selection, training, results                |
+| `GET /patient/<id>/tournament`      | tournament.html     | Side-by-side model comparison table                  |
+| `GET /patient/<id>/ai-assistant`    | ai_assistant.html   | LLM explainability interface                         |
+| `POST /api/run-experiment`          | JSON                | Run a model experiment, return results               |
+| `GET /api/experiments/<patient_id>` | JSON                | List saved experiments for a patient                 |
+| `GET /api/patients`                 | JSON                | Patient list data                                    |
 
 ## UI Layout (from mockup screenshots)
 
 ### Patient View — Top Navigation Bar
+
 ```
 ← Patient PT-XXXX  [High Risk]    | Overview | Data Explorer | Model Lab | Tournament | AI Assistant |    [Export Findings] [AB]
 ```
 
 ### Model Lab Layout (Left Panel)
+
 ```
 Analysis Window: [7d] [14d] [30d] [90d] [All]
 Data points: N (Source API)
@@ -180,6 +190,7 @@ Raw Signal Overlay: [small chart showing selected signals]
 ```
 
 ### Model Lab Layout (Right Panel)
+
 ```
 Select Model: [Dropdown: XGBoost / Random Forest / LSTM / TFT]    [Run Analysis]
 Hyperparameters: [Learning Rate] [Max Depth] [N Estimators] [Min Child Weight]
@@ -196,12 +207,14 @@ Saved Experiments: [table with Model, Features, AUC, F1, Actions]
 ## Data Files — CRITICAL SECURITY RULES
 
 ### NEVER commit these:
+
 - `data.xlsx` (real patient PHI)
 - `.env` files (API tokens, MRNs)
 - Any file with real patient names, MRNs, or identifiable data
 - PPMI data files downloaded from LONI (governed by DUA)
 
 ### Safe to commit:
+
 - `demo_data.xlsx` / `demo_data/` (synthetic/fake data only)
 - `.env.example` (template with placeholder values)
 - Code, templates, documentation
@@ -235,15 +248,15 @@ git push origin main
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OURA_API_TOKEN` | For Oura patients | Oura Ring API token |
-| `PATIENT_MRNS` | For Oura patients | Comma-separated MRNs |
-| `FLOWSHEET_FILE` | For Oura patients | Path to flowsheet Excel |
-| `PPMI_DATA_DIR` | For PPMI patients | Path to PPMI CSV directory |
-| `FLASK_DEBUG` | No | Enable debug mode (default: True locally) |
-| `PORT` | No | Server port (default: 5000) |
-| `LLM_API_KEY` | For AI Assistant | API key for LLM rationale generation |
+| Variable         | Required          | Description                               |
+| ---------------- | ----------------- | ----------------------------------------- |
+| `OURA_API_TOKEN` | For Oura patients | Oura Ring API token                       |
+| `PATIENT_MRNS`   | For Oura patients | Comma-separated MRNs                      |
+| `FLOWSHEET_FILE` | For Oura patients | Path to flowsheet Excel                   |
+| `PPMI_DATA_DIR`  | For PPMI patients | Path to PPMI CSV directory                |
+| `FLASK_DEBUG`    | No                | Enable debug mode (default: True locally) |
+| `PORT`           | No                | Server port (default: 5000)               |
+| `LLM_API_KEY`    | For AI Assistant  | API key for LLM rationale generation      |
 
 ## Known Issues / TODOs
 

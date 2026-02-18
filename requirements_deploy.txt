@@ -4,8 +4,10 @@ gunicorn==21.2.0
 
 # ── Data ─────────────────────────────────────────────────────────────────────
 pandas==2.3.3
+numpy==2.2.3
 openpyxl==3.1.2
 
-# ── ML (lightweight — no torch/shap on free Render tier) ─────────────────────
+# ── ML (lightweight — no torch on free Render tier) ──────────────────────────
 scikit-learn==1.6.1
 xgboost==2.1.4
+shap==0.47.2

@@ -1,83 +1,672 @@
 {% extends "base.html" %}
-{% block title %}AI Assistant{% endblock %}
+{% block title %}AI Assistant — {{ patient.id }}{% endblock %}
 
 {% block head %}
 <style>
-    .placeholder-wrap {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 420px;
-        gap: 16px;
-        text-align: center;
-        color: #94a3b8;
-    }
+/* ── Two-column page layout ─────────────────────────────────────────────── */
+.ai-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+}
 
-    .placeholder-icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 16px;
-        background: #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #94a3b8;
-    }
+.ai-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
-    .placeholder-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #475569;
-    }
+.ai-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 84px;
+}
 
-    .placeholder-body {
-        font-size: 14px;
-        max-width: 420px;
-        line-height: 1.6;
-    }
+/* ── Shared card ─────────────────────────────────────────────────────────── */
+.ai-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+}
 
-    .placeholder-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        background: #ede9fe;
-        color: #5B21B6;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-    }
+.ai-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #64748b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+/* ── Rationale card ──────────────────────────────────────────────────────── */
+.rationale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rationale-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background: #ede9fe;
+    color: #5B21B6;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.btn-regen {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.btn-regen:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.rationale-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #1e293b;
+    padding: 18px 20px;
+    background: #faf5ff;
+    border-left: 3px solid #5B21B6;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 14px;
+}
+
+.rationale-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.rationale-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.rationale-meta-item strong {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.phase-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ── SHAP evidence card ──────────────────────────────────────────────────── */
+.shap-col-headers {
+    display: grid;
+    grid-template-columns: 150px 1fr 72px;
+    gap: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 4px;
+}
+
+.shap-col-hdr {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+}
+
+.shap-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 72px;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.shap-row:last-of-type {
+    border-bottom: none;
+}
+
+.shap-feat-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #334155;
+    line-height: 1.3;
+}
+
+.shap-dir-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 3px;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pill-pos { background: #dcfce7; color: #15803d; }
+.pill-neg { background: #fee2e2; color: #991b1b; }
+
+/* Centered bar track — zero at 50% */
+.shap-bar-wrap {
+    position: relative;
+    height: 16px;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+/* Center divider */
+.shap-bar-wrap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    background: #cbd5e1;
+    border-radius: 1px;
+    z-index: 2;
+}
+
+/* Positive bar: extends rightward from center */
+.shap-bar-pos {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    border-radius: 0 9999px 9999px 0;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    z-index: 1;
+}
+
+/* Negative bar: extends leftward from center */
+.shap-bar-neg {
+    position: absolute;
+    right: 50%;
+    top: 0;
+    bottom: 0;
+    border-radius: 9999px 0 0 9999px;
+    background: linear-gradient(270deg, #ef4444, #f87171);
+    z-index: 1;
+}
+
+.shap-value {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.shap-value.pos { color: #059669; }
+.shap-value.neg { color: #dc2626; }
+
+.shap-footnote {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 14px;
+    line-height: 1.55;
+}
+
+/* ── Cognitive match score (sidebar) ─────────────────────────────────────── */
+.match-score-display {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.match-score-pct {
+    font-size: 44px;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+}
+
+.match-score-frac {
+    font-size: 13px;
+    color: #64748b;
+    padding-bottom: 6px;
+}
+
+.match-score-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+.match-bar-track {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.match-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+}
+
+.conf-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+}
+
+.conf-high     { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.conf-medium   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.conf-uncertain{ background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+.halluc-note {
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.55;
+}
+
+/* ── Provenance card (sidebar) ───────────────────────────────────────────── */
+.prov-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.prov-row:last-child { border-bottom: none; }
+.prov-label { color: #94a3b8; white-space: nowrap; }
+.prov-value { color: #334155; font-weight: 500; text-align: right; }
+
+.disclaimer {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 10.5px;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+/* ── Error card ──────────────────────────────────────────────────────────── */
+.error-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 40px 32px;
+    text-align: center;
+}
+
+.error-icon {
+    width: 52px;
+    height: 52px;
+    background: #fee2e2;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    color: #ef4444;
+}
+
+.error-title { font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+
+.error-detail {
+    font-size: 12px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #ef4444;
+    margin-top: 14px;
+    text-align: left;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+    .ai-layout { grid-template-columns: 1fr; }
+    .ai-sidebar { position: static; }
+    .shap-col-headers,
+    .shap-row { grid-template-columns: 130px 1fr 64px; }
+}
 </style>
 {% endblock %}
 
+
 {% block content %}
-<div class="card">
-    <div class="placeholder-wrap">
-        <div class="placeholder-icon">
-            <!-- message-circle / sparkle icon -->
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
+
+{# ── Error state ──────────────────────────────────────────────────────────── #}
+{% if error %}
+<div class="error-card">
+    <div class="error-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+    </div>
+    <div class="error-title">AI Assistant encountered an error</div>
+    <p style="font-size:13px;color:#64748b;">
+        The SHAP explanation pipeline failed. Ensure <code>xgboost</code> and
+        <code>shap</code> are installed (<code>pip install xgboost shap</code>).
+    </p>
+    <div class="error-detail">{{ error }}</div>
+</div>
+
+{% else %}
+{# ── Full layout ──────────────────────────────────────────────────────────── #}
+{% set max_abs = shap_top3 | map(attribute='abs_shap') | max %}
+
+<div class="ai-layout">
+
+    <!-- ══════════════════════════════════════════════════════
+         LEFT COLUMN  —  Rationale + SHAP Evidence
+         ══════════════════════════════════════════════════════ -->
+    <div class="ai-main">
+
+        <!-- Clinical Rationale ─────────────────────────────────────────── -->
+        <div class="ai-card">
+            <div class="rationale-header">
+                <span class="rationale-badge">
+                    <!-- star/sparkle icon -->
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"
+                         aria-hidden="true">
+                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+                    </svg>
+                    AI Rationale
+                </span>
+                <a class="btn-regen" href="/patient/{{ patient.id }}/ai-assistant"
+                   title="Re-run the full SHAP + rationale pipeline">
+                    <!-- refresh icon -->
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                    </svg>
+                    Regenerate
+                </a>
+            </div>
+
+            <div class="rationale-text" role="region" aria-label="Generated clinical rationale">
+                {{ rationale.rationale_text }}
+            </div>
+
+            <div class="rationale-meta">
+                <span class="rationale-meta-item">
+                    <strong>Model:</strong> {{ model_name }}
+                </span>
+                <span class="rationale-meta-item">
+                    <strong>Features:</strong> {{ n_features }}
+                </span>
+                <span class="rationale-meta-item">
+                    <strong>Training rows:</strong> {{ n_train }}
+                </span>
+                <span class="rationale-meta-item">
+                    <strong>Source:</strong> {{ source_label }}
+                </span>
+            </div>
+
+            <div class="phase-note">
+                <!-- clock icon -->
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Template-based rationale · LLM integration (Llama 3 / GPT-4o) pending in Phase 2
+            </div>
         </div>
 
-        <span class="placeholder-badge">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            Coming Soon
-        </span>
 
-        <p class="placeholder-title">AI Assistant</p>
-        <p class="placeholder-body">
-            LLM-powered explainability for model predictions. Ask questions about why
-            a patient's risk score changed, get natural-language rationales grounded
-            in the top SHAP contributors, and verify outputs with the Cognitive Match Score.
-        </p>
-    </div>
-</div>
+        <!-- SHAP Evidence Breakdown ─────────────────────────────────────── -->
+        <div class="ai-card">
+            <div class="ai-card-title">
+                <!-- bar-chart icon -->
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6"  y1="20" x2="6"  y2="14"/>
+                    <line x1="2"  y1="20" x2="22" y2="20"/>
+                </svg>
+                Evidence Breakdown (SHAP TreeExplainer)
+            </div>
+
+            <!-- Column headers -->
+            <div class="shap-col-headers">
+                <span class="shap-col-hdr">Feature</span>
+                <span class="shap-col-hdr" style="text-align:center;">← Protective &nbsp;|&nbsp; Risk Factor →</span>
+                <span class="shap-col-hdr" style="text-align:right;">SHAP</span>
+            </div>
+
+            <!-- One row per top-3 feature -->
+            {% for entry in shap_top3 %}
+            {% set bar_pct = ((entry.abs_shap / max_abs) * 50) | round | int %}
+            <div class="shap-row">
+
+                <!-- Feature name + direction pill -->
+                <div>
+                    <div class="shap-feat-name">{{ entry.display_name }}</div>
+                    {% if entry.direction == 'positive' %}
+                    <span class="shap-dir-pill pill-pos">↑ Risk factor</span>
+                    {% else %}
+                    <span class="shap-dir-pill pill-neg">↓ Protective</span>
+                    {% endif %}
+                </div>
+
+                <!-- Centered bar: green extends right, red extends left -->
+                <div class="shap-bar-wrap"
+                     role="meter"
+                     aria-label="{{ entry.display_name }} SHAP {{ entry.shap_value }}">
+                    {% if entry.direction == 'positive' %}
+                    <div class="shap-bar-pos" style="width: {{ bar_pct }}%;"></div>
+                    {% else %}
+                    <div class="shap-bar-neg" style="width: {{ bar_pct }}%;"></div>
+                    {% endif %}
+                </div>
+
+                <!-- Signed value -->
+                <div class="shap-value {% if entry.direction == 'positive' %}pos{% else %}neg{% endif %}">
+                    {% if entry.shap_value >= 0 %}+{% endif %}{{ "%.3f" | format(entry.shap_value) }}
+                </div>
+
+            </div>
+            {% endfor %}
+
+            <p class="shap-footnote">
+                Mean signed SHAP across test observations.
+                <strong>Positive</strong> = pushes toward the high-risk class;
+                <strong>negative</strong> = pushes toward the low-risk class.
+                Bar length is scaled to the largest |SHAP| value shown.
+            </p>
+        </div>
+
+    </div><!-- /.ai-main -->
+
+
+    <!-- ══════════════════════════════════════════════════════
+         RIGHT SIDEBAR  —  Hallucination Check + Provenance
+         ══════════════════════════════════════════════════════ -->
+    <div class="ai-sidebar">
+
+        <!-- Cognitive Match / Hallucination Check ──────────────────────── -->
+        <div class="ai-card">
+            <div class="ai-card-title">
+                <!-- check-circle icon -->
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Hallucination Check
+            </div>
+
+            <!-- Big percentage + fraction -->
+            <div class="match-score-display">
+                <div class="match-score-pct"
+                     role="meter"
+                     aria-valuenow="{{ (rationale.cognitive_match_score * 100) | round | int }}"
+                     aria-valuemin="0" aria-valuemax="100">
+                    {{ (rationale.cognitive_match_score * 100) | round | int }}%
+                </div>
+                <div class="match-score-frac">
+                    {{ rationale.top_features | length }}&thinsp;/&thinsp;{{ shap_top3 | length }}
+                </div>
+            </div>
+
+            <div class="match-score-label">
+                Cognitive match score — {{ rationale.top_features | length }}
+                of {{ shap_top3 | length }} top SHAP features
+                verifiably mentioned in the rationale.
+            </div>
+
+            <!-- Progress bar -->
+            <div class="match-bar-track">
+                <div class="match-bar-fill"
+                     style="width: {{ (rationale.cognitive_match_score * 100) | round | int }}%;
+                            background: {% if rationale.confidence == 'High' %}#10b981{% elif rationale.confidence == 'Medium' %}#f59e0b{% else %}#ef4444{% endif %};">
+                </div>
+            </div>
+
+            <!-- Confidence badge -->
+            {% if rationale.confidence == 'High' %}
+            <span class="conf-badge conf-high">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                High Confidence
+            </span>
+            {% elif rationale.confidence == 'Medium' %}
+            <span class="conf-badge conf-medium">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Medium Confidence
+            </span>
+            {% else %}
+            <span class="conf-badge conf-uncertain">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Uncertain
+            </span>
+            {% endif %}
+
+            <p class="halluc-note">
+                Precision metric from the ML&nbsp;for&nbsp;Health proposal. Detects whether the
+                generated rationale faithfully reflects the actual SHAP evidence, or
+                introduces unsupported claims (hallucination).
+                <br><br>
+                <strong>Threshold:</strong>
+                ≥&thinsp;67% → High &nbsp;·&nbsp;
+                ≥&thinsp;34% → Medium &nbsp;·&nbsp;
+                &lt;&thinsp;34% → Uncertain.
+            </p>
+        </div>
+
+
+        <!-- Provenance ──────────────────────────────────────────────────── -->
+        <div class="ai-card">
+            <div class="ai-card-title">
+                <!-- file icon -->
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Provenance
+            </div>
+
+            <div class="prov-row">
+                <span class="prov-label">Estimator</span>
+                <span class="prov-value">{{ model_name }}</span>
+            </div>
+            <div class="prov-row">
+                <span class="prov-label">Data source</span>
+                <span class="prov-value">{{ source_label }}</span>
+            </div>
+            <div class="prov-row">
+                <span class="prov-label">Features used</span>
+                <span class="prov-value">{{ n_features }} (default-selected)</span>
+            </div>
+            <div class="prov-row">
+                <span class="prov-label">Training rows</span>
+                <span class="prov-value">{{ n_train }}</span>
+            </div>
+            <div class="prov-row">
+                <span class="prov-label">Explainability</span>
+                <span class="prov-value">SHAP TreeExplainer</span>
+            </div>
+            <div class="prov-row">
+                <span class="prov-label">Rationale engine</span>
+                <span class="prov-value">Template (Phase 1)</span>
+            </div>
+            <div class="prov-row">
+                <span class="prov-label">Patient</span>
+                <span class="prov-value">{{ patient.id }}</span>
+            </div>
+
+            <p class="disclaimer">
+                This explanation is generated by a machine learning model for
+                research purposes only. It does not constitute a clinical diagnosis
+                or medical advice. All model outputs must be reviewed by a licensed
+                clinician before any treatment decision is made.
+            </p>
+        </div>
+
+    </div><!-- /.ai-sidebar -->
+
+</div><!-- /.ai-layout -->
+{% endif %}
 {% endblock %}

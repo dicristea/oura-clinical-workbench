@@ -1,93 +1,125 @@
-# 🏥 Clinical Coordinator Dashboard
+# 🏥 JupyterHealth Clinical Workbench
 
-> **Oura Ring Study Data Monitoring Platform**
+> **Clinician-facing web workbench for wearable + clinical data monitoring, ML disease progression prediction, and explainable AI**
 
-A web-based dashboard for clinical coordinators to monitor patient participation in the Oura Ring biometric study, track data collection status, and analyze patient biometrics with interactive charts.
-
----
-
-## 🌐 Live Demo
-
-👉 **[View Live Dashboard](https://oura-clinical-dashboard.onrender.com)**
+A browser-based platform that enables clinical researchers to monitor patients via wearable and clinical data, run ML models for disease progression prediction, and get explainable AI rationales.
 
 ---
 
-## 📸 Dashboard Preview
+## Supported Disease Contexts
 
-![Clinical Coordinator Dashboard](https://raw.githubusercontent.com/AlbinaKrasykova/oura-clinical-dashboard/main/view1.png)
-![Clinical Coordinator Dashboard](https://raw.githubusercontent.com/AlbinaKrasykova/oura-clinical-dashboard/main/view2.png)
-![Clinical Coordinator Dashboard](https://raw.githubusercontent.com/AlbinaKrasykova/oura-clinical-dashboard/main/3.png)
+| Context       | Data Source                       | Condition                          | PI / Study                          |
+| ------------- | --------------------------------- | ---------------------------------- | ----------------------------------- |
+| Liver Disease | Oura Ring V2 API + EHR Flowsheets | Hepatic Encephalopathy (cirrhosis) | Dr. Adam Buckholz, Cornell/Columbia |
+| Parkinson's   | PPMI Dataset (LONI IDA)           | PD Motor Progression               | ML for Health course project        |
+| Synthetic     | Synthea FHIR Bundles              | Multiple (demo/testing)            | Future development                  |
 
+---
+
+## Clinical Context
+
+### Liver Disease / Hepatic Encephalopathy (Primary Study)
+
+- **Condition**: Hepatic encephalopathy — confusion caused by liver failing to clear toxins (ammonia)
+- **Patient cohort**: ~140 patients enrolled across Cornell/Columbia (target 150)
+- **Data collected**: 20,000+ days of Oura ring data over 6 years
+- **Key finding from pilot**: Subtle REM sleep and circadian rhythm changes in covert disease patients
+- **Goal**: Use digital biomarkers (sleep architecture, HRV, temperature) to flag at-risk patients early
+- **Important features**: REM Sleep %, Deep Sleep %, HRV Balance, Body Temp Deviation, Resting HR, Step Count, Inactivity Alerts, Sleep Latency
+
+### Parkinson's Disease
+
+- **Dataset**: PPMI (Parkinson's Progression Markers Initiative) from LONI IDA
+- **Cohort**: 423 de novo PD patients, 196 healthy controls, 65 prodromal participants
+- **Target variable**: MDS-UPDRS Part III (Motor Examination Score)
+- **Models**: Temporal Fusion Transformer (primary), XGBoost (baseline), LSTM/GRU (temporal baseline)
 
 ---
 
 ## Features
 
 ### Main Dashboard
-- **Patient Overview Table** - View all patients at a glance
-- **Data Collection Status** - Track inpatient/outpatient data counts
-- **Sync Monitoring** - See when data was last synced
-- **Status Indicators** - Oura ✓ and EHR ✓ connection status
-- **Smart Alerts** - Active, Needs Follow-up, Outreach Needed badges
-- **3 Metric Trends** - Sleep Score, HRV Average, Activity Score sparklines
-- **Filtering** - Filter by status, data overlap, completion
-- **Search** - Search patients by ID
 
-### Patient Detail View (Click on Patient ID)
-- **Combined View** - All 3 metrics on one line chart
-  - 🔵 HRV Average (blue)
-  - 🟠 Activity Score (orange)  
-  - 🟢 Sleep Score (cyan)
-- **Separate Views** - Individual dot charts for each metric
-- **Interactive Timeline Slider**
-  - Drag left handle to expand/shrink from left
-  - Drag right handle to expand/shrink from right
-  - Drag middle to move the window
-- **Real-time Updates** - Charts update as you drag
+- **Patient Overview Table** — View all patients with sparklines and status badges
+- **Filtering** — Filter by status, data overlap, completion
+- **Search** — Search patients by ID
 
----
+### Patient Views
 
-## 🎯 Purpose
+| Route             | Description                                               |
+| ----------------- | --------------------------------------------------------- |
+| **Overview**      | Biometric time series (Sleep, HRV, Activity)              |
+| **Data Explorer** | Raw signal overlay, feature browsing                      |
+| **Model Lab**     | ML model selection, training, results, feature importance |
+| **Tournament**    | Side-by-side model comparison                             |
+| **AI Assistant**  | LLM explainability / Trust Workbench                      |
 
-This dashboard helps clinical research coordinators:
+### Model Lab
 
-| Task | How Dashboard Helps |
-|------|---------------------|
-| **Monitor participation** | See all patients and their status at a glance |
-| **Identify issues** | Color-coded badges highlight who needs attention |
-| **Track data quality** | View Oura + EHR data overlap |
-| **Analyze trends** | Interactive charts show patient biometrics over time |
-| **Prioritize outreach** | Filter to see only patients needing follow-up |
+- **Analysis Window** — 7d, 14d, 30d, 90d, All
+- **Input Features** — Disease-specific feature groups (Sleep Architecture, Genetic, Biofluid, etc.)
+- **Models** — XGBoost, Random Forest, LSTM, TFT
+- **Results** — AUC-ROC, Precision, Recall, F1, Feature Importance
+- **Saved Experiments** — Track and compare runs
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Python, Flask
-- **Frontend:** HTML5, CSS3, JavaScript
-- **Data:** Pandas, Excel (xlsx)
-- **Charts:** Custom SVG charts with interactive timeline
-- **Hosting:** Render (free tier)
+- **Backend**: Python 3.12, Flask
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Data**: Pandas, NumPy, Excel (xlsx)
+- **ML**: scikit-learn, XGBoost, PyTorch (for TFT/LSTM)
+- **Explainability**: SHAP, LLM API (Llama 3 or GPT-4o)
+- **Charts**: Custom SVG in templates (no Plotly in production)
+- **Deployment**: Render (free tier), Gunicorn
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-oura-clinical-dashboard/
-├── app.py                    # Flask application
-├── templates/
-│   ├── dashboard.html        # Main dashboard view
-│   └── patient_detail.html   # Patient metrics detail view
-├── demo_data.xlsx            # Sample patient data
-├── requirements_deploy.txt   # Python dependencies
-├── render.yaml               # Render deployment config
-├── README.md                 # This file
+oura-clinical-workbench/
+├── app.py                           # Flask application + all routes
+├── config.py                        # App-level configuration
+├── requirements.txt                 # Production dependencies
+├── requirements_deploy.txt         # Deployment-only dependencies
+├── render.yaml                      # Render deployment config
 │
-└── HF-Notebook/              # Original Jupyter analysis notebooks
-    ├── config.py             # Configuration loader
-    ├── vis.py                # Visualization helpers
-    └── requirements.txt      # Notebook dependencies
+├── data/                            # Data abstraction layer
+│   ├── base.py                      # PatientTimeSeries dataclass + DataSource enum
+│   ├── oura_adapter.py              # Oura Ring V2 API + flowsheet Excel loader
+│   ├── ppmi_adapter.py              # PPMI LONI CSV loader
+│   ├── synthea_adapter.py           # Synthea FHIR JSON bundle loader
+│   └── feature_registry.py          # Maps data source → available features + groups
+│
+├── models/                          # ML model layer
+│   ├── experiment.py                # Experiment config, training, result storage
+│   ├── xgboost_model.py             # XGBoost wrapper
+│   ├── random_forest_model.py       # Random Forest wrapper
+│   ├── lstm_model.py                # LSTM/GRU temporal model
+│   ├── tft_model.py                 # Temporal Fusion Transformer
+│   └── explainability.py            # SHAP + LLM rationale generation
+│
+├── templates/                       # Jinja2 HTML templates
+│   ├── base.html                    # Shared layout (nav bar, patient header)
+│   ├── dashboard.html               # Main coordinator dashboard
+│   ├── patient_detail.html          # Overview tab
+│   ├── data_explorer.html           # Raw signal overlay
+│   ├── model_lab.html               # ML model selection, training, results
+│   ├── tournament.html              # Side-by-side model comparison
+│   └── ai_assistant.html            # LLM explainability interface
+│
+├── static/                          # Static assets
+│   └── style.css
+│
+├── demo_data/                       # Sample/demo data (safe to commit)
+│   ├── demo_oura.xlsx
+│   ├── demo_ppmi/
+│   └── demo_synthea/
+│
+├── HF-Notebook/                     # Original Jupyter notebooks (exploratory)
+└── tests/                           # Unit tests
 ```
 
 ---
@@ -95,81 +127,80 @@ oura-clinical-dashboard/
 ## 🚀 Quick Start (Local Development)
 
 ### 1. Clone the repo
+
 ```bash
-git clone https://github.com/AlbinaKrasykova/oura-clinical-dashboard.git
-cd oura-clinical-dashboard
+git clone https://github.com/dicristea/oura-clinical-workbench.git
+cd oura-clinical-workbench
 ```
 
 ### 2. Create virtual environment
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
+
 ```bash
+pip install -r requirements.txt
 pip install -r requirements_deploy.txt
 ```
 
 ### 4. Run the app
+
 ```bash
 python app.py
 ```
 
 ### 5. Open in browser
+
 👉 http://localhost:5000
 
 ---
 
-## 📊 Dashboard Views
+## Security Notes
 
-### Main Dashboard
-| Column | Description |
-|--------|-------------|
-| **Patient ID** | Click to view detailed metrics |
-| **Data Collection** | Inpatient/outpatient counts + sync status |
-| **Metric Trends** | Sleep, HRV, Activity sparklines |
-| **Participation Dates** | Study enrollment period |
-| **Hospitalization Dates** | Hospital admission period |
+⚠️ **CRITICAL for PHI/HIPAA Compliance:**
 
-### Patient Detail View
-| View | Description |
-|------|-------------|
-| **Combined View** | All metrics overlaid on single chart |
-| **Separate Views** | Individual charts for each metric |
-| **Timeline Slider** | Interactive date range selector |
+**NEVER commit:**
 
----
+- `data.xlsx` (real patient PHI)
+- `.env` files (API tokens, MRNs)
+- Any file with real patient names, MRNs, or identifiable data
+- PPMI data files downloaded from LONI (governed by DUA)
 
-## 🔒 Security Notes
+**Safe to commit:**
 
-⚠️ **Important for PHI/HIPAA Compliance:**
-
-- Real patient data (`data.xlsx`) is **NOT** committed to this repo
-- Only `demo_data.xlsx` with fake sample data is included
-- Keep `.env` files with API tokens out of version control
-- Use environment variables for sensitive configuration
+- `demo_data/` (synthetic/fake data only)
+- `.env.example` (template with placeholder values)
+- Code, templates, documentation
 
 ---
 
-## 🙏 Credits
+## Testing
 
-Built as an extension of the [HF-Notebook](https://github.com/TomorrowMC/HF-Notebook) project for Oura Ring biometric data analysis.
+```bash
+pytest tests/
+```
 
 ---
 
-## 📄 License
+## References
+
+- [Oura V2 API](https://cloud.ouraring.com/v2/docs)
+- [PPMI](https://www.ppmi-info.org/)
+- Temporal Fusion Transformers: Lim et al., 2021 (Int. J. Forecasting)
+- SHAP: Lundberg & Lee, 2017 (NeurIPS)
+- [OpenMHealth data standard](https://www.openmhealth.org/)
+
+---
+
+## License
 
 This project handles Protected Health Information (PHI). Ensure compliance with:
+
 - HIPAA regulations
-- IRB requirements  
+- IRB requirements
 - Data use agreements
 - Patient consent requirements
-
----
-
-## 📬 Contact
-
-**Albina Krasykova**  
-Cornell Medicine Research
-

@@ -495,7 +495,6 @@ def tournament(patient_id):
         return "Patient not found", 404
 
     # Placeholder experiments — same set as Model Lab, with full metric columns.
-    # In Phase 2 these will be loaded from a persistent experiment store.
     experiments = [
         {
             'id':         1,
@@ -542,12 +541,144 @@ def tournament(patient_id):
 
 @app.route('/patient/<patient_id>/ai-assistant')
 def ai_assistant(patient_id):
-    """AI Assistant tab — placeholder."""
+    """AI Assistant — SHAP rationale + cognitive-match hallucination detection."""
     patients = load_patient_data()
     patient  = next((p for p in patients if p['id'] == patient_id), None)
     if not patient:
         return "Patient not found", 404
-    return render_template('ai_assistant.html', patient=patient, active_tab='ai-assistant')
+
+    ds_key       = 'ppmi' if patient_id.startswith('PT-2') else 'oura'
+    source_label = 'PPMI Dataset' if ds_key == 'ppmi' else 'Oura V2 API'
+
+    # Shared kwargs passed to render_template in both success and error paths
+    base_ctx = dict(patient=patient, active_tab='ai-assistant',
+                    source_label=source_label, data_source=ds_key)
+
+    try:
+        import numpy as np
+        from xgboost import XGBClassifier
+        from data.feature_registry import get_features_for_source
+        from data.base import DataSource
+        from models.experiment import _FEATURE_POLARITY
+        from models.explainability import (
+            generate_shap_explanation,
+            generate_llm_rationale,
+            compute_cognitive_match_score,
+            ClinicalRationale,
+        )
+
+        # ── Feature registry: use only default_selected features ─────────────
+        source_enum      = DataSource.PPMI if ds_key == 'ppmi' else DataSource.OURA
+        all_features     = get_features_for_source(source_enum)
+        default_features = [fc for fc in all_features if fc.default_selected]
+        display_map      = {fc.name: fc.display_name for fc in all_features}
+        feat_names       = [fc.name for fc in default_features]
+
+        # ── Synthetic time series (same seed/generation as data-explorer) ─────
+        N_DAYS = 90
+        seed   = abs(hash(patient_id)) % (2 ** 31)
+        rng    = np.random.default_rng(seed)
+        idx    = pd.date_range(end='2024-12-31', periods=N_DAYS, freq='D')
+
+        col_data = {
+            'rem_sleep_pct':       rng.uniform(10, 30, N_DAYS),
+            'deep_sleep_pct':      rng.uniform(8,  25, N_DAYS),
+            'sleep_latency':       rng.uniform(5,  45, N_DAYS),
+            'hrv_balance':         rng.uniform(20, 80, N_DAYS),
+            'body_temp_deviation': rng.uniform(-1.0, 1.0, N_DAYS),
+            'resting_hr':          rng.uniform(50, 75, N_DAYS),
+            'step_count':          rng.uniform(2000, 15000, N_DAYS),
+            'inactivity_alerts':   rng.uniform(0, 10, N_DAYS),
+            'baseline_updrs':      rng.uniform(10, 60, N_DAYS),
+            'csf_alpha_synuclein': rng.uniform(1000, 3000, N_DAYS),
+            'amyloid_beta':        rng.uniform(500,  1500, N_DAYS),
+            'total_tau':           rng.uniform(100,  400, N_DAYS),
+            'gba_mutation':        rng.integers(0, 3, N_DAYS).astype(float),
+            'lrrk2_mutation':      rng.integers(0, 2, N_DAYS).astype(float),
+            'apoe_status':         rng.integers(0, 3, N_DAYS).astype(float),
+            'epworth_sleep':       rng.uniform(0, 18, N_DAYS),
+            'schwab_england_adl':  rng.uniform(50, 100, N_DAYS),
+            'datscan':             rng.uniform(0.5, 3.5, N_DAYS),
+        }
+
+        # ── Feature matrix (default features only) ────────────────────────────
+        X = pd.DataFrame(
+            {name: col_data[name] for name in feat_names if name in col_data},
+            index=idx,
+        )
+
+        # ── Risk composite target (same polarity logic as experiment.py) ──────
+        composite = pd.Series(0.0, index=X.index)
+        for col in X.columns:
+            std = X[col].std()
+            if std == 0:
+                continue
+            z   = (X[col] - X[col].mean()) / std
+            pol = _FEATURE_POLARITY.get(col, -1)
+            if pol == 0:
+                continue
+            composite += -pol * z
+        y = (composite > composite.median()).astype(int)
+
+        # ── Chronological 80/20 split ─────────────────────────────────────────
+        n_test  = max(1, int(N_DAYS * 0.2))
+        X_train = X.iloc[:-n_test]
+        X_test  = X.iloc[-n_test:]
+        y_train = y.iloc[:-n_test]
+
+        # ── Train a fast XGBoost (deterministic: random_state=42) ─────────────
+        model = XGBClassifier(
+            n_estimators=50, max_depth=4, learning_rate=0.1,
+            eval_metric='logloss', random_state=42,
+        )
+        model.fit(X_train, y_train)
+
+        # ── SHAP explanation ──────────────────────────────────────────────────
+        meta         = {'patient_id': patient_id, 'data_source': source_label}
+        shap_results = generate_shap_explanation(
+            model, X_test, feat_names, display_names=display_map
+        )
+        rat_text    = generate_llm_rationale(shap_results, meta)
+        top_display = [e['display_name'] for e in shap_results['top3']]
+        cog_score   = compute_cognitive_match_score(rat_text, top_display)
+
+        if cog_score >= 0.6:
+            confidence = 'High'
+        elif cog_score >= 0.3:
+            confidence = 'Medium'
+        else:
+            confidence = 'Uncertain'
+
+        cr = ClinicalRationale(
+            shap_values=shap_results['all_shap'],
+            top_features=top_display,
+            rationale_text=rat_text,
+            cognitive_match_score=cog_score,
+            confidence=confidence,
+        )
+
+        return render_template(
+            'ai_assistant.html',
+            **base_ctx,
+            rationale=cr,
+            shap_top3=shap_results['top3'],
+            n_features=len(feat_names),
+            n_train=len(X_train),
+            model_name='XGBoost Classifier',
+            error=None,
+        )
+
+    except Exception as exc:
+        return render_template(
+            'ai_assistant.html',
+            **base_ctx,
+            rationale=None,
+            shap_top3=[],
+            n_features=0,
+            n_train=0,
+            model_name='—',
+            error=str(exc),
+        )
 
 
 if __name__ == '__main__':
