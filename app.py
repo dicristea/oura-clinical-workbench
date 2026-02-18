@@ -488,12 +488,56 @@ def data_explorer(patient_id):
 
 @app.route('/patient/<patient_id>/tournament')
 def tournament(patient_id):
-    """Tournament tab — placeholder."""
+    """Tournament — sortable experiment leaderboard with AUC-ROC bar chart."""
     patients = load_patient_data()
     patient  = next((p for p in patients if p['id'] == patient_id), None)
     if not patient:
         return "Patient not found", 404
-    return render_template('tournament.html', patient=patient, active_tab='tournament')
+
+    # Placeholder experiments — same set as Model Lab, with full metric columns.
+    # In Phase 2 these will be loaded from a persistent experiment store.
+    experiments = [
+        {
+            'id':         1,
+            'model':      'XGBoost Classifier',
+            'features':   '5 features',
+            'auc':        0.91,
+            'precision':  0.87,
+            'recall':     0.84,
+            'f1':         0.85,
+            'trained':    'Dec 28, 2024',
+            'is_current': True,
+        },
+        {
+            'id':         2,
+            'model':      'Random Forest',
+            'features':   '5 features',
+            'auc':        0.87,
+            'precision':  0.84,
+            'recall':     0.79,
+            'f1':         0.82,
+            'trained':    'Dec 27, 2024',
+            'is_current': False,
+        },
+        {
+            'id':         3,
+            'model':      'LSTM',
+            'features':   '5 features',
+            'auc':        0.84,
+            'precision':  0.80,
+            'recall':     0.77,
+            'f1':         0.79,
+            'trained':    'Dec 26, 2024',
+            'is_current': False,
+        },
+    ]
+
+    return render_template(
+        'tournament.html',
+        patient=patient,
+        active_tab='tournament',
+        experiments=experiments,
+    )
 
 
 @app.route('/patient/<patient_id>/ai-assistant')
