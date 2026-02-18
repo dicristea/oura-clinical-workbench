@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+{% block title %}Data Explorer — {{ patient.id }}{% endblock %}
+
+{% block head %}
+<style>
+/* ── Two-column explorer layout ─────────────────────────────────────────── */
+.explorer-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Sidebar sticks below the 64px topnav */
+.sidebar-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 84px;
+}
+
+.sidebar-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 16px;
+}
+
+.sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+/* ── Analysis window buttons ────────────────────────────────────────────── */
+.window-btns {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+}
+
+.window-btn {
+    padding: 6px 0;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.window-btn:hover:not(.active) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.window-btn.active {
+    background: #5B21B6;
+    color: #fff;
+    border-color: #5B21B6;
+}
+
+/* ── Signal sidebar ─────────────────────────────────────────────────────── */
+.select-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.btn-toggle {
+    flex: 1;
+    padding: 5px 0;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 7px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-toggle:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.feat-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94a3b8;
+    margin: 14px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Remove top-margin from the very first group header */
+.feat-group-label:first-child {
+    margin-top: 0;
+}
+
+.feature-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.feature-row:hover {
+    background: #f8fafc;
+}
+
+.feat-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.feat-label {
+    font-size: 12.5px;
+    color: #334155;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.feat-checkbox {
+    width: 14px;
+    height: 14px;
+    accent-color: #5B21B6;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ── Chart card ─────────────────────────────────────────────────────────── */
+.chart-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+}
+
+.chart-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.chart-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 3px;
+}
+
+.source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: #ede9fe;
+    color: #5B21B6;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.chart-wrap {
+    position: relative;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* ── Hover tooltip ──────────────────────────────────────────────────────── */
+#chartTooltip {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.93);
+    color: #f1f5f9;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    white-space: nowrap;
+    z-index: 100;
+    min-width: 180px;
+}
+
+#chartTooltip.visible {
+    opacity: 1;
+}
+
+.tt-date {
+    font-weight: 600;
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.tt-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.tt-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+    .explorer-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar-col {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-card {
+        flex: 1;
+        min-width: 200px;
+    }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="explorer-layout">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SIDEBAR
+         ═══════════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar-col">
+
+        <!-- Analysis window selector -->
+        <div class="sidebar-card">
+            <div class="sidebar-title">Analysis Window</div>
+            <div class="window-btns">
+                <button class="window-btn"        data-days="7"  onclick="setWindow(7)">7d</button>
+                <button class="window-btn"        data-days="14" onclick="setWindow(14)">14d</button>
+                <button class="window-btn active" data-days="30" onclick="setWindow(30)">30d</button>
+                <button class="window-btn"        data-days="90" onclick="setWindow(90)">90d</button>
+                <button class="window-btn"        data-days="0"  onclick="setWindow(0)">All</button>
+            </div>
+        </div>
+
+        <!-- Signal toggles grouped by feature group -->
+        <div class="sidebar-card">
+            <div class="sidebar-title">Signals</div>
+
+            <div class="select-controls">
+                <button class="btn-toggle" onclick="selectAll()">Select All</button>
+                <button class="btn-toggle" onclick="clearAll()">Clear All</button>
+            </div>
+
+            {% for group_name, group_features in feature_groups.items() %}
+                <div class="feat-group-label">{{ group_name }}</div>
+                {% for fc in group_features %}
+                    {% set feat = features_by_name[fc.name] %}
+                    <label class="feature-row" for="feat_{{ fc.name }}">
+                        <span class="feat-swatch" style="background: {{ feat.color }};"></span>
+                        <span class="feat-label" title="{{ fc.description }}">{{ fc.display_name }}</span>
+                        <input  type="checkbox"
+                                class="feat-checkbox"
+                                id="feat_{{ fc.name }}"
+                                data-name="{{ fc.name }}"
+                                {% if fc.default_selected %}checked{% endif %}
+                                onchange="toggleFeature('{{ fc.name }}', this)">
+                    </label>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+    </aside><!-- /.sidebar-col -->
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         CHART PANEL
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="chart-card">
+
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Time Series — {{ patient.id }}</div>
+                <div class="chart-subtitle">
+                    Y-axis: normalized 0–100% per signal &nbsp;·&nbsp;
+                    {{ total_days }} days available &nbsp;·&nbsp; {{ source_label }}
+                </div>
+            </div>
+
+            <span class="source-badge">
+                <!-- database icon -->
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+                {{ source_label }}
+            </span>
+        </div>
+
+        <!-- Chart SVG rendered here by JS -->
+        <div class="chart-wrap" id="chartContainer"></div>
+
+        <!-- Floating tooltip (positioned absolutely inside .chart-wrap) -->
+        <div id="chartTooltip" role="tooltip" aria-live="polite"></div>
+
+    </div><!-- /.chart-card -->
+
+</div><!-- /.explorer-layout -->
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
+
+    // ── Data injected from Flask ─────────────────────────────────────────────
+    const CHART_DATA = {{ chart_data | tojson }};
+
+    // ── SVG drawing constants ────────────────────────────────────────────────
+    const PAD   = { top: 20, right: 24, bottom: 44, left: 52 };
+    const SVG_H = 380;
+
+    // ── State ────────────────────────────────────────────────────────────────
+    let currentDays     = 30;
+    let visibleFeatures = new Set(
+        CHART_DATA.features.filter(f => f.default_selected).map(f => f.name)
+    );
+
+    // ── Utility helpers ──────────────────────────────────────────────────────
+
+    function getSlice(arr) {
+        if (currentDays === 0 || arr.length <= currentDays) return arr;
+        return arr.slice(-currentDays);
+    }
+
+    function normalize(vals) {
+        if (!vals || vals.length === 0) return [];
+        const mn  = Math.min(...vals);
+        const mx  = Math.max(...vals);
+        const rng = mx - mn;
+        if (rng === 0) return vals.map(() => 0.5);
+        return vals.map(v => (v - mn) / rng);
+    }
+
+    // ── Chart renderer ───────────────────────────────────────────────────────
+
+    function drawChart() {
+        const container = document.getElementById('chartContainer');
+        if (!container) return;
+
+        const W      = container.clientWidth || 800;
+        const innerW = W - PAD.left - PAD.right;
+        const innerH = SVG_H - PAD.top - PAD.bottom;
+
+        const dates  = getSlice(CHART_DATA.dates);
+        const n      = dates.length;
+        const xStep  = n > 1 ? innerW / (n - 1) : 0;
+        const xPos   = i => PAD.left + i * xStep;
+        const yPos   = t => PAD.top  + (1 - t) * innerH;
+
+        const parts = [];
+        parts.push(`<svg id="tsSvg" width="${W}" height="${SVG_H}" style="display:block;overflow:visible;">`);
+
+        // ── Y-axis grid lines + percentage labels ────────────────────────────
+        [0, 0.25, 0.5, 0.75, 1.0].forEach(t => {
+            const y   = yPos(t).toFixed(1);
+            const pct = Math.round(t * 100);
+            const lineColor = t === 0 ? '#e2e8f0' : '#f1f5f9';
+            parts.push(`<line x1="${PAD.left}" y1="${y}" x2="${(PAD.left + innerW).toFixed(1)}" y2="${y}" stroke="${lineColor}" stroke-width="1"/>`);
+            parts.push(`<text x="${PAD.left - 8}" y="${(+y + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif">${pct}%</text>`);
+        });
+
+        // ── X-axis date labels (spaced to fit available width) ───────────────
+        const maxLabels = Math.max(2, Math.floor(innerW / 64));
+        const labelEvery = Math.max(1, Math.ceil((n - 1) / (maxLabels - 1)));
+        const shownIdx   = new Set();
+        for (let i = 0; i < n; i += labelEvery) shownIdx.add(i);
+        shownIdx.add(0);
+        shownIdx.add(n - 1);
+
+        const yLabel = (SVG_H - PAD.bottom + 16).toFixed(1);
+        shownIdx.forEach(i => {
+            parts.push(`<text x="${xPos(i).toFixed(1)}" y="${yLabel}" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif">${dates[i]}</text>`);
+        });
+
+        // ── Feature polylines (one per visible signal) ───────────────────────
+        const visible = CHART_DATA.features.filter(f => visibleFeatures.has(f.name));
+
+        if (visible.length === 0) {
+            parts.push(`<text x="${(W / 2).toFixed(1)}" y="${(SVG_H / 2).toFixed(1)}" text-anchor="middle" font-size="13" fill="#94a3b8" font-family="Inter,sans-serif">Select at least one signal to display the chart.</text>`);
+        } else {
+            visible.forEach(feat => {
+                const vals = getSlice(feat.values);
+                const norm = normalize(vals);
+                const pts  = norm.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v).toFixed(1)}`).join(' ');
+                parts.push(`<polyline points="${pts}" fill="none" stroke="${feat.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>`);
+            });
+        }
+
+        // ── Crosshair line (invisible until hover) ───────────────────────────
+        parts.push(`<line id="crosshair"
+            x1="${PAD.left}" y1="${PAD.top.toFixed(1)}"
+            x2="${PAD.left}" y2="${(PAD.top + innerH).toFixed(1)}"
+            stroke="#64748b" stroke-width="1" stroke-dasharray="4 3"
+            opacity="0" pointer-events="none"/>`);
+
+        // ── Transparent hit rectangle for mouse events ───────────────────────
+        parts.push(`<rect id="hoverRect"
+            x="${PAD.left}" y="${PAD.top}"
+            width="${innerW.toFixed(1)}" height="${innerH.toFixed(1)}"
+            fill="transparent" style="cursor:crosshair;"
+            data-n="${n}" data-xstep="${xStep.toFixed(4)}"/>`);
+
+        parts.push(`</svg>`);
+        container.innerHTML = parts.join('\n');
+
+        setupHover();
+    }
+
+    // ── Hover handler ────────────────────────────────────────────────────────
+
+    function setupHover() {
+        const hoverRect = document.getElementById('hoverRect');
+        const tooltip   = document.getElementById('chartTooltip');
+        const container = document.getElementById('chartContainer');
+        if (!hoverRect || !tooltip) return;
+
+        const n     = parseInt(hoverRect.dataset.n, 10);
+        const xStep = parseFloat(hoverRect.dataset.xstep);
+
+        hoverRect.addEventListener('mousemove', e => {
+            const bounds = hoverRect.getBoundingClientRect();
+            const relX   = e.clientX - bounds.left;
+            const idx    = Math.max(0, Math.min(n - 1, Math.round(relX / (xStep || 1))));
+
+            // Move crosshair to nearest data point
+            const crosshair = document.getElementById('crosshair');
+            if (crosshair) {
+                const cx = (PAD.left + idx * xStep).toFixed(1);
+                crosshair.setAttribute('x1', cx);
+                crosshair.setAttribute('x2', cx);
+                crosshair.setAttribute('opacity', '0.7');
+            }
+
+            // Build tooltip HTML
+            const dates   = getSlice(CHART_DATA.dates);
+            const visible = CHART_DATA.features.filter(f => visibleFeatures.has(f.name));
+            let html      = `<div class="tt-date">${dates[idx]}</div>`;
+
+            visible.forEach(feat => {
+                const vals = getSlice(feat.values);
+                const raw  = vals[idx] ?? 0;
+                const unit = feat.unit ? ` ${feat.unit}` : '';
+                const fmt  = Math.abs(raw) >= 100 ? raw.toFixed(0) : raw.toFixed(2);
+                html += `<div class="tt-row">
+                    <span class="tt-swatch" style="background:${feat.color}"></span>
+                    <span>${feat.display_name}: <strong>${fmt}${unit}</strong></span>
+                </div>`;
+            });
+
+            tooltip.innerHTML = html;
+            tooltip.classList.add('visible');
+
+            // Position tooltip — flip left if it would overflow the right edge
+            const cRect = container.getBoundingClientRect();
+            let tx = e.clientX - cRect.left + 18;
+            let ty = e.clientY - cRect.top  - 10;
+            if (tx + 260 > cRect.width) tx = e.clientX - cRect.left - 265;
+            tooltip.style.left = `${Math.max(0, tx)}px`;
+            tooltip.style.top  = `${Math.max(0, ty)}px`;
+        });
+
+        hoverRect.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('visible');
+            const crosshair = document.getElementById('crosshair');
+            if (crosshair) crosshair.setAttribute('opacity', '0');
+        });
+    }
+
+    // ── Feature toggle controls ──────────────────────────────────────────────
+
+    function toggleFeature(name, cb) {
+        if (cb.checked) {
+            visibleFeatures.add(name);
+        } else {
+            visibleFeatures.delete(name);
+        }
+        drawChart();
+    }
+
+    function selectAll() {
+        CHART_DATA.features.forEach(f => visibleFeatures.add(f.name));
+        document.querySelectorAll('.feat-checkbox').forEach(cb => { cb.checked = true; });
+        drawChart();
+    }
+
+    function clearAll() {
+        visibleFeatures.clear();
+        document.querySelectorAll('.feat-checkbox').forEach(cb => { cb.checked = false; });
+        drawChart();
+    }
+
+    // ── Analysis window selector ─────────────────────────────────────────────
+
+    function setWindow(days) {
+        currentDays = days;
+        document.querySelectorAll('.window-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.days, 10) === days);
+        });
+        drawChart();
+    }
+
+    // ── Expose to inline onchange/onclick handlers ───────────────────────────
+    window.toggleFeature = toggleFeature;
+    window.selectAll     = selectAll;
+    window.clearAll      = clearAll;
+    window.setWindow     = setWindow;
+
+    // ── Initial render + debounced resize ───────────────────────────────────
+    drawChart();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawChart, 80);
+    });
+})();
+</script>
+{% endblock %}

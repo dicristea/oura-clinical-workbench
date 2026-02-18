@@ -1,0 +1,1185 @@
+{% extends "base.html" %}
+
+{% block title %}Model Lab{% endblock %}
+
+{% block head %}
+<style>
+    /* ── Two-column layout ───────────────────────────────────────────────────── */
+    .lab-layout {
+        display: grid;
+        grid-template-columns: 288px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* ── Shared lab card (extends base .card with padding) ───────────────────── */
+    .lab-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+    }
+
+    /* ── Card section title ──────────────────────────────────────────────────── */
+    .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 14px;
+        letter-spacing: 0.01em;
+    }
+
+    .card-divider {
+        height: 1px;
+        background: #f1f5f9;
+        margin: 16px 0;
+    }
+
+    /* ── Sidebar stack ───────────────────────────────────────────────────────── */
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ── Right panel stack ───────────────────────────────────────────────────── */
+    .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* ── Analysis Window ─────────────────────────────────────────────────────── */
+    .window-btns {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 12px;
+    }
+
+    .window-btn {
+        flex: 1;
+        padding: 6px 0;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: #ffffff;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .window-btn:hover:not(.active) {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .window-btn.active {
+        background: #5B21B6;
+        color: #ffffff;
+        border-color: #5B21B6;
+    }
+
+    .data-points-text {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .data-points-text strong {
+        color: #1e293b;
+    }
+
+    .source-label {
+        color: #94a3b8;
+    }
+
+    /* ── Input Features ──────────────────────────────────────────────────────── */
+    .feature-group {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 2px;
+        margin-bottom: 2px;
+    }
+
+    .feature-group:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .group-header-btn {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        text-align: left;
+    }
+
+    .group-header-btn:hover {
+        color: #475569;
+    }
+
+    .chevron-icon {
+        color: #94a3b8;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+    }
+
+    .group-header-btn.collapsed .chevron-icon {
+        transform: rotate(-90deg);
+    }
+
+    .group-features {
+        padding: 2px 0 6px 0;
+    }
+
+    .feature-check-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 4px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+
+    .feature-check-row:hover {
+        background: #f8fafc;
+    }
+
+    .feature-check-row input[type="checkbox"] {
+        accent-color: #5B21B6;
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    .feature-label {
+        font-size: 12px;
+        color: #334155;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .feature-unit {
+        font-size: 10px;
+        color: #94a3b8;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .no-features-msg {
+        font-size: 12px;
+        color: #94a3b8;
+        text-align: center;
+        padding: 12px 0;
+    }
+
+    /* ── Raw Signal Overlay ──────────────────────────────────────────────────── */
+    .overlay-chart-wrap {
+        background: #f8fafc;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    .overlay-svg {
+        display: block;
+        width: 100%;
+    }
+
+    .overlay-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 16px;
+    }
+
+    .overlay-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        color: #64748b;
+    }
+
+    .overlay-legend-swatch {
+        width: 16px;
+        height: 3px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    /* ── Model Select + Run ──────────────────────────────────────────────────── */
+    .model-bar {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        margin-bottom: 0;
+    }
+
+    .model-select-wrap {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 6px;
+    }
+
+    .styled-select {
+        width: 100%;
+        padding: 9px 32px 9px 11px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        background-color: #ffffff;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        appearance: none;
+        -webkit-appearance: none;
+        font-family: inherit;
+        font-size: 13px;
+        color: #1e293b;
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .styled-select:focus {
+        outline: none;
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+    }
+
+    .btn-run {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 20px;
+        background: #5B21B6;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s, opacity 0.15s;
+        flex-shrink: 0;
+    }
+
+    .btn-run:hover {
+        background: #4c1d95;
+    }
+
+    .btn-run:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+    /* ── Hyperparameters ─────────────────────────────────────────────────────── */
+    .hyperparam-section {
+        margin-top: 16px;
+    }
+
+    .hyperparam-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+
+    .hyperparam-field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .hyperparam-field label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .hyperparam-field input[type="number"] {
+        padding: 7px 10px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 13px;
+        color: #1e293b;
+        background: #ffffff;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        -moz-appearance: textfield;
+    }
+
+    .hyperparam-field input[type="number"]::-webkit-inner-spin-button,
+    .hyperparam-field input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+
+    .hyperparam-field input[type="number"]:focus {
+        outline: none;
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.10);
+    }
+
+    /* ── Result Metric Cards ─────────────────────────────────────────────────── */
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .result-card {
+        padding: 16px 14px;
+        border-radius: 10px;
+        border: 1px solid;
+        text-align: center;
+    }
+
+    .result-value {
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 5px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .result-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .result-card.auc       { background: #fff7ed; border-color: #fed7aa; }
+    .result-card.auc       .result-value { color: #ea580c; }
+    .result-card.auc       .result-label { color: #c2410c; }
+
+    .result-card.precision { background: #f0fdf4; border-color: #bbf7d0; }
+    .result-card.precision .result-value { color: #16a34a; }
+    .result-card.precision .result-label { color: #166534; }
+
+    .result-card.recall    { background: #fdf2f8; border-color: #f9a8d4; }
+    .result-card.recall    .result-value { color: #db2777; }
+    .result-card.recall    .result-label { color: #9d174d; }
+
+    .result-card.f1        { background: #f8fafc; border-color: #e2e8f0; }
+    .result-card.f1        .result-value { color: #1e293b; }
+    .result-card.f1        .result-label { color: #475569; }
+
+    /* ── Feature Importance ──────────────────────────────────────────────────── */
+    .importance-chart-wrap {
+        overflow: hidden;
+    }
+
+    /* ── Confidence Over Time ────────────────────────────────────────────────── */
+    .confidence-chart-wrap {
+        overflow: hidden;
+    }
+
+    #confidenceChart {
+        display: block;
+        width: 100%;
+    }
+
+    /* ── Saved Experiments Table ─────────────────────────────────────────────── */
+    .experiments-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .experiments-table th {
+        padding: 8px 12px;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .experiments-table td {
+        padding: 12px 12px;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .experiments-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .experiments-table tr.exp-current td {
+        background: #faf5ff;
+    }
+
+    .exp-features {
+        font-size: 12px;
+        color: #64748b;
+        max-width: 200px;
+    }
+
+    .exp-metric {
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+    }
+
+    .badge-current {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 600;
+        background: #f3e8ff;
+        color: #7c3aed;
+        margin-left: 6px;
+        white-space: nowrap;
+    }
+
+    .load-link {
+        color: #5B21B6;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .load-link:hover {
+        text-decoration: underline;
+    }
+
+    .text-muted {
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .no-experiments-msg {
+        font-size: 13px;
+        color: #94a3b8;
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    /* ── Run button loading spinner ──────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.75s linear infinite; display: inline-block; }
+
+    /* ── Toast notifications ─────────────────────────────────────────────────── */
+    #toastContainer {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .toast {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 15px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        max-width: 340px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        pointer-events: auto;
+        animation: toastIn 0.2s ease;
+    }
+
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .toast-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+
+    /* ── Responsive ──────────────────────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+        .lab-layout {
+            grid-template-columns: 260px 1fr;
+        }
+    }
+
+    @media (max-width: 860px) {
+        .lab-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .results-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 520px) {
+        .results-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .model-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-run {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div id="toastContainer" role="status" aria-live="polite"></div>
+
+<div class="lab-layout">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         LEFT SIDEBAR
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+
+        <!-- Analysis Window ─────────────────────────────────────────────────── -->
+        <div class="lab-card">
+            <h3 class="card-title">Analysis Window</h3>
+            <div class="window-btns" role="group" aria-label="Analysis time window">
+                <button class="window-btn" onclick="setWindow(this, '7')">7d</button>
+                <button class="window-btn" onclick="setWindow(this, '14')">14d</button>
+                <button class="window-btn active" onclick="setWindow(this, '30')">30d</button>
+                <button class="window-btn" onclick="setWindow(this, '90')">90d</button>
+                <button class="window-btn" onclick="setWindow(this, 'all')">All</button>
+            </div>
+            <p class="data-points-text">
+                Data points: <strong id="dpCount">{{ data_points }}</strong>
+                <span class="source-label">({{ source_label }})</span>
+            </p>
+        </div>
+
+        <!-- Input Features ──────────────────────────────────────────────────── -->
+        <div class="lab-card">
+            <h3 class="card-title">Input Features</h3>
+
+            {% if feature_groups %}
+                {% for group_name, features in feature_groups.items() %}
+                <div class="feature-group">
+                    <button type="button"
+                            class="group-header-btn"
+                            aria-expanded="true"
+                            aria-controls="fg-{{ loop.index }}"
+                            onclick="toggleGroup(this, 'fg-{{ loop.index }}')">
+                        <span>{{ group_name }}</span>
+                        <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="group-features" id="fg-{{ loop.index }}">
+                        {% for fc in features %}
+                        <label class="feature-check-row" title="{{ fc.description }}">
+                            <input type="checkbox"
+                                   name="feature"
+                                   value="{{ fc.name }}"
+                                   {% if fc.default_selected %}checked{% endif %}
+                                   onchange="onFeatureChange()">
+                            <span class="feature-label">{{ fc.display_name }}</span>
+                            {% if fc.unit %}
+                            <span class="feature-unit">{{ fc.unit }}</span>
+                            {% endif %}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-features-msg">No features available for this data source.</p>
+            {% endif %}
+        </div>
+
+        <!-- Raw Signal Overlay ──────────────────────────────────────────────── -->
+        <div class="lab-card">
+            <h3 class="card-title">Raw Signal Overlay</h3>
+            <div class="overlay-chart-wrap">
+                <svg id="overlayChart" class="overlay-svg"
+                     aria-label="Raw signal overlay of selected features"></svg>
+            </div>
+            <div id="overlayLegend" class="overlay-legend"></div>
+        </div>
+
+    </aside><!-- /.sidebar -->
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         RIGHT PANEL
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="right-panel">
+
+        <!-- Model Select + Hyperparameters ──────────────────────────────────── -->
+        <div class="lab-card">
+            <div class="model-bar">
+                <div class="model-select-wrap">
+                    <label class="field-label" for="modelSelect">Select Model</label>
+                    <select id="modelSelect" class="styled-select" onchange="onModelChange()">
+                        <option value="xgboost">XGBoost Classifier</option>
+                        <option value="random_forest">Random Forest</option>
+                        <option value="lstm">LSTM</option>
+                        {% if data_source == 'ppmi' %}
+                        <option value="tft">TFT (Temporal Fusion Transformer)</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <button id="runBtn" class="btn-run" onclick="runAnalysis()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"
+                         stroke="none" aria-hidden="true">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Run Analysis
+                </button>
+            </div>
+
+            <div class="card-divider"></div>
+
+            <div class="hyperparam-section">
+                <span class="field-label">Hyperparameters</span>
+                <div class="hyperparam-row" id="hyperparamRow">
+                    <!-- populated by renderHyperparams() on load and model change -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Results ─────────────────────────────────────────────────────────── -->
+        <div class="lab-card">
+            <h3 class="card-title">Results</h3>
+            <div class="results-grid">
+                <div class="result-card auc">
+                    <div class="result-value" id="metricAuc">{{ results.auc }}</div>
+                    <div class="result-label">AUC-ROC</div>
+                </div>
+                <div class="result-card precision">
+                    <div class="result-value" id="metricPrec">{{ results.precision }}</div>
+                    <div class="result-label">Precision</div>
+                </div>
+                <div class="result-card recall">
+                    <div class="result-value" id="metricRec">{{ results.recall }}</div>
+                    <div class="result-label">Recall</div>
+                </div>
+                <div class="result-card f1">
+                    <div class="result-value" id="metricF1">{{ results.f1 }}</div>
+                    <div class="result-label">F1 Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Importance ──────────────────────────────────────────────── -->
+        {% if feature_importance %}
+        <div class="lab-card">
+            <h3 class="card-title">Feature Importance</h3>
+            <div class="importance-chart-wrap">
+                {% set max_imp = feature_importance[0].importance %}
+                {% set fi_rows = feature_importance | length %}
+                {% set fi_h    = fi_rows * 36 + 20 %}
+                <svg id="importanceChart" viewBox="0 0 500 {{ fi_h }}" width="100%"
+                     role="img" aria-label="Feature importance horizontal bar chart">
+                    {% for fi in feature_importance %}
+                    {% set y       = 10 + loop.index0 * 36 %}
+                    {% set bar_w   = (fi.importance / max_imp * 310) | round | int %}
+                    {% set opacity = (0.40 + 0.60 * fi.importance / max_imp) | round(2) %}
+                    <text x="136" y="{{ y + 14 }}" text-anchor="end"
+                          font-family="'Inter', sans-serif" font-size="11" fill="#475569">{{ fi.name }}</text>
+                    <rect x="140" y="{{ y + 2 }}"
+                          width="{{ bar_w }}" height="18" rx="3"
+                          fill="#3b82f6" fill-opacity="{{ opacity }}"/>
+                    <text x="{{ 140 + bar_w + 6 }}" y="{{ y + 14 }}" text-anchor="start"
+                          font-family="'Inter', sans-serif" font-size="10" fill="#64748b">{{ (fi.importance * 100) | round(1) }}%</text>
+                    {% endfor %}
+                </svg>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Prediction Confidence Over Time ────────────────────────────────── -->
+        {% if confidence_scores %}
+        <div class="lab-card">
+            <h3 class="card-title">Prediction Confidence Over Time</h3>
+            <div id="confidenceChartWrap" class="confidence-chart-wrap">
+                <svg id="confidenceChart" aria-label="Prediction confidence over time"></svg>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Saved Experiments ───────────────────────────────────────────────── -->
+        <div class="lab-card">
+            <h3 class="card-title">Saved Experiments</h3>
+            {% if experiments %}
+            <table class="experiments-table" aria-label="Saved model experiments">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Features</th>
+                        <th>AUC</th>
+                        <th>F1</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exp in experiments %}
+                    <tr class="{{ 'exp-current' if exp.is_current else '' }}">
+                        <td>
+                            {{ exp.model }}
+                            {% if exp.is_current %}
+                            <span class="badge-current">★ Current</span>
+                            {% endif %}
+                        </td>
+                        <td class="exp-features">{{ exp.features }}</td>
+                        <td class="exp-metric">{{ exp.auc }}</td>
+                        <td class="exp-metric">{{ exp.f1 }}</td>
+                        <td>
+                            {% if exp.is_current %}
+                            <span class="text-muted">Active</span>
+                            {% else %}
+                            <a href="#" class="load-link"
+                               onclick="loadExperiment({{ exp.id }}); return false;">Load</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="no-experiments-msg">No saved experiments yet. Run your first analysis above.</p>
+            {% endif %}
+        </div>
+
+    </div><!-- /.right-panel -->
+
+</div><!-- /.lab-layout -->
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    // ── Constants injected from Flask ─────────────────────────────────────────
+    const PATIENT_ID            = {{ patient.id | tojson }};
+    const DATA_POINTS           = {{ data_points }};
+    const CONFIDENCE_SCORES     = {{ confidence_scores | tojson }};
+    // column_name → display_name  (used by drawImportanceChart after real runs)
+    const FEATURE_DISPLAY_NAMES = {{ feature_display_names | tojson }};
+
+    // ── Mutable page state ────────────────────────────────────────────────────
+    let currentDays             = 30;   // 0 = "all available data"
+    let currentConfidenceScores = [...CONFIDENCE_SCORES];
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        renderHyperparams('xgboost');
+        drawOverlayChart();
+        drawConfidenceChart();
+    });
+
+    // ── Analysis Window ───────────────────────────────────────────────────────
+    function setWindow(btn, days) {
+        document.querySelectorAll('.window-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentDays = (days === 'all') ? 0 : Math.min(parseInt(days), DATA_POINTS);
+        document.getElementById('dpCount').textContent =
+            currentDays === 0 ? DATA_POINTS : currentDays;
+        drawOverlayChart();
+        drawConfidenceChart();
+    }
+
+    // ── Feature Groups (collapse / expand) ────────────────────────────────────
+    function toggleGroup(btn, groupId) {
+        const group     = document.getElementById(groupId);
+        const collapsed = btn.classList.toggle('collapsed');
+        group.style.display = collapsed ? 'none' : '';
+        btn.setAttribute('aria-expanded', String(!collapsed));
+    }
+
+    // ── Feature Checkboxes ────────────────────────────────────────────────────
+    function onFeatureChange() { drawOverlayChart(); }
+
+    function getSelectedFeatures() {
+        return [...document.querySelectorAll('input[name="feature"]:checked')]
+            .map(cb => cb.value);
+    }
+
+    // ── Model Select ──────────────────────────────────────────────────────────
+    function onModelChange() {
+        renderHyperparams(document.getElementById('modelSelect').value);
+    }
+
+    const HYPERPARAMS = {
+        xgboost: [
+            { id: 'learning_rate',    label: 'Learning Rate',    value: 0.1,  step: 0.01 },
+            { id: 'max_depth',        label: 'Max Depth',        value: 6,    step: 1    },
+            { id: 'n_estimators',     label: 'N Estimators',     value: 100,  step: 10   },
+            { id: 'min_child_weight', label: 'Min Child Weight', value: 1,    step: 1    },
+        ],
+        random_forest: [
+            { id: 'n_estimators',      label: 'N Estimators',      value: 100, step: 10 },
+            { id: 'max_depth',         label: 'Max Depth',         value: 10,  step: 1  },
+            { id: 'min_samples_split', label: 'Min Samples Split', value: 2,   step: 1  },
+        ],
+        lstm: [
+            { id: 'hidden_size', label: 'Hidden Size', value: 64,  step: 16   },
+            { id: 'num_layers',  label: 'Num Layers',  value: 2,   step: 1    },
+            { id: 'dropout',     label: 'Dropout',     value: 0.2, step: 0.05 },
+            { id: 'epochs',      label: 'Epochs',      value: 50,  step: 10   },
+        ],
+        tft: [
+            { id: 'hidden_size',     label: 'Hidden Size',     value: 64,  step: 16   },
+            { id: 'attention_heads', label: 'Attention Heads', value: 4,   step: 1    },
+            { id: 'dropout',         label: 'Dropout',         value: 0.1, step: 0.05 },
+            { id: 'epochs',          label: 'Epochs',          value: 50,  step: 10   },
+        ],
+    };
+
+    function renderHyperparams(modelKey) {
+        const params    = HYPERPARAMS[modelKey] || [];
+        const container = document.getElementById('hyperparamRow');
+        container.innerHTML = params.map(p => `
+            <div class="hyperparam-field">
+                <label for="hp_${p.id}">${p.label}</label>
+                <input type="number" id="hp_${p.id}" name="${p.id}"
+                       value="${p.value}" step="${p.step}">
+            </div>
+        `).join('');
+    }
+
+    function getHyperparams() {
+        const result = {};
+        document.querySelectorAll('#hyperparamRow input').forEach(inp => {
+            result[inp.name] = parseFloat(inp.value);
+        });
+        return result;
+    }
+
+    // ── Run Analysis ──────────────────────────────────────────────────────────
+    async function runAnalysis() {
+        const features = getSelectedFeatures();
+        if (!features.length) {
+            showToast('Select at least one feature before running.', 'error');
+            return;
+        }
+
+        const btn      = document.getElementById('runBtn');
+        const origHTML = btn.innerHTML;
+        btn.disabled   = true;
+        btn.innerHTML  = `
+            <svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+            </svg>
+            Running…`;
+
+        const payload = {
+            patient_id:           PATIENT_ID,
+            model_type:           document.getElementById('modelSelect').value,
+            features,
+            hyperparameters:      getHyperparams(),
+            analysis_window_days: currentDays,
+        };
+
+        try {
+            const resp = await fetch('/api/run-experiment', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload),
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                applyResults(data);
+                showToast('Analysis complete.', 'success');
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                showToast(err.error || `Server error (${resp.status}).`, 'error');
+            }
+        } catch {
+            showToast('Network error — could not reach the server.', 'error');
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = origHTML;
+        }
+    }
+
+    // Apply a full API result object to every live section of the page
+    function applyResults(data) {
+        // Metric cards
+        const m = data.metrics || {};
+        const fmt = v => (v != null ? Number(v).toFixed(2) : '—');
+        document.getElementById('metricAuc').textContent  = fmt(m.auc_roc);
+        document.getElementById('metricPrec').textContent = fmt(m.precision);
+        document.getElementById('metricRec').textContent  = fmt(m.recall);
+        document.getElementById('metricF1').textContent   = fmt(m.f1);
+
+        // Feature importance chart (replaces Jinja2 initial render)
+        if (data.feature_importance && Object.keys(data.feature_importance).length) {
+            drawImportanceChart(data.feature_importance);
+        }
+
+        // Confidence chart (updated with real per-day probabilities)
+        if (Array.isArray(data.prediction_confidence) && data.prediction_confidence.length) {
+            currentConfidenceScores = data.prediction_confidence;
+            drawConfidenceChart();
+        }
+    }
+
+    // ── Feature Importance Chart ──────────────────────────────────────────────
+    // Accepts a dict { column_name: importance_score } — called after real API runs.
+    // Replaces the Jinja2-rendered SVG content in place.
+    function drawImportanceChart(importanceDict) {
+        const svg = document.getElementById('importanceChart');
+        if (!svg) return;
+
+        const entries = Object.entries(importanceDict).sort((a, b) => b[1] - a[1]);
+        if (!entries.length) return;
+
+        const maxImp = entries[0][1] || 1;
+        const rowH   = 36;
+        const svgH   = entries.length * rowH + 20;
+        let   html   = '';
+
+        entries.forEach(([key, val], idx) => {
+            const y     = 10 + idx * rowH;
+            const barW  = Math.round((val / maxImp) * 310);
+            const opac  = (0.40 + 0.60 * (val / maxImp)).toFixed(2);
+            const label = FEATURE_DISPLAY_NAMES[key] || key;
+            const pct   = (val * 100).toFixed(1);
+
+            html += `<text x="136" y="${y + 14}" text-anchor="end"
+                          font-family="'Inter',sans-serif" font-size="11" fill="#475569">${label}</text>`;
+            html += `<rect x="140" y="${y + 2}" width="${barW}" height="18" rx="3"
+                          fill="#3b82f6" fill-opacity="${opac}"/>`;
+            html += `<text x="${140 + barW + 6}" y="${y + 14}" text-anchor="start"
+                          font-family="'Inter',sans-serif" font-size="10" fill="#64748b">${pct}%</text>`;
+        });
+
+        svg.setAttribute('viewBox', `0 0 500 ${svgH}`);
+        svg.setAttribute('height', svgH);
+        svg.innerHTML = html;
+    }
+
+    // ── Saved Experiments ─────────────────────────────────────────────────────
+    function loadExperiment(id) {
+        console.log('Load experiment', id);   // placeholder until /api/experiments is built
+    }
+
+    // ── Overlay Chart (demo random-walk per selected feature) ─────────────────
+    const OVERLAY_COLORS = ['#3b82f6', '#06b6d4', '#f59e0b'];
+
+    function seededRand(seed) {
+        let s = seed;
+        return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    }
+
+    function demoSeries(seed, n) {
+        const rand = seededRand(seed);
+        const vals = [0.3 + rand() * 0.4];
+        for (let i = 1; i < n; i++) {
+            vals.push(Math.max(0.05, Math.min(0.95, vals[i - 1] + (rand() - 0.5) * 0.12)));
+        }
+        return vals;
+    }
+
+    function drawOverlayChart() {
+        const wrap   = document.querySelector('.overlay-chart-wrap');
+        const svg    = document.getElementById('overlayChart');
+        const legend = document.getElementById('overlayLegend');
+        const W      = wrap.clientWidth || 248;
+        const H      = 96;
+        const pad    = { top: 8, right: 8, bottom: 18, left: 8 };
+        const plotW  = W - pad.left - pad.right;
+        const plotH  = H - pad.top  - pad.bottom;
+
+        const selected = getSelectedFeatures().slice(0, 3);
+        const n        = currentDays === 0 ? DATA_POINTS : Math.min(currentDays, DATA_POINTS);
+        let   html     = '';
+        let   legHTML  = '';
+
+        selected.forEach((feat, idx) => {
+            const seed = feat.split('').reduce((a, c) => a + c.charCodeAt(0), 7);
+            const vals = demoSeries(seed, n);
+            const vmin = Math.min(...vals);
+            const vmax = Math.max(...vals);
+            const span = vmax - vmin || 0.01;
+            const xS   = i => pad.left + (i / Math.max(1, n - 1)) * plotW;
+            const yS   = v => pad.top  + (1 - (v - vmin) / span)  * plotH;
+
+            let path = `M ${xS(0)} ${yS(vals[0])}`;
+            for (let i = 1; i < n; i++) path += ` L ${xS(i)} ${yS(vals[i])}`;
+            html += `<path d="${path}" fill="none" stroke="${OVERLAY_COLORS[idx]}"
+                          stroke-width="1.5" stroke-linecap="round"/>`;
+
+            const label = document.querySelector(`input[value="${feat}"]`)
+                              ?.closest('label')
+                              ?.querySelector('.feature-label')
+                              ?.textContent.trim() || feat;
+            legHTML += `
+                <span class="overlay-legend-item">
+                    <span class="overlay-legend-swatch" style="background:${OVERLAY_COLORS[idx]};"></span>
+                    ${label}
+                </span>`;
+        });
+
+        if (selected.length === 0) {
+            html += `<text x="${W / 2}" y="${H / 2 + 4}" text-anchor="middle"
+                          font-family="'Inter',sans-serif" font-size="11" fill="#94a3b8">
+                         No features selected
+                     </text>`;
+        }
+
+        html += `<text x="${W / 2}" y="${H - 3}" text-anchor="middle"
+                      font-family="'Inter',sans-serif" font-size="9" fill="#94a3b8">
+                     Last ${n} days
+                 </text>`;
+
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('height',  H);
+        svg.innerHTML    = html;
+        legend.innerHTML = legHTML;
+    }
+
+    // ── Confidence Chart ──────────────────────────────────────────────────────
+    const ALERT_THRESHOLD = 0.75;
+
+    function drawConfidenceChart() {
+        const wrap  = document.getElementById('confidenceChartWrap');
+        const svg   = document.getElementById('confidenceChart');
+        if (!wrap || !svg) return;
+
+        const W     = wrap.clientWidth || 600;
+        const H     = 180;
+        const pad   = { top: 18, right: 56, bottom: 32, left: 44 };
+        const plotW = W - pad.left - pad.right;
+        const plotH = H - pad.top  - pad.bottom;
+
+        const n      = currentDays === 0
+            ? currentConfidenceScores.length
+            : Math.min(currentDays, currentConfidenceScores.length);
+        const scores = currentConfidenceScores.slice(-n);
+        if (!scores.length) return;
+
+        const xS = i => pad.left + (i / Math.max(1, n - 1)) * plotW;
+        const yS = v => pad.top  + (1 - v) * plotH;
+
+        let html = '';
+
+        // Y-axis grid + labels
+        [0, 0.25, 0.5, 0.75, 1.0].forEach(v => {
+            const y = yS(v);
+            html += `<line x1="${pad.left}" y1="${y}" x2="${pad.left + plotW}" y2="${y}"
+                          stroke="#e2e8f0" stroke-width="1"/>`;
+            html += `<text x="${pad.left - 7}" y="${y + 4}" text-anchor="end"
+                          font-family="'Inter',sans-serif" font-size="10" fill="#64748b">${v.toFixed(2)}</text>`;
+        });
+
+        // Alert threshold dashed line
+        const ty = yS(ALERT_THRESHOLD);
+        html += `<line x1="${pad.left}" y1="${ty}" x2="${pad.left + plotW}" y2="${ty}"
+                      stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.7"/>`;
+        html += `<text x="${pad.left + plotW + 5}" y="${ty + 4}" text-anchor="start"
+                      font-family="'Inter',sans-serif" font-size="9" fill="#ef4444">Alert</text>`;
+
+        // Area fill
+        let area = `M ${xS(0)} ${yS(0)} L ${xS(0)} ${yS(scores[0])}`;
+        for (let i = 1; i < n; i++) area += ` L ${xS(i)} ${yS(scores[i])}`;
+        area += ` L ${xS(n - 1)} ${yS(0)} Z`;
+        html += `<path d="${area}" fill="rgba(91,33,182,0.08)"/>`;
+
+        // Confidence line
+        let path = `M ${xS(0)} ${yS(scores[0])}`;
+        for (let i = 1; i < n; i++) path += ` L ${xS(i)} ${yS(scores[i])}`;
+        html += `<path d="${path}" fill="none" stroke="#5B21B6" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"/>`;
+
+        // Alert marker at first upward threshold crossing
+        let alertMarked = false;
+        for (let i = 1; i < n; i++) {
+            if (!alertMarked && scores[i - 1] < ALERT_THRESHOLD && scores[i] >= ALERT_THRESHOLD) {
+                alertMarked = true;
+                const x = xS(i), y = yS(scores[i]);
+                html += `<circle cx="${x}" cy="${y}" r="5" fill="#ef4444"/>`;
+                html += `<text x="${x}" y="${y - 9}" text-anchor="middle"
+                              font-family="'Inter',sans-serif" font-size="9" font-weight="600" fill="#ef4444">
+                             Day ${i + 1} Alert
+                         </text>`;
+            }
+        }
+
+        // X-axis day labels
+        const step = Math.max(1, Math.floor(n / 5));
+        for (let i = 0; i < n; i += step) {
+            html += `<text x="${xS(i)}" y="${H - 8}" text-anchor="middle"
+                          font-family="'Inter',sans-serif" font-size="10" fill="#64748b">Day ${i + 1}</text>`;
+        }
+
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('height',  H);
+        svg.innerHTML = html;
+    }
+
+    // ── Toast notifications ───────────────────────────────────────────────────
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toastContainer');
+        const toast     = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        const iconCheck = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/></svg>`;
+        const iconWarn  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/></svg>`;
+
+        toast.innerHTML = `${type === 'success' ? iconCheck : iconWarn}<span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toast.style.opacity    = '0';
+            toast.style.transform  = 'translateY(6px)';
+            setTimeout(() => toast.remove(), 320);
+        }, 4000);
+    }
+
+    // Redraw responsive charts on viewport change
+    window.addEventListener('resize', () => {
+        drawOverlayChart();
+        drawConfidenceChart();
+    });
+</script>
+{% endblock %}

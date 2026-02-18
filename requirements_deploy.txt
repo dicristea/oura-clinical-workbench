@@ -1,4 +1,11 @@
+# ── Web framework ────────────────────────────────────────────────────────────
 flask==3.1.2
+gunicorn==21.2.0
+
+# ── Data ─────────────────────────────────────────────────────────────────────
 pandas==2.3.3
 openpyxl==3.1.2
-gunicorn==21.2.0
+
+# ── ML (lightweight — no torch/shap on free Render tier) ─────────────────────
+scikit-learn==1.6.1
+xgboost==2.1.4

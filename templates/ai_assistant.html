@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant{% endblock %}
+
+{% block head %}
+<style>
+    .placeholder-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 420px;
+        gap: 16px;
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .placeholder-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+    }
+
+    .placeholder-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #475569;
+    }
+
+    .placeholder-body {
+        font-size: 14px;
+        max-width: 420px;
+        line-height: 1.6;
+    }
+
+    .placeholder-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        background: #ede9fe;
+        color: #5B21B6;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="placeholder-wrap">
+        <div class="placeholder-icon">
+            <!-- message-circle / sparkle icon -->
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </div>
+
+        <span class="placeholder-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Coming Soon
+        </span>
+
+        <p class="placeholder-title">AI Assistant</p>
+        <p class="placeholder-body">
+            LLM-powered explainability for model predictions. Ask questions about why
+            a patient's risk score changed, get natural-language rationales grounded
+            in the top SHAP contributors, and verify outputs with the Cognitive Match Score.
+        </p>
+    </div>
+</div>
+{% endblock %}

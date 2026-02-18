@@ -10,6 +10,13 @@ import random
 
 app = Flask(__name__)
 
+# Ordered color palette assigned to features by their declaration index.
+FEATURE_COLORS = [
+    '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
+    '#ef4444', '#8b5cf6', '#f97316', '#ec4899',
+    '#84cc16', '#14b8a6', '#6366f1', '#a78bfa',
+]
+
 
 def load_patient_data():
     """Load and process patient data from Excel file."""
@@ -140,6 +147,106 @@ def get_patients():
     return jsonify(patients)
 
 
+@app.route('/api/run-experiment', methods=['POST'])
+def api_run_experiment():
+    """Train a model on synthetic patient data and return results as JSON."""
+    # 1. Parse + validate body
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({'error': 'Request body must be JSON.'}), 400
+
+    patient_id           = str(body.get('patient_id', '')).strip()
+    model_type           = str(body.get('model_type', '')).strip()
+    features             = body.get('features', [])
+    hyperparameters      = body.get('hyperparameters', {})
+    analysis_window_days = int(body.get('analysis_window_days', 30))
+
+    if not patient_id:
+        return jsonify({'error': 'patient_id is required.'}), 400
+    if not model_type:
+        return jsonify({'error': 'model_type is required.'}), 400
+    if not isinstance(features, list) or len(features) == 0:
+        return jsonify({'error': 'Select at least one feature.'}), 400
+
+    # 2. Verify patient exists
+    patients = load_patient_data()
+    patient  = next((p for p in patients if p['id'] == patient_id), None)
+    if not patient:
+        return jsonify({'error': f'Patient {patient_id!r} not found.'}), 404
+
+    # 3. Build a synthetic PatientTimeSeries (real adapters wired in Phase 2)
+    #    Seeded per-patient so results are stable across repeated calls.
+    try:
+        import numpy as np
+        import pandas as pd
+        from data.base import PatientTimeSeries, DataSource
+
+        seed   = abs(hash(patient_id)) % (2 ** 31)
+        rng    = np.random.default_rng(seed)
+        n_rows = max(60, analysis_window_days if analysis_window_days > 0 else 60)
+        idx    = pd.date_range(end='2024-12-31', periods=n_rows, freq='D')
+        ds     = DataSource.PPMI if patient_id.startswith('PT-2') else DataSource.OURA
+
+        col_data = {
+            # Oura Ring features
+            'rem_sleep_pct':       rng.uniform(10, 30, n_rows),
+            'deep_sleep_pct':      rng.uniform(8,  25, n_rows),
+            'sleep_latency':       rng.uniform(5,  45, n_rows),
+            'hrv_balance':         rng.uniform(20, 80, n_rows),
+            'body_temp_deviation': rng.uniform(-1.0, 1.0, n_rows),
+            'resting_hr':          rng.uniform(50, 75, n_rows),
+            'step_count':          rng.uniform(2000, 15000, n_rows),
+            'inactivity_alerts':   rng.uniform(0, 10, n_rows),
+            # PPMI features
+            'baseline_updrs':      rng.uniform(10, 60, n_rows),
+            'csf_alpha_synuclein': rng.uniform(1000, 3000, n_rows),
+            'amyloid_beta':        rng.uniform(500, 1500, n_rows),
+            'total_tau':           rng.uniform(100, 400, n_rows),
+            'gba_mutation':        rng.integers(0, 3, n_rows).astype(float),
+            'lrrk2_mutation':      rng.integers(0, 2, n_rows).astype(float),
+            'apoe_status':         rng.integers(0, 3, n_rows).astype(float),
+            'epworth_sleep':       rng.uniform(0, 18, n_rows),
+            'schwab_england_adl':  rng.uniform(50, 100, n_rows),
+            'datscan':             rng.uniform(0.5, 3.5, n_rows),
+        }
+
+        patient_ts = PatientTimeSeries(
+            patient_id=patient_id,
+            data_source=ds,
+            time_series=pd.DataFrame(col_data, index=idx),
+        )
+
+    except Exception as exc:
+        return jsonify({'error': f'Failed to build patient data: {exc}'}), 500
+
+    # 4. Run experiment
+    try:
+        from models.experiment import ExperimentConfig, run_experiment
+
+        config = ExperimentConfig(
+            model_type=model_type,
+            features=features,
+            hyperparameters=hyperparameters,
+            analysis_window_days=analysis_window_days,
+            patient_id=patient_id,
+        )
+        result = run_experiment(config, patient_ts)
+
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+    except ImportError as exc:
+        return jsonify({'error': str(exc)}), 500
+    except Exception as exc:
+        return jsonify({'error': f'Experiment failed: {exc}'}), 500
+
+    return jsonify({
+        'metrics':               result.metrics,
+        'feature_importance':    result.feature_importance,
+        'prediction_confidence': result.prediction_confidence,
+        'trained_at':            result.trained_at.isoformat(),
+    })
+
+
 @app.route('/patient/<patient_id>')
 def patient_detail(patient_id):
     """Show detailed patient metrics view."""
@@ -184,7 +291,219 @@ def patient_detail(patient_id):
     patient['steps_data'] = steps_data
     patient['temperature_data'] = temperature_data
     
-    return render_template('patient_detail.html', patient=patient)
+    return render_template('patient_detail.html', patient=patient, active_tab='overview')
+
+
+@app.route('/patient/<patient_id>/model-lab')
+def model_lab(patient_id):
+    """Show the Model Lab — ML model selection, training, and results."""
+    patients = load_patient_data()
+    patient  = next((p for p in patients if p['id'] == patient_id), None)
+
+    if not patient:
+        return "Patient not found", 404
+
+    # ── Determine data source from patient ID pattern ────────────────────────
+    # PT-2xxx → PPMI (Parkinson's), everything else → Oura (liver/HE)
+    if patient_id.startswith('PT-2'):
+        ds_key       = 'ppmi'
+        source_label = 'PPMI Dataset'
+        data_points  = 5   # visit timepoints: 0, 6, 12, 24, 36 months
+    else:
+        ds_key       = 'oura'
+        source_label = 'Oura V2 API'
+        data_points  = 30
+
+    # ── Feature groups from the registry ────────────────────────────────────
+    try:
+        from data.feature_registry import get_feature_groups_for_source
+        from data.base import DataSource
+        source_enum    = DataSource.PPMI if ds_key == 'ppmi' else DataSource.OURA
+        feature_groups = get_feature_groups_for_source(source_enum)
+    except Exception:
+        feature_groups = {}
+
+    # Flat dict {column_name: display_name} used by the JS importance chart
+    feature_display_names = {
+        fc.name: fc.display_name
+        for group_features in feature_groups.values()
+        for fc in group_features
+    }
+
+    # ── Hardcoded demo experiment results ────────────────────────────────────
+    results = {
+        'auc':       0.91,
+        'precision': 0.87,
+        'recall':    0.84,
+        'f1':        0.85,
+    }
+
+    if ds_key == 'ppmi':
+        feature_importance = [
+            {'name': 'Baseline UPDRS',  'importance': 0.34},
+            {'name': 'GBA Mutation',    'importance': 0.22},
+            {'name': 'DaTscan SBR',     'importance': 0.18},
+            {'name': 'CSF Alpha-syn',   'importance': 0.14},
+            {'name': 'LRRK2 Mutation',  'importance': 0.07},
+            {'name': 'Epworth Sleep',   'importance': 0.05},
+        ]
+    else:
+        feature_importance = [
+            {'name': 'REM Sleep %',     'importance': 0.31},
+            {'name': 'HRV Balance',     'importance': 0.24},
+            {'name': 'Deep Sleep %',    'importance': 0.18},
+            {'name': 'Body Temp Dev.',  'importance': 0.13},
+            {'name': 'Step Count',      'importance': 0.08},
+            {'name': 'Resting HR',      'importance': 0.06},
+        ]
+
+    rng = random.Random(hash(patient_id))
+    confidence_scores = [round(rng.uniform(0.20, 0.95), 2) for _ in range(30)]
+
+    experiments = [
+        {
+            'id':         1,
+            'model':      'XGBoost Classifier',
+            'features':   '5 features',
+            'auc':        0.91,
+            'f1':         0.85,
+            'is_current': True,
+        },
+        {
+            'id':         2,
+            'model':      'Random Forest',
+            'features':   '5 features',
+            'auc':        0.87,
+            'f1':         0.82,
+            'is_current': False,
+        },
+        {
+            'id':         3,
+            'model':      'LSTM',
+            'features':   '5 features',
+            'auc':        0.84,
+            'f1':         0.79,
+            'is_current': False,
+        },
+    ]
+
+    return render_template(
+        'model_lab.html',
+        patient=patient,
+        active_tab='model-lab',
+        feature_groups=feature_groups,
+        feature_display_names=feature_display_names,
+        data_points=data_points,
+        source_label=source_label,
+        results=results,
+        feature_importance=feature_importance,
+        confidence_scores=confidence_scores,
+        experiments=experiments,
+        data_source=ds_key,
+    )
+
+
+@app.route('/patient/<patient_id>/data-explorer')
+def data_explorer(patient_id):
+    """Data Explorer — interactive multi-signal time series chart."""
+    patients = load_patient_data()
+    patient  = next((p for p in patients if p['id'] == patient_id), None)
+    if not patient:
+        return "Patient not found", 404
+
+    # Detect data source (PT-2xxx → PPMI, all others → Oura)
+    ds_key       = 'ppmi' if patient_id.startswith('PT-2') else 'oura'
+    source_label = 'PPMI Dataset' if ds_key == 'ppmi' else 'Oura V2 API'
+
+    # Load feature registry
+    try:
+        from data.feature_registry import get_feature_groups_for_source, get_features_for_source
+        from data.base import DataSource
+        source_enum   = DataSource.PPMI if ds_key == 'ppmi' else DataSource.OURA
+        feature_groups = get_feature_groups_for_source(source_enum)
+        all_features   = get_features_for_source(source_enum)
+    except Exception:
+        feature_groups = {}
+        all_features   = []
+
+    # Generate 90 days of synthetic data (same seed as /api/run-experiment)
+    import numpy as np
+    N_DAYS = 90
+    seed   = abs(hash(patient_id)) % (2 ** 31)
+    rng    = np.random.default_rng(seed)
+    idx    = pd.date_range(end='2024-12-31', periods=N_DAYS, freq='D')
+
+    col_data = {
+        'rem_sleep_pct':       rng.uniform(10, 30, N_DAYS),
+        'deep_sleep_pct':      rng.uniform(8,  25, N_DAYS),
+        'sleep_latency':       rng.uniform(5,  45, N_DAYS),
+        'hrv_balance':         rng.uniform(20, 80, N_DAYS),
+        'body_temp_deviation': rng.uniform(-1.0, 1.0, N_DAYS),
+        'resting_hr':          rng.uniform(50, 75, N_DAYS),
+        'step_count':          rng.uniform(2000, 15000, N_DAYS),
+        'inactivity_alerts':   rng.uniform(0, 10, N_DAYS),
+        'baseline_updrs':      rng.uniform(10, 60, N_DAYS),
+        'csf_alpha_synuclein': rng.uniform(1000, 3000, N_DAYS),
+        'amyloid_beta':        rng.uniform(500,  1500, N_DAYS),
+        'total_tau':           rng.uniform(100,  400, N_DAYS),
+        'gba_mutation':        rng.integers(0, 3, N_DAYS).astype(float),
+        'lrrk2_mutation':      rng.integers(0, 2, N_DAYS).astype(float),
+        'apoe_status':         rng.integers(0, 3, N_DAYS).astype(float),
+        'epworth_sleep':       rng.uniform(0, 18, N_DAYS),
+        'schwab_england_adl':  rng.uniform(50, 100, N_DAYS),
+        'datscan':             rng.uniform(0.5, 3.5, N_DAYS),
+    }
+
+    dates = [d.strftime('%b %d') for d in idx]
+
+    # Assign a color to each feature (by declaration order)
+    features_list = []
+    for i, fc in enumerate(all_features):
+        color  = FEATURE_COLORS[i % len(FEATURE_COLORS)]
+        values = [round(float(v), 3) for v in col_data.get(fc.name, [0.0] * N_DAYS)]
+        features_list.append({
+            'name':             fc.name,
+            'display_name':     fc.display_name,
+            'unit':             fc.unit,
+            'group':            fc.group,
+            'color':            color,
+            'default_selected': fc.default_selected,
+            'values':           values,
+        })
+
+    features_by_name = {f['name']: f for f in features_list}
+
+    return render_template(
+        'data_explorer.html',
+        patient=patient,
+        active_tab='data-explorer',
+        feature_groups=feature_groups,
+        features_by_name=features_by_name,
+        source_label=source_label,
+        chart_data={'dates': dates, 'features': features_list},
+        total_days=N_DAYS,
+        data_source=ds_key,
+    )
+
+
+@app.route('/patient/<patient_id>/tournament')
+def tournament(patient_id):
+    """Tournament tab — placeholder."""
+    patients = load_patient_data()
+    patient  = next((p for p in patients if p['id'] == patient_id), None)
+    if not patient:
+        return "Patient not found", 404
+    return render_template('tournament.html', patient=patient, active_tab='tournament')
+
+
+@app.route('/patient/<patient_id>/ai-assistant')
+def ai_assistant(patient_id):
+    """AI Assistant tab — placeholder."""
+    patients = load_patient_data()
+    patient  = next((p for p in patients if p['id'] == patient_id), None)
+    if not patient:
+        return "Patient not found", 404
+    return render_template('ai_assistant.html', patient=patient, active_tab='ai-assistant')
 
 
 if __name__ == '__main__':
