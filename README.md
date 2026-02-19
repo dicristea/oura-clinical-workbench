@@ -8,6 +8,8 @@ A browser-based platform that enables clinical researchers to monitor patients v
 
 ## [Live Demo](https://jupyterhealth-clinical-workbench.onrender.com/patient/PT-1847)
 
+![Model Lab Preview](ModelLab_Preview.png)
+
 ---
 
 ## Features
@@ -35,8 +37,6 @@ A browser-based platform that enables clinical researchers to monitor patients v
 - **Models** — XGBoost, Random Forest, LSTM, TFT
 - **Results** — AUC-ROC, Precision, Recall, F1, Feature Importance
 - **Saved Experiments** — Track and compare runs
-
-![Model Lab Preview](ModelLab_Preview.png)
 
 ### Tournament ⚠️ Work in Progress
 
