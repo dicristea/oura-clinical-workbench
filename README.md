@@ -6,33 +6,7 @@ A browser-based platform that enables clinical researchers to monitor patients v
 
 ---
 
-## Supported Disease Contexts
-
-| Context       | Data Source                       | Condition                          | PI / Study                          |
-| ------------- | --------------------------------- | ---------------------------------- | ----------------------------------- |
-| Liver Disease | Oura Ring V2 API + EHR Flowsheets | Hepatic Encephalopathy (cirrhosis) | Dr. Adam Buckholz, Cornell/Columbia |
-| Parkinson's   | PPMI Dataset (LONI IDA)           | PD Motor Progression               | ML for Health course project        |
-| Synthetic     | Synthea FHIR Bundles              | Multiple (demo/testing)            | Future development                  |
-
----
-
-## Clinical Context
-
-### Liver Disease / Hepatic Encephalopathy (Primary Study)
-
-- **Condition**: Hepatic encephalopathy — confusion caused by liver failing to clear toxins (ammonia)
-- **Patient cohort**: ~140 patients enrolled across Cornell/Columbia (target 150)
-- **Data collected**: 20,000+ days of Oura ring data over 6 years
-- **Key finding from pilot**: Subtle REM sleep and circadian rhythm changes in covert disease patients
-- **Goal**: Use digital biomarkers (sleep architecture, HRV, temperature) to flag at-risk patients early
-- **Important features**: REM Sleep %, Deep Sleep %, HRV Balance, Body Temp Deviation, Resting HR, Step Count, Inactivity Alerts, Sleep Latency
-
-### Parkinson's Disease
-
-- **Dataset**: PPMI (Parkinson's Progression Markers Initiative) from LONI IDA
-- **Cohort**: 423 de novo PD patients, 196 healthy controls, 65 prodromal participants
-- **Target variable**: MDS-UPDRS Part III (Motor Examination Score)
-- **Models**: Temporal Fusion Transformer (primary), XGBoost (baseline), LSTM/GRU (temporal baseline)
+## [Live Demo](https://jupyterhealth-clinical-workbench.onrender.com/patient/PT-1847)
 
 ---
 
@@ -46,13 +20,13 @@ A browser-based platform that enables clinical researchers to monitor patients v
 
 ### Patient Views
 
-| Route             | Description                                               |
-| ----------------- | --------------------------------------------------------- |
-| **Overview**      | Biometric time series (Sleep, HRV, Activity)              |
-| **Data Explorer** | Raw signal overlay, feature browsing                      |
-| **Model Lab**     | ML model selection, training, results, feature importance |
-| **Tournament**    | Side-by-side model comparison                             |
-| **AI Assistant**  | LLM explainability / Trust Workbench                      |
+| Route               | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| **Overview**        | Biometric time series (Sleep, HRV, Activity)                  |
+| **Data Explorer**   | Raw signal overlay, feature browsing                          |
+| **Model Lab**       | ML model selection, training, results, feature importance     |
+| **Tournament** ⚠️   | Side-by-side model comparison _(work in progress)_            |
+| **AI Assistant** ⚠️ | SHAP rationale + hallucination detection _(work in progress)_ |
 
 ### Model Lab
 
@@ -62,6 +36,16 @@ A browser-based platform that enables clinical researchers to monitor patients v
 - **Results** — AUC-ROC, Precision, Recall, F1, Feature Importance
 - **Saved Experiments** — Track and compare runs
 
+![Model Lab Preview](ModelLab_Preview.png)
+
+### Tournament ⚠️ Work in Progress
+
+The Tournament page allows side-by-side comparison of saved experiments for a given patient. Currently displays placeholder experiments (XGBoost, Random Forest, LSTM) with sortable AUC-ROC leaderboard and bar chart. Planned: persistent experiment storage, real trained-model results, and cross-patient comparison.
+
+### AI Assistant ⚠️ Work in Progress
+
+The AI Assistant tab runs a SHAP TreeExplainer pipeline on a fast XGBoost model trained on the patient's (synthetic) data, and produces a template-based clinical rationale with a confidence score. Phase 2 will replace the template rationale with a Llama 3 / GPT-4o API call.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -70,7 +54,7 @@ A browser-based platform that enables clinical researchers to monitor patients v
 - **Frontend**: HTML5, CSS3, JavaScript
 - **Data**: Pandas, NumPy, Excel (xlsx)
 - **ML**: scikit-learn, XGBoost, PyTorch (for TFT/LSTM)
-- **Explainability**: SHAP, LLM API (Llama 3 or GPT-4o)
+- **Explainability**: SHAP, LIME, LLM API (Llama 3 or GPT-4o)
 - **Charts**: Custom SVG in templates (no Plotly in production)
 - **Deployment**: Render (free tier), Gunicorn
 
@@ -144,7 +128,6 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 ```bash
 pip install -r requirements.txt
-pip install -r requirements_deploy.txt
 ```
 
 ### 4. Run the app
