@@ -7,6 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% block head %}{% endblock %}
     <style>
+        /* ── Paradigm accent color (updated by JS on paradigm switch) ────────── */
+        :root {
+            --accent-color: #F59E0B;   /* default: Liver Disease orange */
+            --accent-color-light: #FEF3C7;
+        }
+
         /* ── Reset ──────────────────────────────────────────────────────────── */
         * {
             margin: 0;
@@ -139,9 +145,9 @@
         }
 
         .tab-active {
-            background: #5B21B6;
+            background: var(--accent-color);
             color: #ffffff;
-            box-shadow: 0 1px 4px rgba(91, 33, 182, 0.35);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
         }
 
         /* ── Right section: export button + avatar ──────────────────────────── */
@@ -193,6 +199,152 @@
             font-size: 13px;
             flex-shrink: 0;
             user-select: none;
+        }
+
+        /* ── Paradigm Selector ──────────────────────────────────────────────── */
+        .paradigm-wrapper {
+            position: relative;
+        }
+
+        .paradigm-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-color);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+        }
+
+        .paradigm-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .paradigm-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .paradigm-btn-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .paradigm-btn-arrow {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s ease;
+            opacity: 0.85;
+        }
+
+        .paradigm-btn-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown */
+        .paradigm-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 320px;
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+            z-index: 1000;
+            overflow: hidden;
+            /* Animate in */
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .paradigm-dropdown.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .paradigm-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background 0.15s;
+            position: relative;
+        }
+
+        .paradigm-option:last-child {
+            border-bottom: none;
+        }
+
+        .paradigm-option:hover {
+            background: #F9FAFB;
+        }
+
+        .paradigm-option.active {
+            background: #EFF6FF;
+            border-left: 3px solid var(--option-color, #F59E0B);
+            padding-left: 15px;   /* compensate for 3px border */
+        }
+
+        .paradigm-option-icon {
+            font-size: 22px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .paradigm-option-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .paradigm-option-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1A2332;
+            line-height: 1.3;
+        }
+
+        .paradigm-option-desc {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .paradigm-option-check {
+            width: 16px;
+            height: 16px;
+            color: var(--option-color, #F59E0B);
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .paradigm-option.active .paradigm-option-check {
+            opacity: 1;
+        }
+
+        /* On narrow viewports, abbreviate the button label */
+        @media (max-width: 1100px) {
+            .paradigm-btn-label {
+                display: none;
+            }
         }
 
         /* ── Main content area ──────────────────────────────────────────────── */
@@ -323,8 +475,33 @@
             </a>
         </div>
 
-        <!-- Right: export button + user avatar -->
+        <!-- Right: paradigm selector + export button + user avatar -->
         <div class="topnav-right">
+
+            <!-- Paradigm Selector -->
+            <div class="paradigm-wrapper" id="paradigmWrapper">
+                <button class="paradigm-btn" id="paradigmBtn"
+                        type="button"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Select clinical paradigm">
+                    <span class="paradigm-btn-icon" id="paradigmIcon">🫀</span>
+                    <span class="paradigm-btn-label" id="paradigmLabel">Liver Disease Progression</span>
+                    <!-- Chevron icon -->
+                    <svg class="paradigm-btn-arrow" id="paradigmArrow"
+                         viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+
+                <div class="paradigm-dropdown" id="paradigmDropdown" role="listbox" aria-label="Clinical paradigms">
+                    <!-- Options rendered by JS -->
+                </div>
+            </div>
+
             <button class="btn-export" type="button" title="Export patient findings as PDF">
                 <!-- Download icon -->
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -355,6 +532,169 @@
          PAGE-SPECIFIC SCRIPTS  (child templates inject here)
          ═══════════════════════════════════════════════════════════════════════ -->
     {% block scripts %}{% endblock %}
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PARADIGM SELECTOR  — vanilla JS, no framework dependency
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <script>
+    (function () {
+        'use strict';
+
+        const PARADIGMS = [
+            {
+                id: 'liver',
+                name: 'Liver Disease Progression',
+                icon: '🫀',
+                desc: 'Early HE detection & decompensation risk',
+                color: '#F59E0B',
+                colorLight: '#FEF3C7',
+            },
+            {
+                id: 'cirrhosis',
+                name: 'Cirrhosis Management',
+                icon: '🔬',
+                desc: 'Preventing complications & monitoring',
+                color: '#DC2626',
+                colorLight: '#FEE2E2',
+            },
+            {
+                id: 'transplant',
+                name: 'Post-Transplant Monitoring',
+                icon: '🏥',
+                desc: 'Rejection detection & compliance',
+                color: '#10B981',
+                colorLight: '#D1FAE5',
+            },
+            {
+                id: 'metabolic',
+                name: 'Metabolic Syndrome',
+                icon: '💊',
+                desc: 'MASLD/NASH & cardiovascular risk',
+                color: '#8B5CF6',
+                colorLight: '#EDE9FE',
+            },
+            {
+                id: 'general',
+                name: 'General Internal Medicine',
+                icon: '🩺',
+                desc: 'Holistic health monitoring',
+                color: '#3B82F6',
+                colorLight: '#DBEAFE',
+            },
+        ];
+
+        const STORAGE_KEY = 'jhe_paradigm';
+
+        // ── DOM refs ────────────────────────────────────────────────────────
+        const btn      = document.getElementById('paradigmBtn');
+        const icon     = document.getElementById('paradigmIcon');
+        const label    = document.getElementById('paradigmLabel');
+        const arrow    = document.getElementById('paradigmArrow');
+        const dropdown = document.getElementById('paradigmDropdown');
+        const wrapper  = document.getElementById('paradigmWrapper');
+
+        if (!btn) return;   // guard: skip if base template not fully loaded
+
+        // ── State ───────────────────────────────────────────────────────────
+        let isOpen = false;
+        let activeId = localStorage.getItem(STORAGE_KEY) || 'liver';
+
+        // ── Build dropdown options ───────────────────────────────────────────
+        function buildOptions() {
+            dropdown.innerHTML = PARADIGMS.map(p => `
+                <div class="paradigm-option ${p.id === activeId ? 'active' : ''}"
+                     role="option"
+                     aria-selected="${p.id === activeId}"
+                     data-id="${p.id}"
+                     style="--option-color: ${p.color}"
+                     tabindex="0">
+                    <span class="paradigm-option-icon">${p.icon}</span>
+                    <div class="paradigm-option-text">
+                        <div class="paradigm-option-name">${p.name}</div>
+                        <div class="paradigm-option-desc">${p.desc}</div>
+                    </div>
+                    <!-- Checkmark SVG -->
+                    <svg class="paradigm-option-check" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+            `).join('');
+
+            dropdown.querySelectorAll('.paradigm-option').forEach(el => {
+                el.addEventListener('click', () => selectParadigm(el.dataset.id));
+                el.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectParadigm(el.dataset.id);
+                    }
+                });
+            });
+        }
+
+        // ── Apply paradigm to UI ─────────────────────────────────────────────
+        function applyParadigm(id) {
+            const p = PARADIGMS.find(x => x.id === id) || PARADIGMS[0];
+            // Button
+            icon.textContent  = p.icon;
+            label.textContent = p.name;
+            btn.title         = `Clinical paradigm: ${p.name}`;
+            // CSS variables → propagates to .tab-active and any other themed element
+            document.documentElement.style.setProperty('--accent-color',       p.color);
+            document.documentElement.style.setProperty('--accent-color-light', p.colorLight);
+        }
+
+        // ── Select handler ───────────────────────────────────────────────────
+        function selectParadigm(id) {
+            activeId = id;
+            localStorage.setItem(STORAGE_KEY, id);
+            applyParadigm(id);
+            buildOptions();    // re-render to update active/checkmark state
+            closeDropdown();
+
+            // Dispatch a custom event so future components (data sources, features)
+            // can react without polling localStorage
+            document.dispatchEvent(new CustomEvent('paradigmChanged', { detail: { id } }));
+        }
+
+        // ── Toggle helpers ────────────────────────────────────────────────────
+        function openDropdown() {
+            isOpen = true;
+            dropdown.classList.add('open');
+            arrow.classList.add('open');
+            btn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeDropdown() {
+            isOpen = false;
+            dropdown.classList.remove('open');
+            arrow.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        // ── Event listeners ───────────────────────────────────────────────────
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            isOpen ? closeDropdown() : openDropdown();
+        });
+
+        // Close when clicking outside the wrapper
+        document.addEventListener('click', e => {
+            if (isOpen && !wrapper.contains(e.target)) closeDropdown();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && isOpen) closeDropdown();
+        });
+
+        // ── Init ──────────────────────────────────────────────────────────────
+        buildOptions();
+        applyParadigm(activeId);
+    })();
+    </script>
 
 </body>
 </html>

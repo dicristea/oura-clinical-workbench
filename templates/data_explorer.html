@@ -149,6 +149,234 @@
     flex-shrink: 0;
 }
 
+/* ── Data Sources Panel ──────────────────────────────────────────────────── */
+.ds-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    gap: 8px;
+}
+
+.ds-toggle-row:hover .ds-title {
+    color: var(--accent-color);
+}
+
+.ds-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    transition: color 0.15s;
+}
+
+.ds-toggle-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ds-active-pill {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent-color);
+    background: var(--accent-color-light);
+    padding: 1px 7px;
+    border-radius: 9999px;
+}
+
+.ds-chevron {
+    width: 13px;
+    height: 13px;
+    color: #94a3b8;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.ds-chevron.open {
+    transform: rotate(180deg);
+}
+
+/* Collapsible body */
+.ds-body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.28s ease, opacity 0.2s ease, margin-top 0.2s ease;
+    margin-top: 0;
+}
+
+.ds-body.open {
+    max-height: 600px;
+    opacity: 1;
+    margin-top: 12px;
+}
+
+.ds-category-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    margin: 14px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ds-category-label:first-of-type {
+    margin-top: 0;
+}
+
+.ds-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+}
+
+.ds-item:last-child {
+    margin-bottom: 0;
+}
+
+.ds-item:hover {
+    background: #F9FAFB;
+}
+
+.ds-item.active {
+    background: #EFF6FF;
+    border-color: #6366F1;
+}
+
+/* Custom checkbox */
+.ds-checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid #E5E7EB;
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.ds-item.active .ds-checkbox {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.ds-checkbox-icon {
+    display: none;
+    width: 9px;
+    height: 9px;
+    color: #fff;
+}
+
+.ds-item.active .ds-checkbox-icon {
+    display: block;
+}
+
+/* Label + status */
+.ds-label-stack {
+    flex: 1;
+    min-width: 0;
+}
+
+.ds-label-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1A2332;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.ds-label-status {
+    font-size: 10.5px;
+    color: #6B7280;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Action button */
+.ds-action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+    transition: opacity 0.15s;
+}
+
+.ds-action-btn:hover {
+    opacity: 0.85;
+}
+
+.ds-action-btn.primary {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+.ds-action-btn.secondary {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
+/* Summary footer */
+.ds-summary {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+}
+
+.ds-summary-count {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* ── Toast notification ───────────────────────────────────────────────────── */
+#dsToast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+#dsToast.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* ── Chart card ─────────────────────────────────────────────────────────── */
 .chart-card {
     background: #fff;
@@ -269,6 +497,184 @@
          ═══════════════════════════════════════════════════════════════════ -->
     <aside class="sidebar-col">
 
+        <!-- ── Data Sources card ───────────────────────────────────────────── -->
+        <div class="sidebar-card" id="dataSourcesPanel">
+
+            <!-- Clickable header row -->
+            <div class="ds-toggle-row" id="dsToggleRow" onclick="toggleDsPanel()"
+                 role="button" aria-expanded="false" aria-controls="dsBody"
+                 tabindex="0">
+                <span class="ds-title">Data Sources</span>
+                <div class="ds-toggle-meta">
+                    <span class="ds-active-pill" id="dsActivePill">2 active</span>
+                    <svg class="ds-chevron" id="dsChevron"
+                         viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Collapsible body -->
+            <div class="ds-body" id="dsBody">
+
+            <!-- WEARABLES -->
+            <div class="ds-category-label">Wearables</div>
+
+            <div class="ds-item active" data-source-id="oura" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Oura Ring</div>
+                    <div class="ds-label-status">127 days</div>
+                </div>
+                <button class="ds-action-btn primary" onclick="showDsToast(event,'Oura Ring configuration coming soon')">Configure</button>
+            </div>
+
+            <div class="ds-item" data-source-id="apple_watch" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Apple Watch</div>
+                    <div class="ds-label-status">Not connected</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'Apple Watch connection coming soon')">Connect</button>
+            </div>
+
+            <div class="ds-item" data-source-id="cgm" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Glucose Monitor</div>
+                    <div class="ds-label-status">Not connected</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'CGM connection coming soon')">Connect</button>
+            </div>
+
+            <!-- CLINICAL SYSTEMS -->
+            <div class="ds-category-label">Clinical Systems</div>
+
+            <div class="ds-item active" data-source-id="ehr_epic" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">EHR — Epic</div>
+                    <div class="ds-label-status">Last sync: 2h ago</div>
+                </div>
+                <button class="ds-action-btn primary" onclick="showDsToast(event,'EHR sync coming soon')">Sync Now</button>
+            </div>
+
+            <div class="ds-item" data-source-id="lab_lis" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Laboratory LIS</div>
+                    <div class="ds-label-status">Available</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'LIS connection coming soon')">Connect</button>
+            </div>
+
+            <div class="ds-item" data-source-id="pacs" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">PACS / Imaging</div>
+                    <div class="ds-label-status">Available</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'PACS connection coming soon')">Connect</button>
+            </div>
+
+            <!-- PATIENT INPUT -->
+            <div class="ds-category-label">Patient Input</div>
+
+            <div class="ds-item" data-source-id="symptom_diary" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Symptom Diary</div>
+                    <div class="ds-label-status">Not enabled</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'Symptom Diary coming soon')">Enable</button>
+            </div>
+
+            <div class="ds-item" data-source-id="med_tracking" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Medication Tracking</div>
+                    <div class="ds-label-status">Not enabled</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'Medication Tracking coming soon')">Enable</button>
+            </div>
+
+            <div class="ds-item" data-source-id="qol_surveys" onclick="toggleSource(this)">
+                <div class="ds-checkbox">
+                    <svg class="ds-checkbox-icon" viewBox="0 0 12 12" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="1.5 6 4.5 9 10.5 3"/>
+                    </svg>
+                </div>
+                <div class="ds-label-stack">
+                    <div class="ds-label-name">Quality of Life Surveys</div>
+                    <div class="ds-label-status">Not enabled</div>
+                </div>
+                <button class="ds-action-btn secondary" onclick="showDsToast(event,'QoL Surveys coming soon')">Enable</button>
+            </div>
+
+            <!-- Summary footer -->
+            <div class="ds-summary">
+                <span><span class="ds-summary-count" id="dsActiveCount">2</span> of 9 sources active</span>
+            </div>
+
+            </div><!-- /.ds-body -->
+
+        </div><!-- /.sidebar-card data sources -->
+
+        <!-- Toast element (rendered outside sidebar for fixed positioning) -->
+
         <!-- Analysis window selector -->
         <div class="sidebar-card">
             <div class="sidebar-title">Analysis Window</div>
@@ -348,6 +754,10 @@
     </div><!-- /.chart-card -->
 
 </div><!-- /.explorer-layout -->
+
+<!-- Toast (fixed position, outside grid) -->
+<div id="dsToast" role="status" aria-live="polite"></div>
+
 {% endblock %}
 
 
@@ -567,6 +977,112 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(drawChart, 80);
     });
+})();
+
+// ── Data Sources Panel ────────────────────────────────────────────────────────
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'jhe_data_sources';
+
+    // Default enabled source IDs (matches the HTML initial state)
+    const DEFAULT_ENABLED = ['oura', 'ehr_epic'];
+
+    // ── Load persisted state ──────────────────────────────────────────────────
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : DEFAULT_ENABLED;
+        } catch (_) {
+            return DEFAULT_ENABLED;
+        }
+    }
+
+    function saveState(enabledIds) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(enabledIds));
+    }
+
+    // ── Apply persisted state to DOM on page load ─────────────────────────────
+    function applyState() {
+        const enabledIds = loadState();
+        document.querySelectorAll('.ds-item').forEach(el => {
+            const id = el.dataset.sourceId;
+            if (enabledIds.includes(id)) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+        updateSummary();
+    }
+
+    // ── Toggle handler (called from onclick in HTML) ───────────────────────────
+    window.toggleSource = function (el) {
+        // Prevent toggle when the action button inside was clicked
+        if (event && event.target.classList.contains('ds-action-btn')) return;
+
+        el.classList.toggle('active');
+        persistAndNotify();
+    };
+
+    function persistAndNotify() {
+        const enabledIds = [];
+        document.querySelectorAll('.ds-item.active').forEach(el => {
+            enabledIds.push(el.dataset.sourceId);
+        });
+        saveState(enabledIds);
+        updateSummary();
+
+        // Custom event for future components (Model Lab, feature panel) to react
+        document.dispatchEvent(new CustomEvent('dataSourcesChanged', {
+            detail: { enabledIds }
+        }));
+    }
+
+    // ── Summary counter + header pill ─────────────────────────────────────────
+    function updateSummary() {
+        const count = document.querySelectorAll('.ds-item.active').length;
+        const countEl = document.getElementById('dsActiveCount');
+        if (countEl) countEl.textContent = count;
+        const pillEl = document.getElementById('dsActivePill');
+        if (pillEl) pillEl.textContent = `${count} active`;
+    }
+
+    // ── Collapsible panel toggle ───────────────────────────────────────────────
+    let dsOpen = false;
+
+    window.toggleDsPanel = function () {
+        dsOpen = !dsOpen;
+        const body    = document.getElementById('dsBody');
+        const chevron = document.getElementById('dsChevron');
+        const row     = document.getElementById('dsToggleRow');
+        if (body)    body.classList.toggle('open', dsOpen);
+        if (chevron) chevron.classList.toggle('open', dsOpen);
+        if (row)     row.setAttribute('aria-expanded', String(dsOpen));
+    };
+
+    // Keyboard support for the toggle row
+    document.getElementById('dsToggleRow')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.toggleDsPanel(); }
+    });
+
+    // ── Toast notification (called from onclick in HTML) ─────────────────────
+    let toastTimer = null;
+
+    window.showDsToast = function (evt, message) {
+        evt.stopPropagation();   // don't let the click bubble to toggleSource
+        const toast = document.getElementById('dsToast');
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.classList.add('visible');
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('visible'), 2800);
+    };
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    applyState();
 })();
 </script>
 {% endblock %}
