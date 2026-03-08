@@ -1,0 +1,781 @@
+{
+  "version": "1.0",
+  "description": "Oura -> OMH / IEEE mapping config generated from CSV",
+  "mappings": [
+    {
+      "id": "dailyactivitymodel_active_calories",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "active_calories",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Active calories expended (in kilocalories)"
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:calories-burned:2.0",
+        "field_path": "body.calories_burned.kcal_burned",
+        "field_type": "kcal_unit_value",
+        "notes": "daily overall"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": "daily overall",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "dailyactivitymodel_high_activity_met_minutes",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "high_activity_met_minutes",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "High activity metabolic equivalent (MET) in minutes"
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": "physical-activity-1.0",
+        "field_path": null,
+        "field_type": null,
+        "notes": "need definition of what Oura calls \"high activity\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": "need definition of what Oura calls \"high activity\""
+      }
+    },
+    {
+      "id": "dailyactivitymodel_low_activity_met_minutes",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "low_activity_met_minutes",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Low activity metabolic equivalent (MET) in minutes"
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "dailyactivitymodel_medium_activity_met_minutes",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "medium_activity_met_minutes",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Medium activity metabolic equivalent (MET) in minutes"
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "dailyactivitymodel_non_wear_time",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "non_wear_time",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "The time (in seconds) in which the ring was not worn"
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "dailyactivitymodel_score",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "score",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Activity score in range ```[1, 100]```"
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "need definition; probably will be an Oura-specific property"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": "need definition; probably will be an Oura-specific property"
+      }
+    },
+    {
+      "id": "dailyactivitymodel_sedentary_met_minutes",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "sedentary_met_minutes",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Sedentary metabolic equivalent (MET) in minutes"
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "dailyreadinessmodel_temperature_deviation",
+      "source": {
+        "path": "/v2/usercollection/daily_readiness/{document_id}",
+        "tags": "Daily Readiness Routes",
+        "summary": "Single Daily Readiness Document",
+        "operation_id": "Single_daily_readiness_Document_v2_usercollection_daily_readiness__document_id__get",
+        "response_schema_name": "DailyReadinessModel",
+        "field": "temperature_deviation",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Temperature deviation in degrees Celsius."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "need definition of what Oura calls \"temperature deviation\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": "need definition of what Oura calls \"temperature deviation\""
+      }
+    },
+    {
+      "id": "dailysleepmodel_score",
+      "source": {
+        "path": "/v2/usercollection/daily_sleep/{document_id}",
+        "tags": "Daily Sleep Routes",
+        "summary": "Single Daily Sleep Document",
+        "operation_id": "Single_daily_sleep_Document_v2_usercollection_daily_sleep__document_id__get",
+        "response_schema_name": "DailySleepModel",
+        "field": "score",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Daily sleep score."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "need definition; probably will be an Oura-specific property"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": "need definition; probably will be an Oura-specific property"
+      }
+    },
+    {
+      "id": "dailyspo2model_spo2_percentage",
+      "source": {
+        "path": "/v2/usercollection/daily_spo2/{document_id}",
+        "tags": "Daily Spo2 Routes",
+        "summary": "Single Daily Spo2 Document",
+        "operation_id": "Single_daily_spo2_Document_v2_usercollection_daily_spo2__document_id__get",
+        "response_schema_name": "DailySpO2Model",
+        "field": "spo2_percentage",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "The SpO2 percentage value aggregated over a single day."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:oxygen-saturation:2.0",
+        "field_path": "body.oxygen_saturation",
+        "field_type": "number --> unit_value",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "need to know what \"aggregated\" means"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": "need to know what \"aggregated\" means"
+      }
+    },
+    {
+      "id": "sleepmodel_average_breath",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "average_breath",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Average breathing rate during sleep as breaths/second."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:respiratory-rate:2.0",
+        "field_path": "body.respiratory_rate.respiratory_rate",
+        "field_type": "unit_value",
+        "notes": "descriptive_statistic: \"average\""
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": "descriptive_statistic: \"average\"",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_average_heart_rate",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "average_heart_rate",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Average heart rate during sleep as beats/minute."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:heart-rate:2.0",
+        "field_path": "body.heart_rate.heart_rate",
+        "field_type": "unit_value",
+        "notes": "descriptive_statistic: \"average\""
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": "descriptive_statistic: \"average\"",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_average_hrv",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "average_hrv",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Average heart rate variability during sleep."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "need definition of what Oura calls \"HRV\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": "need definition of what Oura calls \"HRV\""
+      }
+    },
+    {
+      "id": "sleepmodel_awake_time",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "awake_time",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Duration spent awake in seconds."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:sleep-episode:1.1",
+        "field_path": "body.sleep_episode.wake_after_sleep_onset",
+        "field_type": "duration_unit_value",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": "ieee:sleep-episode:1.0",
+        "field_path": "body.sleep_episode.wake_after_sleep_onset",
+        "field_type": "duration_unit_value",
+        "notes": "unit: \"sec\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"sec\""
+      }
+    },
+    {
+      "id": "sleepmodel_bedtime_end",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "bedtime_end",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Bedtime end of the sleep."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:sleep-episode:1.1",
+        "field_path": "body.sleep_episode.effective_time_frame.time_interval.end_date_time",
+        "field_type": "date-time",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": "time-in-bed-1.0",
+        "field_path": null,
+        "field_type": null,
+        "notes": null
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_bedtime_start",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "bedtime_start",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Bedtime start of the sleep."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:sleep-episode:1.1",
+        "field_path": "body.sleep_episode.effective_time_frame.time_interval.start_date_time",
+        "field_type": "date-time",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": "time-in-bed-1.0",
+        "field_path": null,
+        "field_type": null,
+        "notes": null
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_day",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "day",
+        "field_type": "string",
+        "field_required": true,
+        "field_description": "Day that the sleep belongs to."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_deep_sleep_duration",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "deep_sleep_duration",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Duration spent in deep sleep in seconds."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": "ieee:sleep-episode:1.0",
+        "field_path": "body.sleep_episode.deep_sleep_duration",
+        "field_type": "duration_unit_value",
+        "notes": null
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_efficiency",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "efficiency",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Sleep efficiency rating in range [1, 100]."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:sleep-episode:1.1",
+        "field_path": "body.sleep_episode.sleep_maintenance_efficiency_percentage",
+        "field_type": "unit_value",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": "ieee:sleep-episode:1.0",
+        "field_path": "body.sleep_episode.sleep_efficiency_percentage",
+        "field_type": "percent_unit_value",
+        "notes": null
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_heart_rate",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "heart_rate",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Object containing heart rate samples."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:heart-rate:2.0",
+        "field_path": "body.heart_rate.heart_rate",
+        "field_type": "unit_value",
+        "notes": "is this an array of HR values?"
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": "is this an array of HR values?",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_light_sleep_duration",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "light_sleep_duration",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Duration spent in light sleep in seconds."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": "ieee:sleep-episode:1.0",
+        "field_path": "body.sleep_episode.light_sleep_duration",
+        "field_type": "duration_unit_value",
+        "notes": "unit: \"sec\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": "unit: \"sec\""
+      }
+    },
+    {
+      "id": "sleepmodel_lowest_heart_rate",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "lowest_heart_rate",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Lowest heart rate during sleep."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:heart-rate:2.0",
+        "field_path": "body.heart_rate.heart_rate",
+        "field_type": "unit_value",
+        "notes": "descriptive_statistic: \"minimum\""
+      },
+      "ieee": null,
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": "descriptive_statistic: \"minimum\"",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_rem_sleep_duration",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "rem_sleep_duration",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Duration spent in REM sleep in seconds."
+      },
+      "status": "gap_or_proposed",
+      "omh": {
+        "schema_id": null,
+        "field_path": null,
+        "field_type": null,
+        "notes": "missing"
+      },
+      "ieee": {
+        "schema_id": "ieee:sleep-episode:1.0",
+        "field_path": "body.sleep_episode.rem_sleep_duration",
+        "field_type": "duration_unit_value",
+        "notes": null
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": "missing",
+        "ieee_notes": null
+      }
+    },
+    {
+      "id": "sleepmodel_time_in_bed",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "time_in_bed",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Duration spent in bed in seconds."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:sleep-episode:1.1",
+        "field_path": "body.sleep_episode.effective_time_frame.time_interval.duration",
+        "field_type": "duration_unit_value",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": "ieee:time-in-bed:1.0",
+        "field_path": "body.time_in_bed.time_in_bed",
+        "field_type": "duration_unit_value",
+        "notes": "unit: \"sec\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"sec\""
+      }
+    },
+    {
+      "id": "sleepmodel_total_sleep_duration",
+      "source": {
+        "path": "/v2/usercollection/sleep/{document_id}",
+        "tags": "Sleep Routes",
+        "summary": "Single Sleep Document",
+        "operation_id": "Single_sleep_Document_v2_usercollection_sleep__document_id__get",
+        "response_schema_name": "SleepModel",
+        "field": "total_sleep_duration",
+        "field_type": null,
+        "field_required": true,
+        "field_description": "Total sleep duration in seconds."
+      },
+      "status": "mapped",
+      "omh": {
+        "schema_id": "omh:total-sleep-time:1.0",
+        "field_path": "body.total_sleep_time.total_sleep_time",
+        "field_type": "duration_unit_value",
+        "notes": null
+      },
+      "ieee": {
+        "schema_id": "ieee:sleep-episode:1.0",
+        "field_path": "body.sleep_episode.total_sleep_time",
+        "field_type": "duration_unit_value",
+        "notes": "see also total-sleep-time schema"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": true,
+        "omh_notes": null,
+        "ieee_notes": "see also total-sleep-time schema"
+      }
+    }
+  ]
+}
