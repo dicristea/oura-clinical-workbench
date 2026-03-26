@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import json
-import math
-import random
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Iterable, List, Literal, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, Iterable, Literal, Optional
 
 Standard = Literal["ieee", "omh"]
+DEFAULT_SOURCE_NAME = "data_syn"
 
 
 # -----------------------------
@@ -42,8 +40,8 @@ def set_by_path(obj: Dict[str, Any], path: str, value: Any) -> Dict[str, Any]:
     return obj
 
 
-def build_header(standard: Standard, schema_id: str, source_name: str = "synthetic-oura-simulator") -> Dict[str, Any]:
-    """Lightweight header wrapper; both IEEE/OMH examples in your project can be carried this way."""
+def build_header(standard: Standard, schema_id: str, source_name: str = DEFAULT_SOURCE_NAME) -> Dict[str, Any]:
+    """Build the shared record header used by the data_syn conversion pipeline."""
     namespace, name, version = schema_id.split(":", 2)
     return {
         "header": {
@@ -118,9 +116,14 @@ def build_heart_rate_measurement(
 def build_heart_rate_series(
     samples: Iterable[HeartRateSample],
     standard: Standard = "ieee",
-    source_name: str = "synthetic-oura-simulator",
+    source_name: str = DEFAULT_SOURCE_NAME,
 ) -> Dict[str, Any]:
-    """Build a date-series record like the ambient-temperature example Simona shared."""
+    """
+    Build a metadata data-series record.
+
+    For IEEE 1752 data-series instances, the header identifies the schema and the
+    body is an array of point measurements that each conform to that schema.
+    """
     schema_id = "ieee:heart-rate:1.0" if standard == "ieee" else "omh:heart-rate:2.0"
     body = []
     for sample in samples:
@@ -136,39 +139,6 @@ def build_heart_rate_series(
     return record
 
 
-def simulate_sleep_heart_rate_series(
-    start: datetime,
-    duration_hours: float = 8.0,
-    interval_minutes: int = 5,
-    resting_bpm: int = 56,
-    variability: float = 4.0,
-    seed: int = 42,
-) -> List[HeartRateSample]:
-    """
-    Generate plausible sleep heart-rate samples.
-    Pattern: early decline, mid-sleep trough, pre-wake rise, small noise.
-    """
-    rng = random.Random(seed)
-    total_points = max(1, int(duration_hours * 60 / interval_minutes))
-    samples: List[HeartRateSample] = []
-
-    for i in range(total_points):
-        t = start + timedelta(minutes=i * interval_minutes)
-        progress = i / max(1, total_points - 1)
-
-        # Smooth nightly shape: starts slightly higher, dips in middle, rises before wake.
-        nightly_curve = (
-            2.5 * math.cos(progress * math.pi * 2)  # cyclical movement
-            - 2.0 * math.sin(progress * math.pi)     # lower in mid-sleep
-            + 1.5 * progress                         # slight rise near wake
-        )
-        noise = rng.uniform(-variability, variability)
-        bpm = max(38, resting_bpm + nightly_curve + noise)
-        samples.append(HeartRateSample(timestamp=t, bpm=round(bpm, 1)))
-
-    return samples
-
-
 # -----------------------------
 # Physical activity builders
 # -----------------------------
@@ -179,6 +149,7 @@ def build_physical_activity_record(
     end: datetime,
     *,
     standard: Standard = "ieee",
+    source_name: str = DEFAULT_SOURCE_NAME,
     base_movement_quantity: Optional[int] = None,
     distance_m: Optional[float] = None,
     kcal_burned: Optional[float] = None,
@@ -199,7 +170,7 @@ def build_physical_activity_record(
     """
     schema_id = "ieee:physical-activity:1.0" if standard == "ieee" else "omh:physical-activity:1.0"
 
-    record = build_header(standard, schema_id)
+    record = build_header(standard, schema_id, source_name=source_name)
     body: Dict[str, Any] = {
         "activity_name": activity_name,
         "effective_time_frame": time_interval(start, end),
@@ -230,117 +201,3 @@ def build_physical_activity_record(
 
     record["body"] = body
     return record
-
-
-def simulate_daily_activity(
-    day: datetime,
-    *,
-    seed: int = 42,
-    steps: Optional[int] = None,
-    kcal: Optional[float] = None,
-    distance_m: Optional[float] = None,
-) -> Dict[str, Any]:
-    """Simulate one day of aggregated activity."""
-    rng = random.Random(seed)
-    start = day.replace(hour=0, minute=0, second=0, microsecond=0)
-    end = start + timedelta(days=1) - timedelta(seconds=1)
-
-    if steps is None:
-        steps = rng.randint(4500, 11000)
-    if distance_m is None:
-        # very rough walking conversion
-        distance_m = steps * rng.uniform(0.68, 0.80)
-    if kcal is None:
-        kcal = rng.uniform(180, 650)
-
-    light = rng.randint(30, 120) * 60
-    moderate = rng.randint(10, 60) * 60
-    vigorous = rng.randint(0, 25) * 60
-    duration = light + moderate + vigorous
-
-    return build_physical_activity_record(
-        activity_name="all daily activities",
-        start=start,
-        end=end,
-        standard="ieee",
-        base_movement_quantity=steps,
-        distance_m=distance_m,
-        kcal_burned=kcal,
-        duration_sec=duration,
-        duration_light_sec=light,
-        duration_moderate_sec=moderate,
-        duration_vigorous_sec=vigorous,
-        descriptive_statistic="sum",
-        descriptive_statistic_denominator="d",
-    )
-
-
-def simulate_workout_episode(
-    start: datetime,
-    *,
-    activity_name: str = "running",
-    duration_min: int = 42,
-    seed: int = 7,
-) -> Dict[str, Any]:
-    rng = random.Random(seed)
-    end = start + timedelta(minutes=duration_min)
-    distance_m = duration_min * rng.uniform(110, 180)
-    kcal = duration_min * rng.uniform(7, 12)
-    steps = int(distance_m / rng.uniform(0.75, 1.05))
-    speed = distance_m / (duration_min * 60)
-
-    return build_physical_activity_record(
-        activity_name=activity_name,
-        start=start,
-        end=end,
-        standard="ieee",
-        base_movement_quantity=steps,
-        distance_m=distance_m,
-        kcal_burned=kcal,
-        duration_sec=duration_min * 60,
-        average_speed_mps=speed,
-        reported_intensity="moderate" if activity_name == "walking" else "vigorous",
-    )
-
-
-# -----------------------------
-# Demo / example output
-# -----------------------------
-
-def demo() -> Dict[str, Any]:
-    sleep_start = datetime(2026, 3, 1, 22, 30, tzinfo=timezone.utc)
-    hr_samples = simulate_sleep_heart_rate_series(
-        start=sleep_start,
-        duration_hours=8,
-        interval_minutes=5,
-        resting_bpm=54,
-        seed=123,
-    )
-    heart_rate_series_record = build_heart_rate_series(hr_samples, standard="ieee")
-
-    daily_activity_record = simulate_daily_activity(
-        datetime(2026, 3, 2, tzinfo=timezone.utc),
-        seed=123,
-    )
-
-    workout_record = simulate_workout_episode(
-        datetime(2026, 3, 2, 17, 45, tzinfo=timezone.utc),
-        activity_name="running",
-        duration_min=35,
-        seed=123,
-    )
-
-    return {
-        "heart_rate_series": heart_rate_series_record,
-        "daily_activity": daily_activity_record,
-        "workout_episode": workout_record,
-    }
-
-
-if __name__ == "__main__":
-    examples = demo()
-
-    with open("synthetic_examples.json", "w", encoding="utf-8") as f:
-        json.dump(examples, f, indent=2, ensure_ascii=False)
-
-    print("Saved to synthetic_examples.json")

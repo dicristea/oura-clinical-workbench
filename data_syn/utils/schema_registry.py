@@ -5,6 +5,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+try:
+    from data_syn.utils.paths import SCHEMAS_DIR
+except ModuleNotFoundError:
+    import sys
+
+    repo_root = Path(__file__).resolve().parents[2]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    from data_syn.utils.paths import SCHEMAS_DIR
+
 
 @dataclass
 class SchemaRecord:
@@ -145,8 +155,8 @@ class SchemaRegistry:
 
 
 def build_default_registry(
-    ieee_dir: str | Path = "schemas/ieee",
-    omh_dir: str | Path = "schemas/omh",
+    ieee_dir: str | Path = SCHEMAS_DIR / "ieee",
+    omh_dir: str | Path = SCHEMAS_DIR / "omh",
 ) -> SchemaRegistry:
     registry = SchemaRegistry()
     registry.register_directory(ieee_dir, standard="ieee")

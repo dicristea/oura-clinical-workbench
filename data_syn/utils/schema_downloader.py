@@ -6,6 +6,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+try:
+    from data_syn.utils.paths import SCHEMAS_DIR
+except ModuleNotFoundError:
+    import sys
+
+    repo_root = Path(__file__).resolve().parents[2]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    from data_syn.utils.paths import SCHEMAS_DIR
+
 
 @dataclass
 class SchemaSource:
@@ -15,7 +25,7 @@ class SchemaSource:
 
 
 class SchemaDownloader:
-    def __init__(self, base_dir: str | Path = "schemas") -> None:
+    def __init__(self, base_dir: str | Path = SCHEMAS_DIR) -> None:
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
@@ -134,6 +144,6 @@ def get_default_sources() -> list[SchemaSource]:
 
 
 if __name__ == "__main__":
-    downloader = SchemaDownloader(base_dir="schemas")
+    downloader = SchemaDownloader(base_dir=SCHEMAS_DIR)
     sources = get_default_sources()
     downloader.download_many(sources, overwrite=False)

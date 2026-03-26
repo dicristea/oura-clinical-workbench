@@ -22,12 +22,157 @@
         "field_type": "kcal_unit_value",
         "notes": "daily overall"
       },
-      "ieee": null,
+      "ieee": {
+        "schema_id": "ieee:physical-activity:1.0",
+        "field_path": "body.physical_activity.kcal_burned",
+        "field_type": "kcal_unit_value",
+        "notes": "aggregate daily record; use activity_name: \"Total Daily Physical Activity\""
+      },
       "notes": {
         "general": null,
         "omh_match": true,
         "omh_notes": "daily overall",
-        "ieee_notes": null
+        "ieee_notes": "aggregate daily record; use activity_name: \"Total Daily Physical Activity\""
+      }
+    },
+    {
+      "id": "dailyactivitymodel_steps",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "steps",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Total number of steps during the day."
+      },
+      "status": "mapped",
+      "omh": null,
+      "ieee": {
+        "schema_id": "ieee:physical-activity:1.0",
+        "field_path": "body.physical_activity.base_movement_quantity",
+        "field_type": "unit_value",
+        "notes": "unit: \"steps\"; aggregate daily record; use activity_name: \"Total Daily Physical Activity\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"steps\"; aggregate daily record; use activity_name: \"Total Daily Physical Activity\""
+      }
+    },
+    {
+      "id": "dailyactivitymodel_equivalent_walking_distance",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "equivalent_walking_distance",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Equivalent walking distance during the day in meters."
+      },
+      "status": "mapped",
+      "omh": null,
+      "ieee": {
+        "schema_id": "ieee:physical-activity:1.0",
+        "field_path": "body.physical_activity.distance",
+        "field_type": "unit_value",
+        "notes": "unit: \"m\"; aggregate daily record; use activity_name: \"Total Daily Physical Activity\""
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"m\"; aggregate daily record; use activity_name: \"Total Daily Physical Activity\""
+      }
+    },
+    {
+      "id": "dailyactivitymodel_low_activity_time",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "low_activity_time",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Duration of low-intensity activity in seconds."
+      },
+      "status": "mapped",
+      "omh": null,
+      "ieee": {
+        "schema_id": "ieee:physical-activity:1.0",
+        "field_path": "body.physical_activity.duration_light_activity",
+        "field_type": "duration_unit_value",
+        "notes": "unit: \"sec\"; aggregate daily record"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"sec\"; aggregate daily record"
+      }
+    },
+    {
+      "id": "dailyactivitymodel_medium_activity_time",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "medium_activity_time",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Duration of moderate-intensity activity in seconds."
+      },
+      "status": "mapped",
+      "omh": null,
+      "ieee": {
+        "schema_id": "ieee:physical-activity:1.0",
+        "field_path": "body.physical_activity.duration_moderate_activity",
+        "field_type": "duration_unit_value",
+        "notes": "unit: \"sec\"; aggregate daily record"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"sec\"; aggregate daily record"
+      }
+    },
+    {
+      "id": "dailyactivitymodel_high_activity_time",
+      "source": {
+        "path": "/v2/usercollection/daily_activity/{document_id}",
+        "tags": "Daily Activity Routes",
+        "summary": "Single Daily Activity Document",
+        "operation_id": "Single_daily_activity_Document_v2_usercollection_daily_activity__document_id__get",
+        "response_schema_name": "DailyActivityModel",
+        "field": "high_activity_time",
+        "field_type": "integer",
+        "field_required": true,
+        "field_description": "Duration of vigorous-intensity activity in seconds."
+      },
+      "status": "mapped",
+      "omh": null,
+      "ieee": {
+        "schema_id": "ieee:physical-activity:1.0",
+        "field_path": "body.physical_activity.duration_vigorous_activity",
+        "field_type": "duration_unit_value",
+        "notes": "unit: \"sec\"; aggregate daily record"
+      },
+      "notes": {
+        "general": null,
+        "omh_match": false,
+        "omh_notes": null,
+        "ieee_notes": "unit: \"sec\"; aggregate daily record"
       }
     },
     {
@@ -50,17 +195,12 @@
         "field_type": null,
         "notes": "missing"
       },
-      "ieee": {
-        "schema_id": "physical-activity-1.0",
-        "field_path": null,
-        "field_type": null,
-        "notes": "need definition of what Oura calls \"high activity\""
-      },
+      "ieee": null,
       "notes": {
         "general": null,
         "omh_match": false,
         "omh_notes": "missing",
-        "ieee_notes": "need definition of what Oura calls \"high activity\""
+        "ieee_notes": "not used in the current total daily physical activity aggregate; time-based fields are used instead"
       }
     },
     {
@@ -603,18 +743,18 @@
         "field_description": "Object containing heart rate samples."
       },
       "status": "mapped",
-      "omh": {
-        "schema_id": "omh:heart-rate:2.0",
-        "field_path": "body.heart_rate.heart_rate",
-        "field_type": "unit_value",
-        "notes": "is this an array of HR values?"
+      "omh": null,
+      "ieee": {
+        "schema_id": "ieee:heart-rate:1.0",
+        "field_path": null,
+        "field_type": null,
+        "notes": "data-series record built from heart_rate.timestamp + heart_rate.interval + heart_rate.items"
       },
-      "ieee": null,
       "notes": {
         "general": null,
-        "omh_match": true,
-        "omh_notes": "is this an array of HR values?",
-        "ieee_notes": null
+        "omh_match": false,
+        "omh_notes": "average_heart_rate and lowest_heart_rate remain separate OMH summary measurements",
+        "ieee_notes": "data-series record built from heart_rate.timestamp + heart_rate.interval + heart_rate.items"
       }
     },
     {

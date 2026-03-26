@@ -29,3 +29,7 @@ Thumbs.db
 
 # Don't commit real patient data!
 data.xlsx
+
+# Local Oura pull outputs
+data_syn/outputs/raw/oura/*.json
+data_syn/outputs/processed/*.json
