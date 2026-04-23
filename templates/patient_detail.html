@@ -244,11 +244,226 @@
 
     /* ── Utility ─────────────────────────────────────────────────────────── */
     .hidden { display: none; }
+
+    /* ── Clinical History card ───────────────────────────────────────────── */
+    .clinical-history-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+        border-left: 4px solid var(--accent-color, #f59e0b);
+    }
+
+    .ch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 16px;
+    }
+
+    .ch-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .ch-meta {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .ch-demographics {
+        font-size: 13px;
+        color: #475569;
+        margin-bottom: 14px;
+    }
+
+    .ch-demographics strong {
+        color: #1e293b;
+    }
+
+    .ch-section-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        margin-bottom: 8px;
+    }
+
+    .ch-conditions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .ch-condition-tag {
+        padding: 3px 10px;
+        border-radius: 9999px;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid #fde68a;
+    }
+
+    .ch-vitals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .ch-vital {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+
+    .ch-vital-label {
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 3px;
+    }
+
+    .ch-vital-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .ch-vital-unit {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    .ch-trends {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .ch-trend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .ch-trend-arrow {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .ch-trend-up   { color: #ef4444; }
+    .ch-trend-down { color: #22c55e; }
+    .ch-trend-flat { color: #94a3b8; }
+
+    /* Per-source condition tag colours */
+    .ch-condition-tag.liver { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
+    .ch-condition-tag.synth { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+    .ch-study-note {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 11px;
+        color: #94a3b8;
+        font-style: italic;
+    }
 </style>
 {% endblock %}
 
 
 {% block content %}
+
+    {% if clinical_history %}
+    <!-- ── Clinical History ────────────────────────────────────────────────── -->
+    {# Determine tag colour class from data source label #}
+    {% if 'Oura' in clinical_history.data_source_label or 'EHR' in clinical_history.data_source_label %}
+        {% set tag_cls = 'liver' %}
+        {% set trend_label = 'Since Enrollment' %}
+    {% else %}
+        {% set tag_cls = 'synth' %}
+        {% set trend_label = '12-Month Trend' %}
+    {% endif %}
+
+    <div class="clinical-history-card">
+        <div class="ch-header">
+            <span class="ch-title">Clinical History</span>
+            <span class="ch-meta">
+                {{ clinical_history.data_source_label }}
+                {% if clinical_history.last_encounter %} · Last encounter {{ clinical_history.last_encounter }}{% endif %}
+                {% if clinical_history.data_points %} · {{ clinical_history.data_points }} records{% endif %}
+            </span>
+        </div>
+
+        <div class="ch-demographics">
+            {% if clinical_history.age or clinical_history.sex %}
+                <strong>
+                    {% if clinical_history.age %}{{ clinical_history.age }} yrs{% endif %}
+                    {% if clinical_history.sex %} · {{ clinical_history.sex }}{% endif %}
+                </strong>
+            {% endif %}
+            {% if clinical_history.enrollment_date %}
+                &nbsp;· Enrolled {{ clinical_history.enrollment_date }}
+            {% endif %}
+        </div>
+
+        {% if clinical_history.conditions %}
+            <div class="ch-section-label">Active Conditions</div>
+            <div class="ch-conditions">
+                {% for c in clinical_history.conditions %}
+                    <span class="ch-condition-tag {{ tag_cls }}">{{ c }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if clinical_history.latest_vitals %}
+            <div class="ch-section-label">Latest Results</div>
+            <div class="ch-vitals-grid">
+                {% for label, v in clinical_history.latest_vitals.items() %}
+                <div class="ch-vital">
+                    <div class="ch-vital-label">{{ label }}</div>
+                    <div class="ch-vital-value">
+                        {{ v.value }}<span class="ch-vital-unit">{% if v.unit %} {{ v.unit }}{% endif %}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if clinical_history.trends %}
+            <div class="ch-section-label">{{ trend_label }}</div>
+            <div class="ch-trends">
+                {% for label, delta in clinical_history.trends.items() %}
+                <div class="ch-trend-item">
+                    {% if delta > 1 %}
+                        <span class="ch-trend-arrow ch-trend-up">↑</span>
+                    {% elif delta < -1 %}
+                        <span class="ch-trend-arrow ch-trend-down">↓</span>
+                    {% else %}
+                        <span class="ch-trend-arrow ch-trend-flat">→</span>
+                    {% endif %}
+                    {{ label }}
+                    <span style="color: {% if delta > 1 %}#ef4444{% elif delta < -1 %}#22c55e{% else %}#94a3b8{% endif %}">
+                        {% if delta > 0 %}+{% endif %}{{ delta }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if clinical_history.study_note %}
+            <div class="ch-study-note">{{ clinical_history.study_note }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- View-mode toggle: Overview (combined) vs Detailed View (separate) -->
     <div class="view-toggle-bar">

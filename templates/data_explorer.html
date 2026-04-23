@@ -209,7 +209,8 @@
 }
 
 .ds-body.open {
-    max-height: 600px;
+    max-height: 300px;
+    overflow-y: auto;
     opacity: 1;
     margin-top: 12px;
 }
@@ -375,6 +376,98 @@
 #dsToast.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* ── Cohort comparison chips ─────────────────────────────────────────────── */
+.cohort-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 0 14px;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 16px;
+    margin-top: 16px;
+}
+
+.cohort-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-right: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.cohort-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    background: #FFFFFF;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 9999px;
+    color: #6B7280;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.cohort-chip:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+}
+
+.cohort-chip.active {
+    background: #EFF6FF;
+    border-color: #6366F1;
+    color: #6366F1;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
+}
+
+.cohort-chip.active:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+
+.cohort-chip-dot {
+    display: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.cohort-chip.active .cohort-chip-dot {
+    display: block;
+}
+
+/* ── Cohort summary panel ────────────────────────────────────────────────── */
+.cohort-summary {
+    background: #F9FAFB;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #6B7280;
+    display: none;
+}
+
+.cohort-summary-cohorts {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 3px;
+}
+
+.cohort-summary-stats {
+    font-size: 12px;
+    color: #6B7280;
 }
 
 /* ── Chart card ─────────────────────────────────────────────────────────── */
@@ -745,6 +838,52 @@
             </span>
         </div>
 
+        <!-- Cohort comparison chips -->
+        <div class="cohort-bar" id="cohortBar">
+            <span class="cohort-label">Compare To:</span>
+
+            <button class="cohort-chip active" data-cohort="patient"
+                    type="button" onclick="toggleCohort(this)"
+                    title="Show this patient's data only">
+                <span class="cohort-chip-dot"></span>
+                Patient Only
+            </button>
+
+            <button class="cohort-chip" data-cohort="all"
+                    type="button" onclick="toggleCohort(this)"
+                    title="Compare against all 140 patients in the database">
+                <span class="cohort-chip-dot"></span>
+                All Patients (140)
+            </button>
+
+            <button class="cohort-chip" data-cohort="stage"
+                    type="button" onclick="toggleCohort(this)"
+                    title="Stage-Matched: Child-Pugh B (47 patients)">
+                <span class="cohort-chip-dot"></span>
+                Stage-Matched (47)
+            </button>
+
+            <button class="cohort-chip" data-cohort="age"
+                    type="button" onclick="toggleCohort(this)"
+                    title="Age-Matched: 60-70 years, Male (23 patients)">
+                <span class="cohort-chip-dot"></span>
+                Age-Matched (23)
+            </button>
+
+            <button class="cohort-chip" data-cohort="custom"
+                    type="button" onclick="toggleCohort(this)"
+                    title="Define a custom cohort">
+                <span class="cohort-chip-dot"></span>
+                Custom…
+            </button>
+        </div>
+
+        <!-- Cohort summary info panel -->
+        <div class="cohort-summary" id="cohortSummary">
+            <div class="cohort-summary-cohorts" id="cohortSumCohorts"></div>
+            <div class="cohort-summary-stats" id="cohortSumStats"></div>
+        </div>
+
         <!-- Chart SVG rendered here by JS -->
         <div class="chart-wrap" id="chartContainer"></div>
 
@@ -1083,6 +1222,116 @@
 
     // ── Init ──────────────────────────────────────────────────────────────────
     applyState();
+})();
+
+// ── Cohort Comparison ────────────────────────────────────────────────────────
+(function () {
+    'use strict';
+
+    // Active cohort set — "patient" on by default
+    const activeCohorts = new Set(['patient']);
+
+    // ── Toggle handler (called from onclick in HTML) ──────────────────────────
+    window.toggleCohort = function (el) {
+        const id = el.dataset.cohort;
+
+        // "Custom" chip is not toggleable — just shows a coming-soon toast
+        if (id === 'custom') {
+            showToast('Custom cohort selection coming soon');
+            return;
+        }
+
+        if (id === 'patient') {
+            // Patient Only: deactivate every other cohort
+            activeCohorts.clear();
+            activeCohorts.add('patient');
+        } else {
+            // Another cohort was clicked
+            if (activeCohorts.has('patient')) {
+                activeCohorts.delete('patient');   // leave patient-only mode
+            }
+            if (activeCohorts.has(id)) {
+                activeCohorts.delete(id);          // toggle off
+            } else {
+                activeCohorts.add(id);             // toggle on
+            }
+            // Guard: if everything was unchecked, fall back to Patient Only
+            if (activeCohorts.size === 0) {
+                activeCohorts.add('patient');
+            }
+        }
+
+        syncChipUI();
+        notifyCohortChange();
+    };
+
+    // ── Sync chip appearance to activeCohorts state ───────────────────────────
+    function syncChipUI() {
+        document.querySelectorAll('.cohort-chip').forEach(chip => {
+            chip.classList.toggle('active', activeCohorts.has(chip.dataset.cohort));
+        });
+    }
+
+    // ── Cohort metadata (mock stats for summary panel) ────────────────────────
+    const COHORT_META = {
+        all:   { label: 'All Patients (140)',  meld: '16.2', hePrevalence: '35%' },
+        stage: { label: 'Stage-Matched (47)',  meld: '17.8', hePrevalence: '42%' },
+        age:   { label: 'Age-Matched (23)',    meld: '15.4', hePrevalence: '30%' }
+    };
+
+    function updateCohortSummary() {
+        const panel = document.getElementById('cohortSummary');
+        if (!panel) return;
+
+        const nonPatient = [...activeCohorts].filter(id => id !== 'patient');
+        if (nonPatient.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        const cohortLabels = nonPatient
+            .map(id => (COHORT_META[id] && COHORT_META[id].label) || id)
+            .join(', ');
+
+        const statsArr = nonPatient
+            .filter(id => COHORT_META[id])
+            .map(id => `Avg MELD: ${COHORT_META[id].meld} | HE Prevalence: ${COHORT_META[id].hePrevalence}`);
+
+        document.getElementById('cohortSumCohorts').textContent = 'Active Cohorts: ' + cohortLabels;
+        document.getElementById('cohortSumStats').textContent = statsArr.join('  •  ');
+        panel.style.display = 'block';
+    }
+
+    // ── Notify + console log ──────────────────────────────────────────────────
+    function notifyCohortChange() {
+        const names = [...activeCohorts].map(id => {
+            const el = document.querySelector(`.cohort-chip[data-cohort="${id}"]`);
+            return el ? el.textContent.trim() : id;
+        });
+        console.log('Active cohorts:', names);
+        showToast('Cohort: ' + names.join(', '));
+        updateCohortSummary();
+
+        // Custom event so future chart integrations can listen without polling
+        document.dispatchEvent(new CustomEvent('cohortChanged', {
+            detail: { activeCohorts: [...activeCohorts] }
+        }));
+    }
+
+    // ── Reuse the existing dsToast element for cohort messages ────────────────
+    let cohortToastTimer = null;
+
+    function showToast(message) {
+        const toast = document.getElementById('dsToast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('visible');
+        clearTimeout(cohortToastTimer);
+        cohortToastTimer = setTimeout(() => toast.classList.remove('visible'), 2800);
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    syncChipUI();
 })();
 </script>
 {% endblock %}

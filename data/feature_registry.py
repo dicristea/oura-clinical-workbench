@@ -114,103 +114,99 @@ OURA_FEATURES: list[FeatureConfig] = [
 ]
 
 
-# ── PPMI features ─────────────────────────────────────────────────────────────
+# ── Synthea FHIR features ─────────────────────────────────────────────────────
 
-PPMI_FEATURES: list[FeatureConfig] = [
-    # Genetic
+SYNTHEA_FEATURES: list[FeatureConfig] = [
+    # Vital Signs
     FeatureConfig(
-        name="gba_mutation",
-        display_name="GBA Mutation Status",
-        group="Genetic",
-        unit="",
-        description="Glucocerebrosidase gene mutation carrier status (0 = negative, "
-        "1 = heterozygous, 2 = homozygous); strongest known genetic risk "
-        "factor for rapid PD motor progression.",
+        name="heart_rate",
+        display_name="Heart Rate",
+        group="Vital Signs",
+        unit="bpm",
+        description="Resting heart rate measured at each encounter.",
         default_selected=True,
     ),
     FeatureConfig(
-        name="lrrk2_mutation",
-        display_name="LRRK2 Mutation",
-        group="Genetic",
-        unit="",
-        description="Leucine-rich repeat kinase 2 pathogenic variant status; "
-        "associated with slower progression in some cohorts.",
+        name="systolic_bp",
+        display_name="Systolic BP",
+        group="Vital Signs",
+        unit="mmHg",
+        description="Systolic blood pressure; elevated values indicate hypertension risk.",
         default_selected=True,
     ),
     FeatureConfig(
-        name="apoe_status",
-        display_name="APOE Status",
-        group="Genetic",
-        unit="",
-        description="Apolipoprotein E allele status (e2/e3/e4); e4 carriers show "
-        "accelerated cognitive decline alongside motor symptoms.",
-        default_selected=False,
-    ),
-    # Biofluid
-    FeatureConfig(
-        name="csf_alpha_synuclein",
-        display_name="CSF Alpha-synuclein",
-        group="Biofluid",
-        unit="pg/mL",
-        description="Cerebrospinal fluid alpha-synuclein concentration; lower levels "
-        "at baseline predict faster motor decline in de novo PD.",
+        name="diastolic_bp",
+        display_name="Diastolic BP",
+        group="Vital Signs",
+        unit="mmHg",
+        description="Diastolic blood pressure; key marker of cardiovascular load.",
         default_selected=True,
     ),
     FeatureConfig(
-        name="amyloid_beta",
-        display_name="Amyloid-beta (CSF)",
-        group="Biofluid",
-        unit="pg/mL",
-        description="CSF amyloid-beta 1–42 level; co-pathology marker that may "
-        "accelerate motor and cognitive progression.",
+        name="respiratory_rate",
+        display_name="Respiratory Rate",
+        group="Vital Signs",
+        unit="br/min",
+        description="Breaths per minute; elevated values can signal respiratory distress.",
         default_selected=False,
     ),
     FeatureConfig(
-        name="total_tau",
-        display_name="Total Tau (CSF)",
-        group="Biofluid",
-        unit="pg/mL",
-        description="Total tau protein in CSF; elevated levels suggest concurrent "
-        "neurodegeneration beyond alpha-synuclein pathology.",
+        name="body_temperature",
+        display_name="Body Temperature",
+        group="Vital Signs",
+        unit="°C",
+        description="Core body temperature; deviations may indicate infection or inflammation.",
         default_selected=False,
     ),
-    # Clinical
+    # Body Composition
     FeatureConfig(
-        name="baseline_updrs",
-        display_name="Baseline UPDRS III",
-        group="Clinical",
-        unit="score",
-        description="MDS-UPDRS Part III (Motor Examination) score at enrollment; "
-        "primary target variable and the strongest predictor of future scores.",
+        name="body_weight_kg",
+        display_name="Body Weight",
+        group="Body Composition",
+        unit="kg",
+        description="Patient weight recorded at each encounter.",
         default_selected=True,
     ),
     FeatureConfig(
-        name="epworth_sleep",
-        display_name="Epworth Sleep Scale",
-        group="Clinical",
-        unit="score",
-        description="Epworth Sleepiness Scale (0–24); excessive daytime sleepiness "
-        "is a common non-motor symptom and HE confounder.",
-        default_selected=False,
+        name="bmi",
+        display_name="BMI",
+        group="Body Composition",
+        unit="kg/m²",
+        description="Body mass index; key metabolic risk stratifier.",
+        default_selected=True,
+    ),
+    # Metabolic
+    FeatureConfig(
+        name="glucose_mgdl",
+        display_name="Blood Glucose",
+        group="Metabolic",
+        unit="mg/dL",
+        description="Fasting blood glucose level; primary diabetes screening marker.",
+        default_selected=True,
     ),
     FeatureConfig(
-        name="schwab_england_adl",
-        display_name="Schwab & England ADL",
-        group="Clinical",
+        name="hba1c_pct",
+        display_name="HbA1c",
+        group="Metabolic",
         unit="%",
-        description="Schwab & England Activities of Daily Living scale (0–100%); "
-        "captures functional independence independently of motor score.",
+        description="Glycated haemoglobin; reflects average blood glucose over 2–3 months.",
+        default_selected=True,
+    ),
+    FeatureConfig(
+        name="total_cholesterol_mgdl",
+        display_name="Total Cholesterol",
+        group="Metabolic",
+        unit="mg/dL",
+        description="Total serum cholesterol; cardiovascular disease risk factor.",
         default_selected=False,
     ),
-    # Imaging
     FeatureConfig(
-        name="datscan",
-        display_name="DaTscan",
-        group="Imaging",
-        unit="SBR",
-        description="Dopamine transporter SPECT striatal binding ratio; lower values "
-        "confirm dopaminergic deficit and correlate with motor severity.",
-        default_selected=True,
+        name="ldl_cholesterol_mgdl",
+        display_name="LDL Cholesterol",
+        group="Metabolic",
+        unit="mg/dL",
+        description="Low-density lipoprotein; primary target for cardiovascular prevention.",
+        default_selected=False,
     ),
 ]
 
@@ -219,8 +215,7 @@ PPMI_FEATURES: list[FeatureConfig] = [
 
 _REGISTRY: dict[DataSource, list[FeatureConfig]] = {
     DataSource.OURA: OURA_FEATURES,
-    DataSource.PPMI: PPMI_FEATURES,
-    DataSource.SYNTHEA: [],  # populated dynamically by the Synthea adapter
+    DataSource.SYNTHEA: SYNTHEA_FEATURES,
 }
 
 
@@ -240,7 +235,7 @@ def get_feature_groups_for_source(
 
     Returns:
         An ordered dict mapping group name → list of FeatureConfig, in the
-        same order features were declared in OURA_FEATURES / PPMI_FEATURES.
+        same order features were declared in OURA_FEATURES / SYNTHEA_FEATURES.
     """
     groups: dict[str, list[FeatureConfig]] = defaultdict(list)
     for fc in get_features_for_source(data_source):

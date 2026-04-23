@@ -116,6 +116,19 @@
             border: 1px solid #bbf7d0;
         }
 
+        /* Recommended action line — sits right of the risk badge */
+        .action-hint {
+            font-size: 11px;
+            font-weight: 500;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 2px;
+        }
+        .action-hint.urgent { color: #991b1b; }
+        .action-hint.warn   { color: #92400e; }
+
         /* ── Center section: tab navigation ────────────────────────────────── */
         .tab-nav {
             display: flex;
@@ -431,13 +444,27 @@
             {# Risk badge — color depends on patient.risk_level.
                The existing app.py dict uses 'status'; the new adapters set 'risk_level'.
                We check both so the base template works during the transition. #}
-            {% set risk = patient.risk_level if patient.risk_level is defined and patient.risk_level else '' %}
+            {% set risk   = patient.risk_level if patient.risk_level is defined and patient.risk_level else '' %}
+            {% set pstat  = patient.status if patient.status is defined else '' %}
             {% if risk == 'high' %}
                 <span class="risk-badge risk-high" aria-label="High Risk patient">High Risk</span>
+                {% if pstat == 'outreach' %}
+                    <span class="action-hint urgent">&#8594; Schedule urgent follow-up</span>
+                {% elif pstat == 'follow-up' %}
+                    <span class="action-hint urgent">&#8594; Follow-up within 7 days</span>
+                {% else %}
+                    <span class="action-hint warn">&#8594; Review latest readings</span>
+                {% endif %}
             {% elif risk == 'medium' %}
                 <span class="risk-badge risk-medium" aria-label="Medium Risk patient">Medium Risk</span>
+                {% if pstat == 'outreach' %}
+                    <span class="action-hint warn">&#8594; Schedule follow-up within 2 weeks</span>
+                {% else %}
+                    <span class="action-hint">&#8594; Monitor closely</span>
+                {% endif %}
             {% elif risk == 'low' %}
                 <span class="risk-badge risk-low" aria-label="Low Risk patient">Low Risk</span>
+                <span class="action-hint">&#8594; Routine monitoring</span>
             {% endif %}
         </div>
 
@@ -447,7 +474,7 @@
                class="tab {% if active_tab == 'overview' %}tab-active{% endif %}"
                role="tab"
                aria-selected="{{ 'true' if active_tab == 'overview' else 'false' }}">
-                Overview
+                Biometrics
             </a>
             <a href="/patient/{{ patient.id }}/data-explorer"
                class="tab {% if active_tab == 'data-explorer' %}tab-active{% endif %}"
@@ -459,13 +486,7 @@
                class="tab {% if active_tab == 'model-lab' %}tab-active{% endif %}"
                role="tab"
                aria-selected="{{ 'true' if active_tab == 'model-lab' else 'false' }}">
-                Model Lab
-            </a>
-            <a href="/patient/{{ patient.id }}/tournament"
-               class="tab {% if active_tab == 'tournament' %}tab-active{% endif %}"
-               role="tab"
-               aria-selected="{{ 'true' if active_tab == 'tournament' else 'false' }}">
-                Tournament
+                Risk Analysis
             </a>
             <a href="/patient/{{ patient.id }}/ai-assistant"
                class="tab {% if active_tab == 'ai-assistant' %}tab-active{% endif %}"
@@ -486,7 +507,7 @@
                         aria-expanded="false"
                         aria-label="Select clinical paradigm">
                     <span class="paradigm-btn-icon" id="paradigmIcon">🫀</span>
-                    <span class="paradigm-btn-label" id="paradigmLabel">Liver Disease Progression</span>
+                    <span class="paradigm-btn-label" id="paradigmLabel">Liver Disease</span>
                     <!-- Chevron icon -->
                     <svg class="paradigm-btn-arrow" id="paradigmArrow"
                          viewBox="0 0 24 24" fill="none"
@@ -543,25 +564,25 @@
         const PARADIGMS = [
             {
                 id: 'liver',
-                name: 'Liver Disease Progression',
+                name: 'Liver Disease',
                 icon: '🫀',
-                desc: 'Early HE detection & decompensation risk',
+                desc: 'Hepatic encephalopathy & decompensation',
                 color: '#F59E0B',
                 colorLight: '#FEF3C7',
             },
             {
                 id: 'cirrhosis',
-                name: 'Cirrhosis Management',
+                name: 'Cirrhosis',
                 icon: '🔬',
-                desc: 'Preventing complications & monitoring',
+                desc: 'Complication prevention & monitoring',
                 color: '#DC2626',
                 colorLight: '#FEE2E2',
             },
             {
                 id: 'transplant',
-                name: 'Post-Transplant Monitoring',
+                name: 'Post-Transplant',
                 icon: '🏥',
-                desc: 'Rejection detection & compliance',
+                desc: 'Rejection detection & medication adherence',
                 color: '#10B981',
                 colorLight: '#D1FAE5',
             },
@@ -569,15 +590,15 @@
                 id: 'metabolic',
                 name: 'Metabolic Syndrome',
                 icon: '💊',
-                desc: 'MASLD/NASH & cardiovascular risk',
+                desc: 'MASLD / NASH & cardiovascular risk',
                 color: '#8B5CF6',
                 colorLight: '#EDE9FE',
             },
             {
                 id: 'general',
-                name: 'General Internal Medicine',
+                name: 'General Medicine',
                 icon: '🩺',
-                desc: 'Holistic health monitoring',
+                desc: 'General health monitoring',
                 color: '#3B82F6',
                 colorLight: '#DBEAFE',
             },

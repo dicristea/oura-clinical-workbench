@@ -41,17 +41,6 @@ _FEATURE_POLARITY: dict[str, int] = {
     "resting_hr":          -1,
     "step_count":          +1,
     "inactivity_alerts":   -1,
-    # PPMI
-    "baseline_updrs":      -1,
-    "csf_alpha_synuclein": +1,
-    "amyloid_beta":        -1,
-    "total_tau":           -1,
-    "gba_mutation":        -1,
-    "lrrk2_mutation":       0,  # direction unclear — excluded
-    "apoe_status":         -1,
-    "epworth_sleep":       -1,
-    "schwab_england_adl":  +1,
-    "datscan":             +1,
 }
 
 

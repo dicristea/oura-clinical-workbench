@@ -10,10 +10,8 @@ demo_data/demo_oura.xlsx
     10 patients × 30 days of Oura data in the format that
     OuraAdapter.load_from_excel() can re-read.
 
-demo_data/demo_ppmi/
-    Motor_Assessments.csv, Biospecimen_Analysis.csv, DaTscan_Analysis.csv,
-    Genetics.csv, Demographics.csv — one row per patient per visit, in the
-    column-name format that PPMIAdapter.load_from_csvs() can re-read.
+demo_data/demo_synthea/
+    One FHIR R4 Bundle JSON per Synthea demo patient.
 
 No real patient data is used or required.
 """
@@ -34,18 +32,27 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from data.oura_adapter import OuraAdapter          # noqa: E402 (after sys.path)
-from data.ppmi_adapter import PPMIAdapter          # noqa: E402
+from data.synthea_adapter import SyntheaAdapter   # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Output locations
 # ---------------------------------------------------------------------------
-DEMO_DATA_DIR  = PROJECT_ROOT / "demo_data"
-DEMO_PPMI_DIR  = DEMO_DATA_DIR / "demo_ppmi"
-DEMO_OURA_FILE = DEMO_DATA_DIR / "demo_oura.xlsx"
+DEMO_DATA_DIR    = PROJECT_ROOT / "demo_data"
+DEMO_SYNTHEA_DIR = DEMO_DATA_DIR / "demo_synthea"
+DEMO_OURA_FILE   = DEMO_DATA_DIR / "demo_oura.xlsx"
 
 # ---------------------------------------------------------------------------
 # Patient rosters
 # ---------------------------------------------------------------------------
+# (patient_id, risk_level)  — 2 high / 2 medium / 1 low
+SYNTHEA_PATIENTS: list[tuple[str, str]] = [
+    ("PT-3001", "high"),
+    ("PT-3002", "high"),
+    ("PT-3003", "medium"),
+    ("PT-3004", "medium"),
+    ("PT-3005", "low"),
+]
+
 # (patient_id, desired_risk_level)
 # Distribution: 3 high / 4 medium / 3 low
 OURA_PATIENTS: list[tuple[str, str]] = [
@@ -60,36 +67,6 @@ OURA_PATIENTS: list[tuple[str, str]] = [
     ("PT-1009", "low"),
     ("PT-1010", "low"),
 ]
-
-# (patient_id, progressor_type)
-# Distribution: 4 rapid / 4 slow
-PPMI_PATIENTS: list[tuple[str, str]] = [
-    ("PT-2001", "rapid"),
-    ("PT-2002", "rapid"),
-    ("PT-2003", "rapid"),
-    ("PT-2004", "rapid"),
-    ("PT-2005", "slow"),
-    ("PT-2006", "slow"),
-    ("PT-2007", "slow"),
-    ("PT-2008", "slow"),
-]
-
-# ---------------------------------------------------------------------------
-# PPMI visit schedule (mirrors ppmi_adapter._VISIT_MONTHS — defined locally
-# so we don't import a private symbol from the adapter module)
-# ---------------------------------------------------------------------------
-_VISIT_MONTHS: dict[str, int] = {
-    "BL":  0,
-    "V04": 6,
-    "V06": 12,
-    "V08": 24,
-    "V10": 36,
-}
-_MONTHS_TO_EVENT: dict[int, str] = {v: k for k, v in _VISIT_MONTHS.items()}
-
-# Must match the enrollment_date hardcoded in PPMIAdapter.load_demo_data
-_PPMI_ENROLLMENT_DATE = datetime(2020, 1, 1)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -150,13 +127,6 @@ def _verify_risk(ts: pd.DataFrame) -> str:
     return "low"
 
 
-def _date_to_event_id(dt: datetime) -> str:
-    """Map a visit datetime → PPMI EVENT_ID by finding the nearest known visit month."""
-    approx_months = (dt - _PPMI_ENROLLMENT_DATE).days / 30.44
-    closest_month = min(_MONTHS_TO_EVENT, key=lambda m: abs(m - approx_months))
-    return _MONTHS_TO_EVENT[closest_month]
-
-
 # ---------------------------------------------------------------------------
 # Oura Excel generator
 # ---------------------------------------------------------------------------
@@ -205,97 +175,147 @@ def generate_oura_excel() -> None:
 
 
 # ---------------------------------------------------------------------------
-# PPMI CSV generator
+# Synthea FHIR JSON generator
 # ---------------------------------------------------------------------------
 
-def generate_ppmi_csvs() -> None:
-    """Write five PPMI CSVs to demo_data/demo_ppmi/ for 8 demo patients."""
-    adapter = PPMIAdapter()
-    DEMO_PPMI_DIR.mkdir(parents=True, exist_ok=True)
+def _make_loinc_coding(loinc_code: str, display: str) -> dict:
+    return {"coding": [{"system": "http://loinc.org", "code": loinc_code, "display": display}],
+            "text": display}
 
-    motor_rows:       list[dict] = []
-    bio_rows:         list[dict] = []
-    imaging_rows:     list[dict] = []
-    genetics_rows:    list[dict] = []
-    demographics_rows: list[dict] = []
 
-    print(f"\n{'─' * 70}")
-    print(f"  PPMI patients  →  {DEMO_PPMI_DIR.relative_to(PROJECT_ROOT)}/")
-    print(f"{'─' * 70}")
-    print(f"  {'Patient ID':<12} {'Type':<9} {'Risk':<7}  UPDRS trajectory (months 0→6→12→24→36)")
+def _make_observation(patient_ref: str, loinc_code: str, display: str,
+                      value: float, unit: str, unit_code: str, date: str) -> dict:
+    return {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                   "code": "vital-signs", "display": "Vital Signs"}]}],
+        "code": _make_loinc_coding(loinc_code, display),
+        "subject": {"reference": f"urn:uuid:{patient_ref}"},
+        "effectiveDateTime": date,
+        "valueQuantity": {"value": value, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit_code},
+    }
 
-    for patient_id, progressor_type in PPMI_PATIENTS:
-        pts = adapter.load_demo_data(patient_id, progressor_type)
+
+def _make_bp_observation(patient_ref: str, sbp: float, dbp: float, date: str) -> dict:
+    """Blood pressure is a two-component Observation in FHIR."""
+    return {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": _make_loinc_coding("55284-4", "Blood pressure systolic and diastolic"),
+        "subject": {"reference": f"urn:uuid:{patient_ref}"},
+        "effectiveDateTime": date,
+        "component": [
+            {
+                "code": _make_loinc_coding("8480-6", "Systolic blood pressure"),
+                "valueQuantity": {"value": sbp, "unit": "mmHg",
+                                  "system": "http://unitsofmeasure.org", "code": "mm[Hg]"},
+            },
+            {
+                "code": _make_loinc_coding("8462-4", "Diastolic blood pressure"),
+                "valueQuantity": {"value": dbp, "unit": "mmHg",
+                                  "system": "http://unitsofmeasure.org", "code": "mm[Hg]"},
+            },
+        ],
+    }
+
+
+def _make_condition(patient_ref: str, snomed_code: str, display: str) -> dict:
+    return {
+        "resourceType": "Condition",
+        "clinicalStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                                        "code": "active"}]},
+        "code": {"coding": [{"system": "http://snomed.info/sct",
+                              "code": snomed_code, "display": display}],
+                 "text": display},
+        "subject": {"reference": f"urn:uuid:{patient_ref}"},
+    }
+
+
+def generate_synthea_fhir() -> None:
+    """Write one FHIR R4 Bundle JSON per Synthea demo patient."""
+    import json as _json
+    import uuid
+
+    adapter = SyntheaAdapter()
+    DEMO_SYNTHEA_DIR.mkdir(parents=True, exist_ok=True)
+
+    print(f"\n{'─' * 60}")
+    print(f"  Synthea patients  →  {DEMO_SYNTHEA_DIR.relative_to(PROJECT_ROOT)}/")
+    print(f"{'─' * 60}")
+    print(f"  {'Patient ID':<12} {'Risk':<9} {'Encounters':>11}  Conditions")
+
+    # SNOMED codes for conditions added based on risk
+    _CONDITIONS_BY_RISK = {
+        "high":   [("44054006", "Diabetes mellitus type 2"), ("38341003", "Hypertension")],
+        "medium": [("38341003", "Hypertension")],
+        "low":    [],
+    }
+
+    for patient_id, risk_level in SYNTHEA_PATIENTS:
+        pts = adapter.load_demo_data(patient_id, risk_level)
         ts  = pts.time_series
         sf  = pts.static_features
 
-        # UPDRS trajectory summary
-        updrs = ts["baseline_updrs"].tolist()
-        traj  = " → ".join(f"{v:.1f}" for v in updrs)
-        print(
-            f"  {patient_id:<12} {progressor_type:<9} "
-            f"{pts.metadata['risk_level']:<7}  {traj}"
-        )
+        fhir_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, patient_id))
+        birth_year = datetime.now().year - sf.get("age", 50)
+        gender = "male" if sf.get("sex") == "M" else "female"
 
-        for visit_date, row in ts.iterrows():
-            event_id = _date_to_event_id(visit_date)
+        entries: list[dict] = []
 
-            # Motor / clinical assessments — measured at every visit
-            motor_rows.append({
-                "PATNO":    patient_id,
-                "EVENT_ID": event_id,
-                "NP3TOT":   row.get("baseline_updrs"),
-                "ESS":      row.get("epworth_sleep"),
-                "MSEADLG":  row.get("schwab_england_adl"),
-            })
+        # Patient resource
+        entries.append({"fullUrl": f"urn:uuid:{fhir_id}", "resource": {
+            "resourceType": "Patient",
+            "id": fhir_id,
+            "name": [{"use": "official", "family": f"Demo-{patient_id}",
+                      "given": [risk_level.capitalize()]}],
+            "gender": gender,
+            "birthDate": f"{birth_year}-06-15",
+        }})
 
-            # Biospecimen — NaN at non-collection visits (V04, V08)
-            bio_rows.append({
-                "PATNO":     patient_id,
-                "EVENT_ID":  event_id,
-                "ALPHA_SYN": row.get("csf_alpha_synuclein"),
-                "ABETA":     row.get("amyloid_beta"),
-                "TTAU":      row.get("total_tau"),
-            })
+        # Observations — one encounter row per date
+        for obs_date, row in ts.iterrows():
+            date_str = pd.Timestamp(obs_date).strftime("%Y-%m-%dT00:00:00+00:00")
 
-            # DaTscan imaging — NaN at non-collection visits (V04, V08)
-            imaging_rows.append({
-                "PATNO":     patient_id,
-                "EVENT_ID":  event_id,
-                "CAUDATE_R": row.get("datscan"),
-            })
+            entries.append({"resource": _make_bp_observation(
+                fhir_id, row["systolic_bp"], row["diastolic_bp"], date_str)})
 
-        # Genetics — one row per patient, no EVENT_ID (time-invariant)
-        genetics_rows.append({
-            "PATNO":          patient_id,
-            "GBA_MUTATION":   sf.get("gba_mutation"),
-            "LRRK2_MUTATION": sf.get("lrrk2_mutation"),
-            "APOE":           sf.get("apoe_status"),
-        })
+            obs_map = [
+                ("8867-4",  "Heart rate",          "heart_rate",             "bpm",    "/min"),
+                ("9279-1",  "Respiratory rate",    "respiratory_rate",       "br/min", "/min"),
+                ("8310-5",  "Body temperature",    "body_temperature",       "°C",     "Cel"),
+                ("29463-7", "Body weight",         "body_weight_kg",         "kg",     "kg"),
+                ("39156-5", "Body mass index",     "bmi",                    "kg/m2",  "kg/m2"),
+                ("2339-0",  "Glucose",             "glucose_mgdl",           "mg/dL",  "mg/dL"),
+                ("4548-4",  "Hemoglobin A1c",      "hba1c_pct",             "%",      "%"),
+                ("2093-3",  "Total cholesterol",   "total_cholesterol_mgdl", "mg/dL",  "mg/dL"),
+                ("18262-6", "LDL cholesterol",     "ldl_cholesterol_mgdl",   "mg/dL",  "mg/dL"),
+            ]
+            for loinc, display, feat, unit, unit_code in obs_map:
+                if feat in row and not (isinstance(row[feat], float) and pd.isna(row[feat])):
+                    entries.append({"resource": _make_observation(
+                        fhir_id, loinc, display, round(float(row[feat]), 2),
+                        unit, unit_code, date_str)})
 
-        # Demographics — one row per patient
-        demographics_rows.append({
-            "PATNO":       patient_id,
-            "AGE":         sf.get("age"),
-            "SEX":         sf.get("sex"),
-            "ENROLL_DATE": pts.metadata.get("enrollment_date"),
-            "APPRDX":      1,     # de novo PD cohort code (1 = PD in PPMI)
-        })
+        # Condition resources
+        conditions = _CONDITIONS_BY_RISK.get(risk_level, [])
+        for snomed, display in conditions:
+            entries.append({"resource": _make_condition(fhir_id, snomed, display)})
 
-    # Write all CSVs
-    csv_manifest: dict[str, pd.DataFrame] = {
-        "Motor_Assessments.csv":    pd.DataFrame(motor_rows),
-        "Biospecimen_Analysis.csv": pd.DataFrame(bio_rows),
-        "DaTscan_Analysis.csv":     pd.DataFrame(imaging_rows),
-        "Genetics.csv":             pd.DataFrame(genetics_rows),
-        "Demographics.csv":         pd.DataFrame(demographics_rows),
-    }
+        bundle = {
+            "resourceType": "Bundle",
+            "type": "collection",
+            "entry": entries,
+        }
 
-    print(f"\n  {'File':<35} {'Rows':>6}  {'Cols':>5}")
-    for filename, df in csv_manifest.items():
-        path = DEMO_PPMI_DIR / filename
-        df.to_csv(path, index=False)
-        print(f"  {filename:<35} {len(df):>6}  {len(df.columns):>5}")
+        out_path = DEMO_SYNTHEA_DIR / f"{patient_id}.json"
+        with open(out_path, "w", encoding="utf-8") as f:
+            _json.dump(bundle, f, indent=2)
+
+        condition_names = ", ".join(d for _, d in conditions) or "None"
+        print(f"  {patient_id:<12} {risk_level:<9} {len(ts):>11}  {condition_names}")
+
+    print(f"\n  {len(SYNTHEA_PATIENTS)} FHIR bundles written")
 
 
 # ---------------------------------------------------------------------------
@@ -308,12 +328,12 @@ def main() -> None:
     print("=" * 60)
 
     generate_oura_excel()
-    generate_ppmi_csvs()
+    generate_synthea_fhir()
 
     print(f"\n{'─' * 60}")
     print("  All files written. Load them with:")
     print("    OuraAdapter().load_from_excel('demo_data/demo_oura.xlsx', 'PT-1001')")
-    print("    PPMIAdapter().load_from_csvs('demo_data/demo_ppmi', 'PT-2001')")
+    print("    SyntheaAdapter().load_from_fhir('demo_data/demo_synthea/PT-3001.json', 'PT-3001')")
     print(f"{'─' * 60}\n")
 
 

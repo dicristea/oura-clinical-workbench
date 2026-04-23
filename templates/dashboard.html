@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Coordinator Dashboard</title>
+    <title>Patient Wearables Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -50,13 +50,13 @@
             align-items: center;
             gap: 12px;
         }
-        
+
         .user-name {
             font-size: 14px;
             font-weight: 500;
             color: #334155;
         }
-        
+
         .avatar {
             width: 40px;
             height: 40px;
@@ -69,6 +69,73 @@
             font-weight: 600;
             font-size: 14px;
         }
+
+        /* ── Paradigm Selector ─────────────────────────────────────────────── */
+        .paradigm-wrapper { position: relative; }
+
+        .paradigm-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            background: #F59E0B;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+        }
+        .paradigm-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+        .paradigm-btn:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .paradigm-btn-arrow { width:14px; height:14px; transition: transform 0.2s ease; opacity:0.85; }
+        .paradigm-btn-arrow.open { transform: rotate(180deg); }
+
+        .paradigm-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 320px;
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            z-index: 1000;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        .paradigm-dropdown.open { opacity:1; transform:translateY(0); pointer-events:auto; }
+
+        .paradigm-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .paradigm-option:last-child { border-bottom: none; }
+        .paradigm-option:hover { background: #F9FAFB; }
+        .paradigm-option.active {
+            background: #EFF6FF;
+            border-left: 3px solid var(--option-color, #F59E0B);
+            padding-left: 15px;
+        }
+        .paradigm-option-icon { font-size:22px; line-height:1; flex-shrink:0; }
+        .paradigm-option-text { flex:1; min-width:0; }
+        .paradigm-option-name { font-size:13px; font-weight:600; color:#1A2332; line-height:1.3; }
+        .paradigm-option-desc { font-size:12px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .paradigm-option-check { width:16px; height:16px; color:var(--option-color,#F59E0B); flex-shrink:0; opacity:0; transition:opacity 0.15s; }
+        .paradigm-option.active .paradigm-option-check { opacity:1; }
         
         /* Filter Tabs */
         .filter-tabs {
@@ -150,13 +217,13 @@
         
         .table-header {
             display: grid;
-            grid-template-columns: 120px 1.5fr 140px 1fr 1.2fr;
+            grid-template-columns: 190px 130px 1fr;
             padding: 16px 24px;
             background: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
             gap: 16px;
         }
-        
+
         .table-header span {
             font-size: 11px;
             font-weight: 600;
@@ -164,10 +231,10 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        
+
         .patient-row {
             display: grid;
-            grid-template-columns: 120px 1.5fr 140px 1fr 1.2fr;
+            grid-template-columns: 190px 130px 1fr;
             padding: 20px 24px;
             border-bottom: 1px solid #f1f5f9;
             align-items: center;
@@ -195,57 +262,139 @@
             text-decoration: underline;
         }
         
-        /* Data Collection Cell */
-        .data-collection {
+        /* Patient cell */
+        .patient-cell {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
-        
-        .data-stats {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 14px;
-        }
-        
-        .last-sync {
+        .patient-name {
             font-size: 12px;
             color: #64748b;
         }
-        
-        .data-sources {
+        .notify-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #475569;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            width: fit-content;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .notify-btn:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+        .notify-btn.sent {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        /* Status cell — compact */
+        .status-cell { display: flex; align-items: flex-start; }
+
+        /* Activity cell */
+        .activity-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .activity-row {
             display: flex;
             align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #475569;
+        }
+        .activity-row svg { flex-shrink: 0; color: #94a3b8; }
+        .activity-label { color: #94a3b8; margin-right: 2px; }
+
+        /* Model status pill */
+        .model-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            width: fit-content;
+        }
+        .model-pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .model-pill.mp-alert   { background: #fee2e2; color: #991b1b; }
+        .model-pill.mp-alert   .model-pill-dot { background: #ef4444; }
+        .model-pill.mp-warn    { background: #fef3c7; color: #92400e; }
+        .model-pill.mp-warn    .model-pill-dot { background: #f59e0b; }
+        .model-pill.mp-ok      { background: #dcfce7; color: #166534; }
+        .model-pill.mp-ok      .model-pill-dot { background: #22c55e; }
+        .model-pill.mp-pending { background: #f1f5f9; color: #64748b; }
+        .model-pill.mp-pending .model-pill-dot { background: #94a3b8; }
+
+        /* Column-header inline legend */
+        .col-legend {
+            display: flex;
             gap: 12px;
             margin-top: 4px;
+            flex-wrap: wrap;
         }
-        
-        .data-source {
+        .col-legend-item {
             display: flex;
             align-items: center;
             gap: 4px;
-            font-size: 13px;
-            color: #475569;
-        }
-        
-        .check-icon {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-size: 10px;
+            font-weight: 400;
+            color: #94a3b8;
+            text-transform: none;
+            letter-spacing: 0;
         }
-        
-        .check-icon.success {
-            background: #dcfce7;
-            color: #16a34a;
+        .col-legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
         }
-        
-        .check-icon.warning {
-            background: #fef3c7;
-            color: #d97706;
+        .col-legend-dot.active    { background: #22c55e; }
+        .col-legend-dot.follow-up { background: #f59e0b; }
+        .col-legend-dot.outreach  { background: #ef4444; }
+        .col-legend-dot.complete  { background: #94a3b8; }
+
+        /* Toast notification */
+        #notifyToast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            max-width: 340px;
+        }
+        #notifyToast.show {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         /* Status Badge */
@@ -279,102 +428,8 @@
             color: #475569;
         }
         
-        /* Sparklines - 3 metrics */
-        .sparklines-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 8px 0;
-        }
-        
-        .sparkline-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .sparkline-label {
-            font-size: 9px;
-            color: #64748b;
-            width: 45px;
-            text-align: right;
-        }
-        
-        .sparkline-mini {
-            width: 70px;
-            height: 18px;
-        }
-        
-        .sparkline-value {
-            font-size: 10px;
-            font-weight: 600;
-            width: 25px;
-            color: #334155;
-        }
-        
-        /* Dates */
-        .dates {
-            font-size: 14px;
-            color: #475569;
-        }
-        
-        .hospital-dates {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: #475569;
-        }
-        
-        .calendar-icon {
-            color: #94a3b8;
-        }
-        
-        /* Legend */
-        .legend-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin-top: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
-        
-        .legend-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 12px;
-        }
-        
-        .legend-items {
-            display: flex;
-            gap: 32px;
-            flex-wrap: wrap;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #64748b;
-        }
-        
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        
-        .legend-dot.active { background: #22c55e; }
-        .legend-dot.follow-up { background: #f59e0b; }
-        .legend-dot.outreach { background: #ef4444; }
-        .legend-dot.complete { background: #94a3b8; }
-        
         /* SVG Icons */
-        svg {
-            flex-shrink: 0;
-        }
+        svg { flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -382,20 +437,37 @@
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <h1>Clinical Coordinator Dashboard</h1>
-                <p>Oura Ring Study Data Monitoring</p>
+                <h1>Patient Wearables Dashboard</h1>
+                <p>Patient's Wearable Data Integration</p>
             </div>
             <div class="header-right">
-                <span class="user-name">Dr. Sarah Mitchell</span>
-                <div class="avatar">SM</div>
+                <!-- Paradigm Selector -->
+                <div class="paradigm-wrapper" id="paradigmWrapper">
+                    <button class="paradigm-btn" id="paradigmBtn" type="button"
+                            aria-haspopup="listbox" aria-expanded="false"
+                            aria-label="Select clinical paradigm">
+                        <span id="paradigmIcon">🫀</span>
+                        <span id="paradigmLabel">Liver Disease</span>
+                        <svg class="paradigm-btn-arrow" id="paradigmArrow"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                             aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="paradigm-dropdown" id="paradigmDropdown" role="listbox"
+                         aria-label="Clinical paradigms"></div>
+                </div>
+                <span class="user-name">Dr. A. Buckholz</span>
+                <div class="avatar">AB</div>
             </div>
         </header>
         
         <!-- Filter Tabs -->
         <div class="filter-tabs">
             <button class="filter-tab active" data-filter="all">All Patients ({{ all_count }})</button>
-            <button class="filter-tab" data-filter="generating">Currently Generating Data ({{ generating_count }})</button>
-            <button class="filter-tab" data-filter="overlap">Overlapping Oura + EHR ({{ overlap_count }})</button>
+            <button class="filter-tab" data-filter="generating">Actively Collecting Data ({{ generating_count }})</button>
+            <button class="filter-tab" data-filter="overlap">Dual Data Source ({{ overlap_count }})</button>
             <button class="filter-tab" data-filter="complete">Complete Admission Data ({{ complete_count }})</button>
             <button class="filter-tab" data-filter="follow-up">Needs Follow-up ({{ follow_up_count }})</button>
         </div>
@@ -410,140 +482,100 @@
                 <input type="text" id="searchInput" placeholder="Search patients...">
             </div>
         </div>
-        
+
         <!-- Patient Table -->
         <div class="table-card">
             <div class="table-header">
-                <span>Patient ID</span>
-                <span>Data Collection w/ Status</span>
-                <span>Metric Trends</span>
-                <span>Participation Dates</span>
-                <span>Hospitalization Dates</span>
+                <span>Patient</span>
+                <span>Status</span>
+                <span>
+                    EHR Sync &amp; Clinical Activity
+                    <div class="col-legend">
+                        <div class="col-legend-item"><span class="col-legend-dot active"></span>Active</div>
+                        <div class="col-legend-item"><span class="col-legend-dot follow-up"></span>Follow-up</div>
+                        <div class="col-legend-item"><span class="col-legend-dot outreach"></span>Outreach</div>
+                        <div class="col-legend-item"><span class="col-legend-dot complete"></span>Complete</div>
+                    </div>
+                </span>
             </div>
-            
+
             <div id="patientList">
                 {% for patient in patients %}
                 <div class="patient-row" data-status="{{ patient.status }}" data-has-oura="{{ patient.has_oura }}" data-has-ehr="{{ patient.has_ehr }}">
-                    <!-- Patient ID -->
-                    <a href="/patient/{{ patient.id }}" class="patient-id">{{ patient.id }}</a>
-                    
-                    <!-- Data Collection -->
-                    <div class="data-collection">
-                        <div class="data-stats">{{ patient.inpatient }} in, {{ patient.outpatient }} out</div>
-                        <div class="last-sync">Last sync: {{ patient.last_sync }}</div>
-                        <div class="data-sources">
-                            <span class="data-source">
-                                <span class="check-icon {{ 'success' if patient.has_oura else 'warning' }}">
-                                    {% if patient.has_oura %}✓{% else %}!{% endif %}
-                                </span>
-                                Oura
-                            </span>
-                            <span class="data-source">
-                                <span class="check-icon {{ 'success' if patient.has_ehr else 'warning' }}">
-                                    {% if patient.has_ehr %}✓{% else %}!{% endif %}
-                                </span>
-                                EHR
-                            </span>
-                            <span class="status-badge {{ patient.status }}">
-                                {% if patient.status == 'active' %}Active
-                                {% elif patient.status == 'follow-up' %}Needs Follow-up
-                                {% elif patient.status == 'outreach' %}Outreach Needed
-                                {% else %}Complete{% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Sparklines - 3 Metrics -->
-                    <div class="sparklines-container">
-                        <!-- Sleep Score -->
-                        <div class="sparkline-row">
-                            <span class="sparkline-label">Sleep</span>
-                            <svg class="sparkline-mini" viewBox="0 0 70 18">
-                                {% set sleep_points = [] %}
-                                {% for i in range(patient.sleep_score|length) %}
-                                    {% set x = (i * 6) + 2 %}
-                                    {% set y = 18 - ((patient.sleep_score[i] - 50) * 0.3) %}
-                                    {% set _ = sleep_points.append(x|string + ',' + y|string) %}
-                                {% endfor %}
-                                <polyline points="{{ sleep_points|join(' ') }}" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round"/>
+
+                    <!-- Col 1: Patient -->
+                    <div class="patient-cell">
+                        <a href="/patient/{{ patient.id }}" class="patient-id">{{ patient.id }}</a>
+                        {% if patient.name and patient.name != patient.id %}
+                            <span class="patient-name">{{ patient.name }}</span>
+                        {% endif %}
+                        <button class="notify-btn"
+                                onclick="sendNotification(this, '{{ patient.id }}')"
+                                title="Send wearable sync request to patient">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 12 19.79 19.79 0 0 1 1.07 3.36 2 2 0 0 1 3.06 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91A16 16 0 0 0 13 14.82l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16v.92z"/>
                             </svg>
-                            <span class="sparkline-value" style="color:#8b5cf6">{{ patient.sleep_score[-1] }}</span>
-                        </div>
-                        <!-- HRV Average -->
-                        <div class="sparkline-row">
-                            <span class="sparkline-label">HRV</span>
-                            <svg class="sparkline-mini" viewBox="0 0 70 18">
-                                {% set hrv_points = [] %}
-                                {% for i in range(patient.hrv_average|length) %}
-                                    {% set x = (i * 6) + 2 %}
-                                    {% set y = 18 - ((patient.hrv_average[i] - 10) * 0.4) %}
-                                    {% set _ = hrv_points.append(x|string + ',' + y|string) %}
-                                {% endfor %}
-                                <polyline points="{{ hrv_points|join(' ') }}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                            <span class="sparkline-value" style="color:#10b981">{{ patient.hrv_average[-1] }}</span>
-                        </div>
-                        <!-- Activity Score -->
-                        <div class="sparkline-row">
-                            <span class="sparkline-label">Activity</span>
-                            <svg class="sparkline-mini" viewBox="0 0 70 18">
-                                {% set activity_points = [] %}
-                                {% for i in range(patient.activity_score|length) %}
-                                    {% set x = (i * 6) + 2 %}
-                                    {% set y = 18 - ((patient.activity_score[i] - 40) * 0.3) %}
-                                    {% set _ = activity_points.append(x|string + ',' + y|string) %}
-                                {% endfor %}
-                                <polyline points="{{ activity_points|join(' ') }}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                            <span class="sparkline-value" style="color:#f59e0b">{{ patient.activity_score[-1] }}</span>
-                        </div>
+                            Send Notification
+                        </button>
                     </div>
-                    
-                    <!-- Participation Dates -->
-                    <div class="dates">
-                        {{ patient.participation_start or '—' }} - •
-                    </div>
-                    
-                    <!-- Hospitalization Dates -->
-                    <div class="hospital-dates">
-                        <svg class="calendar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        <span>
-                            {{ patient.hospital_start or '—' }}
-                            {% if patient.hospital_end %} - {{ patient.hospital_end }}{% endif %}
+
+                    <!-- Col 2: Status (compact badge only) -->
+                    <div class="status-cell">
+                        <span class="status-badge {{ patient.status }}">
+                            {% if patient.status == 'active' %}Active
+                            {% elif patient.status == 'follow-up' %}Follow-up
+                            {% elif patient.status == 'outreach' %}Outreach
+                            {% else %}Complete{% endif %}
                         </span>
                     </div>
+
+                    <!-- Col 3: EHR Sync & Clinical Activity -->
+                    <div class="activity-cell">
+                        <!-- Wearable → EHR sync -->
+                        <div class="activity-row">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/>
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                            </svg>
+                            <span class="activity-label">Wearable → EHR:</span>
+                            <strong>{{ patient.last_sync }}</strong>
+                        </div>
+                        <!-- Last visit -->
+                        <div class="activity-row">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span class="activity-label">Last visit:</span>
+                            {{ patient.last_visit or '—' }}
+                        </div>
+                        <!-- Model status pill -->
+                        <div class="activity-row">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+                            </svg>
+                            <span class="model-pill mp-{{ patient.model_status_level }}">
+                                <span class="model-pill-dot"></span>
+                                Sleep: {{ patient.model_status_label }}
+                            </span>
+                        </div>
+                    </div>
+
                 </div>
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Toast notification element -->
+        <div id="notifyToast"></div>
         
-        <!-- Legend -->
-        <div class="legend-card">
-            <div class="legend-title">Participant Status Legend</div>
-            <div class="legend-items">
-                <div class="legend-item">
-                    <span class="legend-dot active"></span>
-                    Active (data within 4 days)
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot follow-up"></span>
-                    Needs Follow-up (missing data sources)
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot outreach"></span>
-                    Outreach Needed (7+ days)
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot complete"></span>
-                    Complete (no longer participating)
-                </div>
-            </div>
-        </div>
     </div>
     
     <script>
@@ -592,13 +624,117 @@
         const searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
-            
             patientRows.forEach(row => {
                 const patientId = row.querySelector('.patient-id').textContent.toLowerCase();
-                const show = patientId.includes(query);
-                row.style.display = show ? 'grid' : 'none';
+                row.style.display = patientId.includes(query) ? 'grid' : 'none';
             });
         });
+
+        // ── Paradigm Selector ──────────────────────────────────────────────
+        (function () {
+            const PARADIGMS = [
+                { id: 'liver',     name: 'Liver Disease',     icon: '🫀', desc: 'Hepatic encephalopathy & decompensation',     color: '#F59E0B' },
+                { id: 'cirrhosis', name: 'Cirrhosis',          icon: '🔬', desc: 'Complication prevention & monitoring',          color: '#DC2626' },
+                { id: 'transplant',name: 'Post-Transplant',    icon: '🏥', desc: 'Rejection detection & medication adherence',    color: '#10B981' },
+                { id: 'metabolic', name: 'Metabolic Syndrome', icon: '💊', desc: 'MASLD / NASH & cardiovascular risk',            color: '#8B5CF6' },
+                { id: 'general',   name: 'General Medicine',   icon: '🩺', desc: 'General health monitoring',                    color: '#3B82F6' },
+            ];
+            const STORAGE_KEY = 'jhe_paradigm';
+
+            const btn      = document.getElementById('paradigmBtn');
+            const icon     = document.getElementById('paradigmIcon');
+            const label    = document.getElementById('paradigmLabel');
+            const arrow    = document.getElementById('paradigmArrow');
+            const dropdown = document.getElementById('paradigmDropdown');
+            const wrapper  = document.getElementById('paradigmWrapper');
+            if (!btn) return;
+
+            let isOpen   = false;
+            let activeId = localStorage.getItem(STORAGE_KEY) || 'liver';
+
+            function buildOptions() {
+                dropdown.innerHTML = PARADIGMS.map(p => `
+                    <div class="paradigm-option ${p.id === activeId ? 'active' : ''}"
+                         role="option" aria-selected="${p.id === activeId}"
+                         data-id="${p.id}" style="--option-color:${p.color}" tabindex="0">
+                        <span class="paradigm-option-icon">${p.icon}</span>
+                        <div class="paradigm-option-text">
+                            <div class="paradigm-option-name">${p.name}</div>
+                            <div class="paradigm-option-desc">${p.desc}</div>
+                        </div>
+                        <svg class="paradigm-option-check" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>`).join('');
+                dropdown.querySelectorAll('.paradigm-option').forEach(el => {
+                    el.addEventListener('click', () => select(el.dataset.id));
+                    el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); select(el.dataset.id); } });
+                });
+            }
+
+            function applyParadigm(id) {
+                const p = PARADIGMS.find(x => x.id === id) || PARADIGMS[0];
+                icon.textContent  = p.icon;
+                label.textContent = p.name;
+                btn.style.background = p.color;
+            }
+
+            function select(id) {
+                activeId = id;
+                localStorage.setItem(STORAGE_KEY, id);
+                applyParadigm(id);
+                buildOptions();
+                closeDropdown();
+            }
+
+            function openDropdown()  { isOpen=true;  dropdown.classList.add('open');    arrow.classList.add('open');    btn.setAttribute('aria-expanded','true');  }
+            function closeDropdown() { isOpen=false; dropdown.classList.remove('open'); arrow.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+
+            btn.addEventListener('click', e => { e.stopPropagation(); isOpen ? closeDropdown() : openDropdown(); });
+            document.addEventListener('click', e => { if (isOpen && !wrapper.contains(e.target)) closeDropdown(); });
+            document.addEventListener('keydown', e => { if (e.key==='Escape' && isOpen) closeDropdown(); });
+
+            buildOptions();
+            applyParadigm(activeId);
+        })();
+
+        // ── Send Patient Notification ──────────────────────────────────────
+        function sendNotification(btn, patientId) {
+            if (btn.classList.contains('sent')) return;
+            btn.classList.add('sent');
+            btn.innerHTML = `
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Sent`;
+
+            // In production this would POST to /api/notify/<patientId>
+            showToast(`Notification sent to ${patientId} — wearable sync requested`);
+
+            // Reset button after 8 s so it can be resent
+            setTimeout(() => {
+                btn.classList.remove('sent');
+                btn.innerHTML = `
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 12 19.79 19.79 0 0 1 1.07 3.36 2 2 0 0 1 3.06 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91A16 16 0 0 0 13 14.82l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16v.92z"/>
+                    </svg>
+                    Send Notification`;
+            }, 8000);
+        }
+
+        let _toastTimer = null;
+        function showToast(msg) {
+            const toast = document.getElementById('notifyToast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            if (_toastTimer) clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+        }
     </script>
 </body>
 </html>

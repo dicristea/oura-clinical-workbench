@@ -8,8 +8,8 @@ import pandas as pd
 
 class DataSource(Enum):
     OURA = "oura"
-    PPMI = "ppmi"
     SYNTHEA = "synthea"
+    OPEN_WEARABLES = "open_wearables"   # Open Wearables unified API (Oura Q1 2026)
 
 
 # Default feature groups keyed by DataSource.
@@ -20,13 +20,18 @@ DEFAULT_FEATURE_GROUPS: dict[DataSource, dict[str, list[str]]] = {
         "Physiological": ["hrv_balance", "body_temp_deviation", "resting_hr"],
         "Activity": ["step_count", "inactivity_alerts"],
     },
-    DataSource.PPMI: {
-        "Genetic": ["gba_mutation", "lrrk2_mutation", "apoe_status"],
-        "Biofluid": ["csf_alpha_synuclein", "amyloid_beta", "total_tau"],
-        "Clinical": ["baseline_updrs", "epworth_sleep", "schwab_england_adl"],
-        "Imaging": ["datscan"],
+    DataSource.SYNTHEA: {
+        "Vital Signs":       ["heart_rate", "systolic_bp", "diastolic_bp", "respiratory_rate", "body_temperature"],
+        "Body Composition":  ["body_weight_kg", "bmi"],
+        "Metabolic":         ["glucose_mgdl", "hba1c_pct", "total_cholesterol_mgdl", "ldl_cholesterol_mgdl"],
     },
-    DataSource.SYNTHEA: {},
+    # Open Wearables normalized field names — same groups as Oura, different API keys.
+    # Wire up by swapping OuraAdapter → OpenWearablesAdapter once Oura integration ships (Q1 2026).
+    DataSource.OPEN_WEARABLES: {
+        "Sleep Architecture": ["rem_sleep_pct", "deep_sleep_pct", "sleep_latency"],
+        "Physiological":      ["hrv_rmssd", "body_temp_deviation", "resting_heart_rate"],
+        "Activity":           ["steps", "inactivity_alerts"],
+    },
 }
 
 
@@ -34,18 +39,18 @@ DEFAULT_FEATURE_GROUPS: dict[DataSource, dict[str, list[str]]] = {
 class PatientTimeSeries:
     """Unified patient data container used by all data adapters and the ML layer.
 
-    All data sources (Oura, PPMI, Synthea) produce PatientTimeSeries objects so
+    All data sources (Oura, Synthea) produce PatientTimeSeries objects so
     the rest of the application can remain source-agnostic.
 
     Attributes:
-        patient_id:     Unique identifier for this patient (MRN, PPMI ID, etc.).
+        patient_id:     Unique identifier for this patient (MRN, etc.).
         data_source:    Which data source produced this record.
         static_features: Time-invariant attributes — demographics, genetic status,
                          baseline clinical scores, etc.
-                         Example: {"age": 65, "gba_mutation": True, "sex": "M"}
+                         Example: {"age": 65, "sex": "M"}
         time_series:    DatetimeIndex DataFrame where each column is a feature and
                          each row is one observation (daily for Oura, per-visit for
-                         PPMI).  Missing values are NaN.
+                         Missing values are NaN.
         metadata:       Free-form dict for cohort info, risk level, enrollment
                          dates, study arm, etc.
                          Example: {"cohort": "de_novo", "risk_level": "high",
