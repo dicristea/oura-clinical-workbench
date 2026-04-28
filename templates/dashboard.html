@@ -237,6 +237,106 @@
         font-size: 14px;
     }
 
+    /* Stat card + button */
+    .stat-card-top {
+        display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .stat-card-top .stat-card-label { margin-bottom: 0; }
+    .stat-card-plus {
+        width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid #e2e8f0;
+        background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        color: #64748b; font-size: 16px; line-height: 1; flex-shrink: 0;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .stat-card-plus:hover { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+
+    /* Modal overlay */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(15,23,42,0.4);
+        z-index: 500; display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-box {
+        background: #fff; border-radius: 14px; padding: 28px;
+        width: 380px; max-width: calc(100vw - 32px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+        transform: translateY(8px); transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .modal-sub   { font-size: 13px; color: #64748b; margin-bottom: 18px; }
+    .modal-input {
+        width: 100%; padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        font-size: 13px; font-family: inherit; color: #1e293b; outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s; background: #f8fafc;
+        margin-bottom: 14px;
+    }
+    .modal-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.12); background: #fff; }
+    .modal-input::placeholder { color: #94a3b8; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-btn-cancel {
+        padding: 8px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #475569; font-size: 13px; font-weight: 500;
+        font-family: inherit; cursor: pointer; transition: background 0.15s;
+    }
+    .modal-btn-cancel:hover { background: #f8fafc; }
+    .modal-btn-submit {
+        padding: 8px 18px; border: none; border-radius: 8px;
+        background: #3b82f6; color: #fff; font-size: 13px; font-weight: 600;
+        font-family: inherit; cursor: pointer; transition: background 0.15s;
+    }
+    .modal-btn-submit:hover { background: #2563eb; }
+
+    /* Autocomplete result rows */
+    .cond-result {
+        display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+        cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.12s;
+    }
+    .cond-result:last-child { border-bottom: none; }
+    .cond-result:hover { background: #f8fafc; }
+    .cond-result.already-tracked { opacity: 0.55; cursor: default; }
+    .cond-result-main { flex: 1; min-width: 0; }
+    .cond-result-name { font-size: 13px; font-weight: 500; color: #1e293b; }
+    .cond-result-name em { font-style: normal; background: #fef9c3; border-radius: 2px; }
+    .cond-result-meta { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .cond-result-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+    .cond-count-badge {
+        font-size: 11px; font-weight: 600; padding: 1px 7px;
+        border-radius: 9999px; background: #f1f5f9; color: #475569;
+    }
+    .cond-count-badge.has-count { background: #dcfce7; color: #166534; }
+    .cond-tracked-badge {
+        font-size: 10px; font-weight: 600; padding: 1px 6px;
+        border-radius: 4px; background: #eff6ff; color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+    .cond-section-header {
+        padding: 6px 14px 4px; font-size: 10px; font-weight: 700;
+        color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em;
+        background: #f8fafc; border-bottom: 1px solid #f1f5f9;
+        position: sticky; top: 0;
+    }
+    .cond-custom-row {
+        display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+        cursor: pointer; color: #3b82f6; font-size: 13px; font-weight: 500;
+        border-top: 1px solid #f1f5f9; transition: background 0.12s;
+    }
+    .cond-custom-row:hover { background: #eff6ff; }
+
+    /* Source option tiles */
+    .src-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .src-option {
+        padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+        cursor: pointer; text-align: center; transition: border-color 0.15s, background 0.15s;
+        font-family: inherit;
+    }
+    .src-option:hover { border-color: #93c5fd; background: #eff6ff; }
+    .src-option.selected { border-color: #3b82f6; background: #eff6ff; }
+    .src-option-icon { font-size: 20px; margin-bottom: 4px; }
+    .src-option-name { font-size: 12px; font-weight: 600; color: #1e293b; }
+    .src-option-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+
     /* Toast */
     #notifyToast {
         position: fixed; bottom: 28px; right: 28px; z-index: 9999;
@@ -248,9 +348,72 @@
     }
     #notifyToast.show { opacity: 1; transform: translateY(0); }
 
+    /* ── Dashboard tab nav ──────────────────────────────────────────── */
+    .dash-tab-nav {
+        display: flex; gap: 2px; margin-bottom: 28px;
+        background: #f1f5f9; border-radius: 10px; padding: 3px;
+        width: fit-content;
+    }
+    .dash-tab {
+        padding: 7px 20px; border-radius: 8px;
+        font-size: 13px; font-weight: 500; cursor: pointer;
+        border: none; background: transparent; color: #64748b;
+        font-family: inherit; transition: background 0.15s, color 0.15s;
+    }
+    .dash-tab:hover:not(.active) { background: rgba(0,0,0,0.04); color: #334155; }
+    .dash-tab.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* ── Cohort Explorer ───────────────────────────────────────────── */
+    .explorer-heading { margin-bottom: 20px; }
+    .explorer-heading h2 { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+    .explorer-heading p  { font-size: 13px; color: #64748b; }
+
+    .sleep-kpi-row {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;
+    }
+    .sleep-kpi-card {
+        background: #fff; border-radius: 12px; padding: 18px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07); display: flex; flex-direction: column; gap: 5px;
+    }
+    .sleep-kpi-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+    .sleep-kpi-value { font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1; }
+    .sleep-kpi-sub   { font-size: 12px; color: #64748b; }
+    .sleep-kpi-card.warn .sleep-kpi-value { color: #d97706; }
+    .sleep-kpi-card.alert .sleep-kpi-value { color: #dc2626; }
+
+    /* Cohort sleep table */
+    .cohort-sleep-card {
+        background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); overflow: hidden;
+    }
+    .cohort-sleep-toolbar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    }
+    .cohort-sleep-title { font-size: 14px; font-weight: 600; color: #1e293b; flex: 1; }
+    .sleep-table { width: 100%; border-collapse: collapse; }
+    .sleep-table thead tr { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .sleep-table thead th {
+        padding: 10px 14px; text-align: left;
+        font-size: 11px; font-weight: 600; color: #64748b;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    .sleep-table thead th:hover { color: #3b82f6; }
+    .sleep-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.12s; cursor: pointer; }
+    .sleep-table tbody tr:hover { background: #f8fafc; }
+    .sleep-table tbody tr:last-child { border-bottom: none; }
+    .sleep-table td { padding: 11px 14px; font-size: 13px; color: #475569; vertical-align: middle; }
+    .sleep-metric-cell { font-weight: 600; }
+    .sleep-metric-cell.good { color: #166534; }
+    .sleep-metric-cell.warn { color: #92400e; }
+    .sleep-metric-cell.bad  { color: #991b1b; }
+    .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 10px; }
+    .sort-active .sort-arrow { opacity: 1; color: #3b82f6; }
+
     @media (max-width: 1100px) {
         .body-cols { grid-template-columns: 1fr; }
         .stat-row  { grid-template-columns: repeat(2, 1fr); }
+        .sleep-kpi-row { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 640px) {
         .page { padding: 20px 16px; }
@@ -303,10 +466,20 @@
 {% block main %}
 <!-- Pass server data to JS -->
 <script>
-window.__cohortStats = {{ cohort_stats | tojson }};
+window.__cohortStats    = {{ cohort_stats    | tojson }};
+window.__sleepSummaries = {{ sleep_summaries | tojson }};
 </script>
 
 <div class="page">
+
+    <!-- Dashboard tab navigation -->
+    <div class="dash-tab-nav">
+        <button class="dash-tab active" id="tabOverview" onclick="switchTab('overview')">Cohort Overview</button>
+        <button class="dash-tab"        id="tabExplorer" onclick="switchTab('explorer')">Cohort Data Explorer</button>
+    </div>
+
+    <!-- ── Cohort Overview panel ─────────────────────────────────────── -->
+    <div id="panelOverview">
 
     <div class="page-heading">
         <h1>Cohort Overview</h1>
@@ -334,14 +507,23 @@ window.__cohortStats = {{ cohort_stats | tojson }};
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-card-label">Conditions Tracked</div>
-            <div class="stat-card-value">{{ stats.conditions | length }}</div>
+            <div class="stat-card-top">
+                <div class="stat-card-label">Conditions Tracked</div>
+                <button class="stat-card-plus" onclick="openCondModal()" title="Add condition">+</button>
+            </div>
+            {% set observed_ct = stats.conditions | length %}
+            {% set study_only_ct = stats.all_conditions | selectattr('count', 'equalto', 0) | list | length %}
+            <div class="stat-card-value">{{ stats.all_conditions | length }}</div>
             <div class="stat-card-sub">
-                {% if stats.conditions %}{{ stats.conditions[0][0] }} most prevalent{% else %}No conditions recorded{% endif %}
+                {{ observed_ct }} observed
+                {% if study_only_ct %} · {{ study_only_ct }} study-defined{% endif %}
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-card-label">Data Sources</div>
+            <div class="stat-card-top">
+                <div class="stat-card-label">Data Sources</div>
+                <button class="stat-card-plus" onclick="openModal('srcModal')" title="Connect data source">+</button>
+            </div>
             <div class="stat-card-value">{{ stats.by_source | length }}</div>
             <div class="stat-card-sub">
                 {% for src, cnt in stats.by_source.items() %}{{ cnt }} {{ src }}{% if not loop.last %}, {% endif %}{% endfor %}
@@ -389,22 +571,49 @@ window.__cohortStats = {{ cohort_stats | tojson }};
                 </div>
             </div>
 
-            <!-- Condition prevalence -->
-            {% if stats.conditions %}
+            <!-- Condition prevalence (observed + study-tracked) -->
+            {% if stats.all_conditions %}
             <div class="panel-card">
-                <div class="panel-card-title">Condition Prevalence</div>
+                <div class="panel-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+                    Condition Prevalence
+                    <button class="stat-card-plus" onclick="openCondModal()" title="Track a condition"
+                            style="margin-left:8px;">+</button>
+                </div>
                 <div class="cond-list">
-                    {% set max_cond = stats.conditions[0][1] if stats.conditions else 1 %}
-                    {% for name, count in stats.conditions %}
+                    {% set max_cond = stats.all_conditions[0].count if stats.all_conditions and stats.all_conditions[0].count > 0 else 1 %}
+                    {% for cond in stats.all_conditions %}
                     <div class="cond-row">
                         <div class="cond-row-top">
-                            <span>{{ name }}</span>
-                            <span>{{ count }}</span>
+                            <span style="display:flex;align-items:center;gap:5px;">
+                                {{ cond.name }}
+                                {% if cond.study_tracked %}
+                                <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;
+                                            background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;
+                                            white-space:nowrap;">Study</span>
+                                {% endif %}
+                            </span>
+                            {% if cond.count > 0 %}
+                            <span>{{ cond.count }}</span>
+                            {% else %}
+                            <span style="font-size:11px;color:#94a3b8;">Tracking</span>
+                            {% endif %}
                         </div>
+                        {% if cond.count > 0 %}
                         <div class="cond-bar-bg">
                             <div class="cond-bar-fill"
-                                 style="width: {{ ((count / max_cond) * 100) | round | int }}%"></div>
+                                 style="width:{{ ((cond.count / max_cond) * 100) | round | int }}%;
+                                        background:{% if cond.study_tracked %}#3b82f6{% else %}#94a3b8{% endif %}">
+                            </div>
                         </div>
+                        {% else %}
+                        <div class="cond-bar-bg" style="background:#f1f5f9;">
+                            <div style="height:6px;border-radius:9999px;width:100%;
+                                        background:repeating-linear-gradient(90deg,#bfdbfe 0,#bfdbfe 6px,transparent 6px,transparent 12px);">
+                            </div>
+                        </div>
+                        {% endif %}
+                        <button onclick="removeCondition('{{ cond.name }}')"
+                                style="display:none" class="cond-remove-btn" data-name="{{ cond.name }}">×</button>
                     </div>
                     {% endfor %}
                 </div>
@@ -501,13 +710,247 @@ window.__cohortStats = {{ cohort_stats | tojson }};
 
     </div><!-- /.body-cols -->
 
+    </div><!-- /#panelOverview -->
+
+    <!-- ── Cohort Data Explorer panel ───────────────────────────────── -->
+    <div id="panelExplorer" style="display:none;">
+
+        <div class="explorer-heading">
+            <h2>Cohort Data Explorer</h2>
+            <p>Sleep metrics across all enrolled participants · Oura Ring V2 · OMH Standard</p>
+        </div>
+
+        <!-- KPI summary row -->
+        <div class="sleep-kpi-row" id="sleepKpiRow">
+            <!-- filled by JS -->
+        </div>
+
+        <!-- Patient sleep metrics table -->
+        <div class="cohort-sleep-card">
+            <div class="cohort-sleep-toolbar">
+                <span class="cohort-sleep-title">Participant Sleep Metrics — 14-Day Average</span>
+                <span style="font-size:12px;color:#94a3b8;">Click column headers to sort</span>
+            </div>
+            <table class="sleep-table" id="sleepTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortSleepTable('id')">Participant <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('risk')">Risk <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_tst')">Avg TST (h) <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_rem_pct')">REM % <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_deep_pct')">Deep % <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_efficiency')">Efficiency % <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_latency')">Latency (min) <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_waso')">WASO (min) <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_spo2')">SpO₂ % <span class="sort-arrow">↕</span></th>
+                    </tr>
+                </thead>
+                <tbody id="sleepTableBody">
+                    <!-- filled by JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </div><!-- /#panelExplorer -->
+
 </div><!-- /.page -->
 
 <div id="notifyToast"></div>
+
+<!-- ── Track Condition Modal (autocomplete) ─────────────────────────── -->
+<div class="modal-overlay" id="condModal" onclick="handleOverlayClick(event,'condModal')">
+    <div class="modal-box" style="width:460px;">
+        <div class="modal-title">Track a Condition</div>
+        <div class="modal-sub">Search SNOMED / ICD-10 terms or enter a custom condition to monitor across the cohort.</div>
+
+        <div style="position:relative;">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;"
+                 width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input class="modal-input" id="condSearch" type="text"
+                   style="padding-left:34px;margin-bottom:0;"
+                   placeholder="Search conditions… (e.g. hepatic, diabetes, sleep apnea)"
+                   maxlength="100" autocomplete="off">
+            <!-- Dropdown results -->
+            <div id="condResults" style="
+                display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+                background:#fff; border:1px solid #e2e8f0; border-radius:10px;
+                box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:600;
+                max-height:280px; overflow-y:auto;
+            "></div>
+        </div>
+
+        <!-- Selected condition chip -->
+        <div id="condSelected" style="display:none;margin-top:10px;padding:10px 12px;
+             background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;
+             display:none;align-items:center;justify-content:space-between;gap:8px;">
+            <div>
+                <div id="condSelectedName" style="font-size:13px;font-weight:600;color:#1e293b;"></div>
+                <div id="condSelectedMeta" style="font-size:11px;color:#64748b;margin-top:1px;"></div>
+            </div>
+            <button onclick="clearCondSelection()"
+                    style="border:none;background:transparent;cursor:pointer;color:#64748b;font-size:16px;padding:0 2px;">×</button>
+        </div>
+
+        <div class="modal-footer" style="margin-top:14px;">
+            <button class="modal-btn-cancel" onclick="closeModal('condModal')">Cancel</button>
+            <button class="modal-btn-submit" id="condSubmitBtn" disabled
+                    onclick="submitCondition()" style="opacity:0.5;">Add to Study</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Connect Data Source Modal ────────────────────────────────────── -->
+<div class="modal-overlay" id="srcModal" onclick="handleOverlayClick(event,'srcModal')">
+    <div class="modal-box">
+        <div class="modal-title">Connect a Data Source</div>
+        <div class="modal-sub">Choose a wearable or clinical data integration to add to the cohort.</div>
+        <div class="src-options">
+            <button class="src-option" data-src="oura" onclick="selectSrc(this)">
+                <div class="src-option-icon">💍</div>
+                <div class="src-option-name">Oura Ring</div>
+                <div class="src-option-desc">Sleep &amp; biometrics</div>
+            </button>
+            <button class="src-option" data-src="synthea" onclick="selectSrc(this)">
+                <div class="src-option-icon">🧬</div>
+                <div class="src-option-name">Synthea FHIR</div>
+                <div class="src-option-desc">Synthetic EHR bundles</div>
+            </button>
+            <button class="src-option" data-src="open_wearables" onclick="selectSrc(this)">
+                <div class="src-option-icon">📡</div>
+                <div class="src-option-name">Open Wearables</div>
+                <div class="src-option-desc">Unified API (Q1 2026)</div>
+            </button>
+            <button class="src-option" data-src="ehr" onclick="selectSrc(this)">
+                <div class="src-option-icon">🏥</div>
+                <div class="src-option-name">EHR Flowsheets</div>
+                <div class="src-option-desc">Epic / Cerner export</div>
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn-cancel" onclick="closeModal('srcModal')">Cancel</button>
+            <button class="modal-btn-submit" onclick="submitSource()">Connect</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+/* ── Dashboard tab switching ─────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    let _explorerBuilt = false;
+
+    window.switchTab = function (name) {
+        document.getElementById('panelOverview').style.display = name === 'overview' ? '' : 'none';
+        document.getElementById('panelExplorer').style.display = name === 'explorer'  ? '' : 'none';
+        document.getElementById('tabOverview').classList.toggle('active', name === 'overview');
+        document.getElementById('tabExplorer').classList.toggle('active', name === 'explorer');
+        if (name === 'explorer' && !_explorerBuilt) {
+            buildSleepExplorer();
+            _explorerBuilt = true;
+        }
+    };
+
+    /* ── Cohort Sleep Explorer ───────────────────────────────────────────── */
+    let _sortKey = 'id';
+    let _sortAsc = true;
+    let _data    = window.__sleepSummaries || [];
+
+    function buildSleepExplorer() {
+        renderKpis();
+        renderTable();
+    }
+
+    function avg(arr, key) {
+        if (!arr.length) return 0;
+        return arr.reduce((s, r) => s + (r[key] || 0), 0) / arr.length;
+    }
+
+    function renderKpis() {
+        const el = document.getElementById('sleepKpiRow');
+        if (!el || !_data.length) return;
+        const avgEff  = avg(_data, 'avg_efficiency').toFixed(1);
+        const avgRem  = avg(_data, 'avg_rem_pct').toFixed(1);
+        const avgWaso = Math.round(avg(_data, 'avg_waso'));
+        const avgSpo2 = avg(_data, 'avg_spo2').toFixed(1);
+        const effClass  = +avgEff  >= 85 ? '' : +avgEff  >= 75 ? 'warn' : 'alert';
+        const remClass  = +avgRem  >= 18 ? '' : +avgRem  >= 14 ? 'warn' : 'alert';
+        const wasoClass = avgWaso  <= 20 ? '' : avgWaso  <= 35 ? 'warn' : 'alert';
+        const spo2Class = +avgSpo2 >= 95 ? '' : +avgSpo2 >= 93 ? 'warn' : 'alert';
+        el.innerHTML = `
+            <div class="sleep-kpi-card ${effClass}">
+                <div class="sleep-kpi-label">Avg Sleep Efficiency</div>
+                <div class="sleep-kpi-value">${avgEff}<small style="font-size:16px;font-weight:400;">%</small></div>
+                <div class="sleep-kpi-sub">Normal ≥ 85%</div>
+            </div>
+            <div class="sleep-kpi-card ${remClass}">
+                <div class="sleep-kpi-label">Avg REM %</div>
+                <div class="sleep-kpi-value">${avgRem}<small style="font-size:16px;font-weight:400;">%</small></div>
+                <div class="sleep-kpi-sub">Normal 18–25%</div>
+            </div>
+            <div class="sleep-kpi-card ${wasoClass}">
+                <div class="sleep-kpi-label">Avg WASO</div>
+                <div class="sleep-kpi-value">${avgWaso}<small style="font-size:16px;font-weight:400;"> min</small></div>
+                <div class="sleep-kpi-sub">Normal ≤ 30 min</div>
+            </div>
+            <div class="sleep-kpi-card ${spo2Class}">
+                <div class="sleep-kpi-label">Avg SpO₂</div>
+                <div class="sleep-kpi-value">${avgSpo2}<small style="font-size:16px;font-weight:400;">%</small></div>
+                <div class="sleep-kpi-sub">Normal ≥ 95%</div>
+            </div>`;
+    }
+
+    function riskBadge(risk) {
+        const map = { high: 'rbadge-high', medium: 'rbadge-medium', low: 'rbadge-low' };
+        return `<span class="rbadge ${map[risk] || 'rbadge-unknown'}">${risk ? risk.charAt(0).toUpperCase() + risk.slice(1) : '—'}</span>`;
+    }
+    function mc(val, good, warn) {
+        const cls = +val >= good ? 'good' : +val >= warn ? 'warn' : 'bad';
+        return `<td class="sleep-metric-cell ${cls}">${val}</td>`;
+    }
+    function mcLow(val, good, warn) {
+        const cls = +val <= good ? 'good' : +val <= warn ? 'warn' : 'bad';
+        return `<td class="sleep-metric-cell ${cls}">${val}</td>`;
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('sleepTableBody');
+        if (!tbody) return;
+        const sorted = [..._data].sort((a, b) => {
+            const av = a[_sortKey], bv = b[_sortKey];
+            if (typeof av === 'string') return _sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+            return _sortAsc ? av - bv : bv - av;
+        });
+        document.querySelectorAll('.sleep-table th').forEach(th => th.classList.remove('sort-active'));
+        const keyMap = ['id','risk','avg_tst','avg_rem_pct','avg_deep_pct','avg_efficiency','avg_latency','avg_waso','avg_spo2'];
+        const headers = document.querySelectorAll('.sleep-table th');
+        keyMap.forEach((k, i) => { if (k === _sortKey && headers[i]) headers[i].classList.add('sort-active'); });
+        tbody.innerHTML = sorted.map(r => `
+            <tr onclick="window.location='/patient/${r.id}'">
+                <td><a class="pt-id-link" href="/patient/${r.id}" onclick="event.stopPropagation()">${r.id}</a></td>
+                <td>${riskBadge(r.risk)}</td>
+                <td class="sleep-metric-cell">${r.avg_tst}h</td>
+                ${mc(r.avg_rem_pct,  18, 14)}
+                ${mc(r.avg_deep_pct, 17, 13)}
+                ${mc(r.avg_efficiency, 85, 75)}
+                ${mcLow(r.avg_latency, 20, 35)}
+                ${mcLow(r.avg_waso,    20, 35)}
+                ${mc(r.avg_spo2, 95, 93)}
+            </tr>`).join('');
+    }
+
+    window.sortSleepTable = function (key) {
+        if (_sortKey === key) { _sortAsc = !_sortAsc; } else { _sortKey = key; _sortAsc = true; }
+        renderTable();
+    };
+})();
+
+/* ── Main dashboard JS ───────────────────────────────────────────────────── */
 (function () {
     'use strict';
 
@@ -602,6 +1045,221 @@ window.__cohortStats = {{ cohort_stats | tojson }};
             searchQuery = e.target.value.toLowerCase().trim();
             applyFilters();
         });
+    }
+
+    /* ── Modals ─────────────────────────────────────────────────────── */
+    function openModal(id) {
+        document.getElementById(id).classList.add('open');
+        const inp = document.querySelector(`#${id} .modal-input`);
+        if (inp) setTimeout(() => inp.focus(), 60);
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function handleOverlayClick(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ['condModal','srcModal'].forEach(closeModal);
+    });
+
+    /* ── Condition autocomplete ──────────────────────────────────────── */
+    let _condSelection = null;   // { name, code, system, category }
+    let _debounceTimer = null;
+
+    function openCondModal() {
+        document.getElementById('condModal').classList.add('open');
+        clearCondSelection();
+        document.getElementById('condSearch').value = '';
+        document.getElementById('condResults').style.display = 'none';
+        setTimeout(() => document.getElementById('condSearch').focus(), 60);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const inp = document.getElementById('condSearch');
+        if (!inp) return;
+
+        inp.addEventListener('input', () => {
+            clearTimeout(_debounceTimer);
+            const q = inp.value.trim();
+            if (q.length < 2) {
+                document.getElementById('condResults').style.display = 'none';
+                return;
+            }
+            _debounceTimer = setTimeout(() => fetchCondResults(q), 260);
+        });
+
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                document.getElementById('condResults').style.display = 'none';
+            }
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener('click', e => {
+            const box = document.getElementById('condResults');
+            const inp = document.getElementById('condSearch');
+            if (box && !box.contains(e.target) && e.target !== inp) {
+                box.style.display = 'none';
+            }
+        });
+    });
+
+    async function fetchCondResults(q) {
+        const box = document.getElementById('condResults');
+        try {
+            const res  = await fetch(`/api/conditions/search?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            renderCondResults(data, q);
+        } catch (_) {
+            box.style.display = 'none';
+        }
+    }
+
+    function highlight(text, q) {
+        const idx = text.toLowerCase().indexOf(q.toLowerCase());
+        if (idx === -1) return text;
+        return text.slice(0, idx) +
+               '<em>' + text.slice(idx, idx + q.length) + '</em>' +
+               text.slice(idx + q.length);
+    }
+
+    function renderCondResults(results, q) {
+        const box = document.getElementById('condResults');
+        const inp = document.getElementById('condSearch');
+
+        let html = '';
+        const cohortResults = results.filter(r => r.cohort_count > 0);
+        const dictResults   = results.filter(r => r.cohort_count === 0);
+
+        if (cohortResults.length) {
+            html += `<div class="cond-section-header">In Your Cohort</div>`;
+            cohortResults.forEach(r => {
+                const tracked = r.study_tracked
+                    ? `<span class="cond-tracked-badge">Study</span>` : '';
+                const cls = r.study_tracked ? 'cond-result already-tracked' : 'cond-result';
+                const onclick = r.study_tracked ? '' : `onclick="selectCond(${JSON.stringify(r)})"`;
+                html += `<div class="${cls}" ${onclick}>
+                    <div class="cond-result-main">
+                        <div class="cond-result-name">${highlight(r.name, q)}</div>
+                        <div class="cond-result-meta">${r.category || ''}</div>
+                    </div>
+                    <div class="cond-result-right">
+                        <span class="cond-count-badge has-count">${r.cohort_count} pts</span>
+                        ${tracked}
+                    </div>
+                </div>`;
+            });
+        }
+
+        if (dictResults.length) {
+            html += `<div class="cond-section-header">Clinical Dictionary</div>`;
+            dictResults.forEach(r => {
+                const tracked = r.study_tracked
+                    ? `<span class="cond-tracked-badge">Study</span>` : '';
+                const cls = r.study_tracked ? 'cond-result already-tracked' : 'cond-result';
+                const onclick = r.study_tracked ? '' : `onclick="selectCond(${JSON.stringify(r)})"`;
+                const codeMeta = r.code ? `${r.system} ${r.code}` : r.system || '';
+                html += `<div class="${cls}" ${onclick}>
+                    <div class="cond-result-main">
+                        <div class="cond-result-name">${highlight(r.name, q)}</div>
+                        <div class="cond-result-meta">${[r.category, codeMeta].filter(Boolean).join(' · ')}</div>
+                    </div>
+                    <div class="cond-result-right">${tracked}</div>
+                </div>`;
+            });
+        }
+
+        // Custom free-text fallback
+        html += `<div class="cond-custom-row" onclick="selectCond({name:${JSON.stringify(inp.value.trim())},code:'',system:'custom',category:''})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add "<strong>${inp.value.trim()}</strong>" as custom condition
+        </div>`;
+
+        box.innerHTML = html;
+        box.style.display = 'block';
+    }
+
+    function selectCond(obj) {
+        _condSelection = obj;
+        document.getElementById('condResults').style.display = 'none';
+        document.getElementById('condSearch').value = obj.name;
+
+        const sel  = document.getElementById('condSelected');
+        const name = document.getElementById('condSelectedName');
+        const meta = document.getElementById('condSelectedMeta');
+        name.textContent = obj.name;
+        const parts = [obj.category, obj.code ? `${obj.system} ${obj.code}` : (obj.system !== 'custom' ? obj.system : '')].filter(Boolean);
+        meta.textContent = parts.join(' · ') || 'Custom condition';
+        sel.style.display = 'flex';
+
+        const btn = document.getElementById('condSubmitBtn');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+
+    function clearCondSelection() {
+        _condSelection = null;
+        const sel = document.getElementById('condSelected');
+        if (sel) sel.style.display = 'none';
+        const btn = document.getElementById('condSubmitBtn');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    }
+
+    async function submitCondition() {
+        if (!_condSelection) return;
+        const btn = document.getElementById('condSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Adding…';
+
+        try {
+            const res = await fetch('/api/study/conditions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(_condSelection),
+            });
+            const data = await res.json();
+            if (res.status === 409) {
+                showToast(`"${_condSelection.name}" is already being tracked`);
+            } else if (!res.ok) {
+                throw new Error(data.error || 'Failed');
+            } else {
+                showToast(`"${_condSelection.name}" added to study conditions`);
+                closeModal('condModal');
+                setTimeout(() => location.reload(), 1200);
+            }
+        } catch (err) {
+            showToast(`Error: ${err.message}`);
+        } finally {
+            btn.textContent = 'Add to Study';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    async function removeCondition(name) {
+        try {
+            await fetch(`/api/study/conditions/${encodeURIComponent(name)}`, { method: 'DELETE' });
+            showToast(`"${name}" removed from study conditions`);
+            setTimeout(() => location.reload(), 1000);
+        } catch (_) {
+            showToast('Could not remove condition');
+        }
+    }
+
+    /* ── Data source modal ───────────────────────────────────────────── */
+    let _selectedSrc = null;
+    function selectSrc(el) {
+        document.querySelectorAll('.src-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        _selectedSrc = el.dataset.src;
+    }
+    function submitSource() {
+        if (!_selectedSrc) { showToast('Please select a data source first.'); return; }
+        const names = { oura:'Oura Ring', synthea:'Synthea FHIR', open_wearables:'Open Wearables', ehr:'EHR Flowsheets' };
+        showToast(`${names[_selectedSrc] || _selectedSrc} integration queued — configure in Settings`);
+        _selectedSrc = null;
+        document.querySelectorAll('.src-option').forEach(o => o.classList.remove('selected'));
+        closeModal('srcModal');
     }
 
     /* ── Add Synthetic Patient ──────────────────────────────────────── */

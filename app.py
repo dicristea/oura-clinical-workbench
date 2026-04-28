@@ -15,6 +15,9 @@ import uuid
 app = Flask(__name__)
 
 # Ordered color palette assigned to features by their declaration index.
+STUDY_CONFIG_PATH     = 'demo_data/study_config.json'
+CONDITIONS_DICT_PATH  = 'data/conditions_dict.json'
+
 FEATURE_COLORS = [
     '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
     '#ef4444', '#8b5cf6', '#f97316', '#ec4899',
@@ -247,6 +250,20 @@ def format_last_sync(dt):
         return f"{delta.seconds // 60} minutes ago"
 
 
+def load_study_config() -> dict:
+    """Load study config from disk, creating it if missing."""
+    if os.path.exists(STUDY_CONFIG_PATH):
+        with open(STUDY_CONFIG_PATH) as f:
+            return json.load(f)
+    return {'conditions_of_interest': []}
+
+
+def save_study_config(config: dict) -> None:
+    config['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+    with open(STUDY_CONFIG_PATH, 'w') as f:
+        json.dump(config, f, indent=2)
+
+
 def _compute_cohort_stats(patients: list) -> dict:
     """Aggregate cohort-level statistics for the research dashboard."""
     by_risk: dict = {'high': 0, 'medium': 0, 'low': 0, 'unknown': 0}
@@ -266,13 +283,61 @@ def _compute_cohort_stats(patients: list) -> dict:
                 condition_counts[cond] = condition_counts.get(cond, 0) + 1
 
     total = len(patients)
+
+    # Observed conditions (from patient data), sorted by frequency
+    observed = sorted(condition_counts.items(), key=lambda x: -x[1])
+
+    # Study-defined conditions of interest
+    study_cfg = load_study_config()
+    study_conds = study_cfg.get('conditions_of_interest', [])
+    study_names_lower = {c['name'].lower() for c in study_conds}
+
+    # Merge: observed list (with counts) + study-only (count=0, not yet in patient data)
+    observed_names_lower = {name.lower() for name, _ in observed}
+    all_conditions = [
+        {'name': name, 'count': cnt, 'study_tracked': name.lower() in study_names_lower}
+        for name, cnt in observed
+    ] + [
+        {'name': c['name'], 'count': 0, 'study_tracked': True, 'category': c.get('category', '')}
+        for c in study_conds
+        if c['name'].lower() not in observed_names_lower
+    ]
+
     return {
         'total': total,
         'by_risk': by_risk,
         'by_source': by_source,
-        'conditions': sorted(condition_counts.items(), key=lambda x: -x[1])[:8],
+        'conditions': observed[:8],          # legacy: list of (name, count) tuples
+        'all_conditions': all_conditions,    # merged: list of dicts
+        'study_conditions': study_conds,
         'active': sum(1 for p in patients if p.get('status') == 'active'),
     }
+
+
+def _compute_sleep_summaries(patients: list) -> list:
+    """Generate stable per-patient sleep metric summaries for the cohort explorer."""
+    summaries = []
+    for p in patients:
+        rng = random.Random(abs(hash(p['id'])) % (2 ** 31))
+        avg_tst = round(rng.uniform(5.2, 8.6), 1)
+        avg_rem = round(rng.uniform(12, 26), 1)
+        avg_deep = round(rng.uniform(10, 23), 1)
+        avg_eff = round(rng.uniform(72, 94), 1)
+        avg_lat = int(round(rng.uniform(7, 40)))
+        avg_waso = int(round(rng.uniform(12, 58)))
+        avg_spo2 = round(rng.uniform(93.2, 98.1), 1)
+        summaries.append({
+            'id':           p['id'],
+            'risk':         p.get('risk_level', ''),
+            'avg_tst':      avg_tst,
+            'avg_rem_pct':  avg_rem,
+            'avg_deep_pct': avg_deep,
+            'avg_efficiency': avg_eff,
+            'avg_latency':  avg_lat,
+            'avg_waso':     avg_waso,
+            'avg_spo2':     avg_spo2,
+        })
+    return summaries
 
 
 def _chat_respond(message: str, context: dict, history: list) -> tuple:
@@ -403,13 +468,88 @@ def _chat_respond(message: str, context: dict, history: list) -> tuple:
 def dashboard():
     patients = load_patient_data()
     cohort_stats = _compute_cohort_stats(patients)
-    return render_template('dashboard.html', patients=patients, cohort_stats=cohort_stats)
+    sleep_summaries = _compute_sleep_summaries(patients)
+    return render_template('dashboard.html', patients=patients, cohort_stats=cohort_stats,
+                           sleep_summaries=sleep_summaries)
 
 
 @app.route('/api/patients')
 def get_patients():
     patients = load_patient_data()
     return jsonify(patients)
+
+
+@app.route('/api/conditions/search')
+def conditions_search():
+    """Search the bundled clinical conditions dictionary."""
+    q = request.args.get('q', '').strip().lower()
+    if len(q) < 2:
+        return jsonify([])
+
+    # Load dictionary
+    try:
+        with open(CONDITIONS_DICT_PATH) as f:
+            dictionary = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify([])
+
+    # Cohort condition counts for annotation
+    patients = load_patient_data()
+    stats = _compute_cohort_stats(patients)
+    cohort_map = {name.lower(): cnt for name, cnt in stats['conditions']}
+
+    # Study-tracked names for annotation
+    study_cfg = load_study_config()
+    tracked = {c['name'].lower() for c in study_cfg.get('conditions_of_interest', [])}
+
+    # Filter dictionary
+    matches = [c for c in dictionary if q in c['name'].lower()]
+    for m in matches:
+        m['cohort_count']   = cohort_map.get(m['name'].lower(), 0)
+        m['study_tracked']  = m['name'].lower() in tracked
+
+    # Sort: cohort matches first, then alphabetical
+    matches.sort(key=lambda x: (-x['cohort_count'], x['name']))
+    return jsonify(matches[:12])
+
+
+@app.route('/api/study/conditions', methods=['POST'])
+def add_study_condition():
+    """Add a condition to the study conditions of interest."""
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'name is required'}), 400
+
+    config = load_study_config()
+    existing = {c['name'].lower() for c in config.get('conditions_of_interest', [])}
+    if name.lower() in existing:
+        return jsonify({'error': 'already tracked'}), 409
+
+    config.setdefault('conditions_of_interest', []).append({
+        'name':     name,
+        'code':     data.get('code', ''),
+        'system':   data.get('system', 'custom'),
+        'category': data.get('category', ''),
+        'added_date': datetime.now().strftime('%Y-%m-%d'),
+    })
+    save_study_config(config)
+    return jsonify({'ok': True, 'name': name})
+
+
+@app.route('/api/study/conditions/<path:name>', methods=['DELETE'])
+def remove_study_condition(name):
+    """Remove a condition from the study conditions of interest."""
+    config = load_study_config()
+    before = len(config.get('conditions_of_interest', []))
+    config['conditions_of_interest'] = [
+        c for c in config.get('conditions_of_interest', [])
+        if c['name'].lower() != name.lower()
+    ]
+    if len(config['conditions_of_interest']) == before:
+        return jsonify({'error': 'not found'}), 404
+    save_study_config(config)
+    return jsonify({'ok': True})
 
 
 @app.route('/api/run-experiment', methods=['POST'])
@@ -725,6 +865,52 @@ def patient_detail(patient_id):
     patient['sleep_duration_data'] = sleep_duration_data
     patient['steps_data'] = steps_data
     patient['temperature_data'] = temperature_data
+
+    # ── Sleep-specific metrics (14 days) ─────────────────────────────────
+    rem_data, deep_data, light_data, awake_data = [], [], [], []
+    time_in_bed_data, sleep_latency_data, waso_data = [], [], []
+    sleep_efficiency_data, spo2_data = [], []
+    sleep_start_data, sleep_end_data = [], []
+
+    for i in range(14):
+        total = sleep_duration_data[i]
+        rem   = round(max(0.5, random.uniform(0.15, 0.25) * total + random.uniform(-0.2, 0.2)), 1)
+        deep  = round(max(0.3, random.uniform(0.13, 0.22) * total + random.uniform(-0.15, 0.15)), 1)
+        awake = round(random.uniform(0.1, 0.6), 1)
+        light = round(max(0.4, total - rem - deep), 1)
+        lat   = random.randint(5, 38)
+        w     = random.randint(8, 55)
+        tib   = round(total + awake + lat / 60 + w / 60, 1)
+        eff   = round((total / tib * 100) if tib > 0 else 0, 1)
+        sp    = round(random.uniform(93.0, 98.5), 1)
+        start_hr  = random.randint(21, 23)
+        start_min = random.choice([0, 15, 30, 45])
+        end_total = start_hr * 60 + start_min + int(tib * 60)
+        end_hr, end_min = (end_total // 60) % 24, end_total % 60
+
+        rem_data.append(rem)
+        deep_data.append(deep)
+        light_data.append(light)
+        awake_data.append(awake)
+        time_in_bed_data.append(tib)
+        sleep_latency_data.append(lat)
+        waso_data.append(w)
+        sleep_efficiency_data.append(eff)
+        spo2_data.append(sp)
+        sleep_start_data.append(f"{start_hr % 12 or 12}:{start_min:02d} {'PM' if start_hr >= 12 else 'AM'}")
+        sleep_end_data.append(f"{end_hr % 12 or 12}:{end_min:02d} {'AM' if end_hr < 12 else 'PM'}")
+
+    patient['rem_data']              = rem_data
+    patient['deep_data']             = deep_data
+    patient['light_data']            = light_data
+    patient['awake_data']            = awake_data
+    patient['time_in_bed_data']      = time_in_bed_data
+    patient['sleep_latency_data']    = sleep_latency_data
+    patient['waso_data']             = waso_data
+    patient['sleep_efficiency_data'] = sleep_efficiency_data
+    patient['spo2_data']             = spo2_data
+    patient['sleep_start_data']      = sleep_start_data
+    patient['sleep_end_data']        = sleep_end_data
 
     # ── Clinical history ──────────────────────────────────────────────────
     clinical_history = None

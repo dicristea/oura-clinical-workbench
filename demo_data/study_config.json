@@ -1,0 +1,26 @@
+{
+  "conditions_of_interest": [
+    {
+      "name": "Covert Hepatic Encephalopathy",
+      "code": "13920009",
+      "system": "SNOMED",
+      "category": "Liver",
+      "added_date": "2026-04-28"
+    },
+    {
+      "name": "Minimal Hepatic Encephalopathy",
+      "code": "13920009",
+      "system": "SNOMED",
+      "category": "Liver",
+      "added_date": "2026-04-28"
+    },
+    {
+      "name": "Obstructive Sleep Apnea",
+      "code": "78275009",
+      "system": "SNOMED",
+      "category": "Sleep",
+      "added_date": "2026-04-28"
+    }
+  ],
+  "last_updated": "2026-04-28"
+}

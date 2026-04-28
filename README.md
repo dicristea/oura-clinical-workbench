@@ -1,14 +1,12 @@
 # 🏥 JupyterHealth Clinical Workbench
 
-> **Clinician-facing web workbench for wearable + clinical data monitoring, ML disease progression prediction, and explainable AI**
+> **Clinician-facing web workbench for wearable + clinical data research, ML disease progression prediction, and explainable AI**
 
-A browser-based platform that enables clinical researchers to monitor patients via wearable and clinical data, run ML models for disease progression prediction, and get explainable AI rationales.
+A browser-based platform that enables clinical researchers to research specific cohort data and monitor patients via wearable and clinical data, run ML models for disease progression prediction, and get explainable AI rationales.
 
 ---
 
 ## [Live Demo](https://jupyterhealth-clinical-workbench.onrender.com/patient/PT-1847)
-
-![Model Lab Preview](ModelLab_Preview.png)
 
 ---
 
@@ -20,15 +18,19 @@ A browser-based platform that enables clinical researchers to monitor patients v
 - **Filtering** — Filter by status, data overlap, completion
 - **Search** — Search patients by ID
 
+| Route                    | Description                                                   |
+| ------------------------ | ------------------------------------------------------------- |
+| **Cohort Overview**      | All Patients                                                  |
+| **Cohort Data Explorer** |                                                               |
+| **AI Assistant**         | SHAP rationale + hallucination detection _(work in progress)_ |
+
 ### Patient Views
 
-| Route               | Description                                                   |
-| ------------------- | ------------------------------------------------------------- |
-| **Overview**        | Biometric time series (Sleep, HRV, Activity)                  |
-| **Data Explorer**   | Raw signal overlay, feature browsing                          |
-| **Model Lab**       | ML model selection, training, results, feature importance     |
-| **Tournament** ⚠️   | Side-by-side model comparison _(work in progress)_            |
-| **AI Assistant** ⚠️ | SHAP rationale + hallucination detection _(work in progress)_ |
+| Route                   | Description                                                   |
+| ----------------------- | ------------------------------------------------------------- |
+| **Biometrics Overview** | Biometric time series (Sleep, HRV Activity)                   |
+| **Risk Analysis**       | SHAP rationale _(work in progress)_                           |
+| **AI Assistant**        | SHAP rationale + hallucination detection _(work in progress)_ |
 
 ### Model Lab
 
@@ -37,14 +39,6 @@ A browser-based platform that enables clinical researchers to monitor patients v
 - **Models** — XGBoost, Random Forest, LSTM, TFT
 - **Results** — AUC-ROC, Precision, Recall, F1, Feature Importance
 - **Saved Experiments** — Track and compare runs
-
-### Tournament ⚠️ Work in Progress
-
-The Tournament page allows side-by-side comparison of saved experiments for a given patient. Currently displays placeholder experiments (XGBoost, Random Forest, LSTM) with sortable AUC-ROC leaderboard and bar chart. Planned: persistent experiment storage, real trained-model results, and cross-patient comparison.
-
-### AI Assistant ⚠️ Work in Progress
-
-The AI Assistant tab runs a SHAP TreeExplainer pipeline on a fast XGBoost model trained on the patient's (synthetic) data, and produces a template-based clinical rationale with a confidence score. Phase 2 will replace the template rationale with a Llama 3 / GPT-4o API call.
 
 ---
 
@@ -151,11 +145,10 @@ python app.py
 - `data.xlsx` (real patient PHI)
 - `.env` files (API tokens, MRNs)
 - Any file with real patient names, MRNs, or identifiable data
-- PPMI data files downloaded from LONI (governed by DUA)
 
 **Safe to commit:**
 
-- `demo_data/` (synthetic/fake data only)
+- `demo_data/` (synthetic data only)
 - `.env.example` (template with placeholder values)
 - Code, templates, documentation
 
@@ -172,10 +165,10 @@ pytest tests/
 ## References
 
 - [Oura V2 API](https://cloud.ouraring.com/v2/docs)
-- [PPMI](https://www.ppmi-info.org/)
-- Temporal Fusion Transformers: Lim et al., 2021 (Int. J. Forecasting)
-- SHAP: Lundberg & Lee, 2017 (NeurIPS)
 - [OpenMHealth data standard](https://www.openmhealth.org/)
+- [Open Wearables API] (https://openwearables.io/docs/quickstart#local-development-setup)
+- [Synthea] (https://github.com/synthetichealth/synthea/wiki/Basic-Setup-and-Running)
+- SHAP: Lundberg & Lee, 2017 (NeurIPS)
 
 ---
 
