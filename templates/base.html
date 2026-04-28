@@ -1,721 +1,351 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Patient {{ patient.id }}{% endblock %} — Clinical Workbench</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    {% block head %}{% endblock %}
-    <style>
-        /* ── Paradigm accent color (updated by JS on paradigm switch) ────────── */
-        :root {
-            --accent-color: #F59E0B;   /* default: Liver Disease orange */
-            --accent-color-light: #FEF3C7;
-        }
+{% extends "base_layout.html" %}
 
-        /* ── Reset ──────────────────────────────────────────────────────────── */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% block title %}Patient {{ patient.id }}{% endblock %}
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            line-height: 1.5;
-            /* Reserve space for the sticky top bar */
-            padding-top: 64px;
-        }
+{% block head %}
+<style>
+    /* ── Paradigm accent color (updated by JS on paradigm switch) ────────── */
+    :root {
+        --accent-color: #F59E0B;
+        --accent-color-light: #FEF3C7;
+    }
 
-        /* ── Top Navigation Bar ─────────────────────────────────────────────── */
-        .topnav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 200;
-            height: 64px;
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    body { padding-top: 64px; }
 
-            /* Three-column layout: left takes remaining space, center shrinks to
-               content (always truly centered), right mirrors the left width. */
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 0 32px;
-            gap: 16px;
-        }
+    /* ── Top Navigation Bar ─────────────────────────────────────────────── */
+    .topnav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+        height: 64px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        display: grid; grid-template-columns: 1fr auto 1fr;
+        align-items: center; padding: 0 32px; gap: 16px;
+    }
 
-        /* ── Left section: back arrow + patient ID + risk badge ─────────────── */
-        .topnav-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;           /* allow text to truncate if viewport is narrow */
-        }
+    /* Left: back arrow · patient ID · risk badge */
+    .topnav-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
-        .back-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            color: #64748b;
-            text-decoration: none;
-            flex-shrink: 0;
-            transition: background 0.15s, color 0.15s;
-        }
+    .back-link {
+        display: flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; border-radius: 8px;
+        color: #64748b; text-decoration: none; flex-shrink: 0;
+        transition: background 0.15s, color 0.15s;
+    }
+    .back-link:hover { background: #f1f5f9; color: #334155; }
 
-        .back-link:hover {
-            background: #f1f5f9;
-            color: #334155;
-        }
+    .patient-label {
+        font-size: 15px; font-weight: 600; color: #1e293b;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
-        .patient-label {
-            font-size: 15px;
-            font-weight: 600;
-            color: #1e293b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    .risk-badge {
+        display: inline-flex; align-items: center;
+        padding: 3px 10px; border-radius: 9999px;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+        white-space: nowrap; flex-shrink: 0;
+    }
+    .risk-high   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .risk-medium { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .risk-low    { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
-        /* Risk badge — matches existing status-badge color conventions */
-        .risk-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
+    .action-hint {
+        font-size: 11px; font-weight: 500; color: #64748b;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 2px;
+    }
+    .action-hint.urgent { color: #991b1b; }
+    .action-hint.warn   { color: #92400e; }
 
-        .risk-high {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
+    /* Center: tab nav */
+    .tab-nav {
+        display: flex; align-items: center; gap: 2px;
+        background: #f1f5f9; border-radius: 9999px; padding: 3px;
+    }
+    .tab {
+        display: inline-block; padding: 7px 16px; border-radius: 9999px;
+        font-size: 13px; font-weight: 500; color: #64748b;
+        text-decoration: none; white-space: nowrap;
+        transition: background 0.15s, color 0.15s; line-height: 1.4;
+    }
+    .tab:hover:not(.tab-active) { background: rgba(0,0,0,0.05); color: #334155; }
+    .tab-active {
+        background: var(--accent-color); color: #ffffff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
 
-        .risk-medium {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
-        }
+    /* Right: export + chat toggle + avatar */
+    .topnav-right { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
 
-        .risk-low {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-        }
+    .btn-export {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #ffffff; color: #334155; font-family: inherit;
+        font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .btn-export:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 
-        /* Recommended action line — sits right of the risk badge */
-        .action-hint {
-            font-size: 11px;
-            font-weight: 500;
-            color: #64748b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-left: 2px;
-        }
-        .action-hint.urgent { color: #991b1b; }
-        .action-hint.warn   { color: #92400e; }
+    .avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: #ffffff; font-weight: 600; font-size: 13px;
+        flex-shrink: 0; user-select: none;
+    }
 
-        /* ── Center section: tab navigation ────────────────────────────────── */
-        .tab-nav {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            background: #f1f5f9;
-            border-radius: 9999px;
-            padding: 3px;
-        }
+    /* Paradigm Selector */
+    .paradigm-wrapper { position: relative; }
+    .paradigm-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 16px; border: none; border-radius: 12px;
+        background: var(--accent-color); color: #ffffff;
+        font-family: inherit; font-size: 13px; font-weight: 600;
+        cursor: pointer; white-space: nowrap;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+    }
+    .paradigm-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+    .paradigm-btn:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .paradigm-btn-icon { font-size: 16px; line-height: 1; }
+    .paradigm-btn-arrow { width: 14px; height: 14px; transition: transform 0.2s ease; opacity: 0.85; }
+    .paradigm-btn-arrow.open { transform: rotate(180deg); }
 
-        .tab {
-            display: inline-block;
-            padding: 7px 16px;
-            border-radius: 9999px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #64748b;
-            text-decoration: none;
-            white-space: nowrap;
-            transition: background 0.15s, color 0.15s;
-            line-height: 1.4;
-        }
+    .paradigm-dropdown {
+        position: absolute; top: calc(100% + 10px); right: 0; width: 320px;
+        background: #ffffff; border: 1px solid #E5E7EB; border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12); z-index: 1000; overflow: hidden;
+        opacity: 0; transform: translateY(-6px); pointer-events: none;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .paradigm-dropdown.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-        .tab:hover:not(.tab-active) {
-            background: rgba(0, 0, 0, 0.05);
-            color: #334155;
-        }
+    .paradigm-option {
+        display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+        cursor: pointer; border-bottom: 1px solid #F3F4F6;
+        transition: background 0.15s; position: relative;
+    }
+    .paradigm-option:last-child { border-bottom: none; }
+    .paradigm-option:hover { background: #F9FAFB; }
+    .paradigm-option.active {
+        background: #EFF6FF; border-left: 3px solid var(--option-color, #F59E0B);
+        padding-left: 15px;
+    }
+    .paradigm-option-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+    .paradigm-option-text { flex: 1; min-width: 0; }
+    .paradigm-option-name { font-size: 13px; font-weight: 600; color: #1A2332; line-height: 1.3; }
+    .paradigm-option-desc { font-size: 12px; color: #6B7280; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .paradigm-option-check {
+        width: 16px; height: 16px; color: var(--option-color, #F59E0B);
+        flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
+    }
+    .paradigm-option.active .paradigm-option-check { opacity: 1; }
 
-        .tab-active {
-            background: var(--accent-color);
-            color: #ffffff;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-        }
+    @media (max-width: 1100px) { .paradigm-btn-label { display: none; } }
 
-        /* ── Right section: export button + avatar ──────────────────────────── */
-        .topnav-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            justify-content: flex-end;
-        }
+    /* Main content area */
+    .main-content { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
 
-        .btn-export {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 8px;
-            background: #ffffff;
-            color: #334155;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-        }
+    .card { background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
-        .btn-export:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-        }
+    @media (max-width: 900px) {
+        .topnav { padding: 0 16px; }
+        .tab { padding: 7px 10px; font-size: 12px; }
+        .btn-export span { display: none; }
+        .main-content { padding: 20px 16px; }
+    }
+    @media (max-width: 680px) {
+        .topnav { height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; padding: 10px 16px; gap: 8px; }
+        body { padding-top: 112px; }
+        .tab-nav { grid-column: 1 / -1; justify-content: center; overflow-x: auto; }
+    }
+</style>
+{% endblock %}
 
-        .btn-export:active {
-            background: #f1f5f9;
-        }
+{% block topnav %}
+<nav class="topnav" role="navigation" aria-label="Patient navigation">
 
-        /* Avatar matches the dashboard.html gradient circle */
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 13px;
-            flex-shrink: 0;
-            user-select: none;
-        }
+    <!-- Left: back arrow · patient ID · risk badge -->
+    <div class="topnav-left">
+        <a href="/" class="back-link" title="Back to Dashboard" aria-label="Back to Dashboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+            </svg>
+        </a>
 
-        /* ── Paradigm Selector ──────────────────────────────────────────────── */
-        .paradigm-wrapper {
-            position: relative;
-        }
+        <span class="patient-label">Patient {{ patient.id }}</span>
 
-        .paradigm-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 12px;
-            background: var(--accent-color);
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-        }
-
-        .paradigm-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .paradigm-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .paradigm-btn-icon {
-            font-size: 16px;
-            line-height: 1;
-        }
-
-        .paradigm-btn-arrow {
-            width: 14px;
-            height: 14px;
-            transition: transform 0.2s ease;
-            opacity: 0.85;
-        }
-
-        .paradigm-btn-arrow.open {
-            transform: rotate(180deg);
-        }
-
-        /* Dropdown */
-        .paradigm-dropdown {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 320px;
-            background: #ffffff;
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-            z-index: 1000;
-            overflow: hidden;
-            /* Animate in */
-            opacity: 0;
-            transform: translateY(-6px);
-            pointer-events: none;
-            transition: opacity 0.18s ease, transform 0.18s ease;
-        }
-
-        .paradigm-dropdown.open {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        .paradigm-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            cursor: pointer;
-            border-bottom: 1px solid #F3F4F6;
-            transition: background 0.15s;
-            position: relative;
-        }
-
-        .paradigm-option:last-child {
-            border-bottom: none;
-        }
-
-        .paradigm-option:hover {
-            background: #F9FAFB;
-        }
-
-        .paradigm-option.active {
-            background: #EFF6FF;
-            border-left: 3px solid var(--option-color, #F59E0B);
-            padding-left: 15px;   /* compensate for 3px border */
-        }
-
-        .paradigm-option-icon {
-            font-size: 22px;
-            line-height: 1;
-            flex-shrink: 0;
-        }
-
-        .paradigm-option-text {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .paradigm-option-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1A2332;
-            line-height: 1.3;
-        }
-
-        .paradigm-option-desc {
-            font-size: 12px;
-            color: #6B7280;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .paradigm-option-check {
-            width: 16px;
-            height: 16px;
-            color: var(--option-color, #F59E0B);
-            flex-shrink: 0;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        .paradigm-option.active .paradigm-option-check {
-            opacity: 1;
-        }
-
-        /* On narrow viewports, abbreviate the button label */
-        @media (max-width: 1100px) {
-            .paradigm-btn-label {
-                display: none;
-            }
-        }
-
-        /* ── Main content area ──────────────────────────────────────────────── */
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 28px 32px;
-        }
-
-        /* ── Shared card primitive (available to all child templates) ────────── */
-        .card {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
-
-        /* ── SVG utility (prevents layout shift from inline SVGs) ───────────── */
-        svg {
-            flex-shrink: 0;
-        }
-
-        /* ── Responsive: narrow screens ─────────────────────────────────────── */
-        @media (max-width: 900px) {
-            .topnav {
-                padding: 0 16px;
-            }
-
-            .tab {
-                padding: 7px 10px;
-                font-size: 12px;
-            }
-
-            .btn-export span {
-                display: none;   /* hide button label, keep icon */
-            }
-
-            .main-content {
-                padding: 20px 16px;
-            }
-        }
-
-        @media (max-width: 680px) {
-            /* Stack the nav into two rows on very small screens */
-            .topnav {
-                height: auto;
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: auto auto;
-                padding: 10px 16px;
-                gap: 8px;
-            }
-
-            body {
-                padding-top: 112px;
-            }
-
-            .tab-nav {
-                grid-column: 1 / -1;
-                justify-content: center;
-                overflow-x: auto;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         TOP NAVIGATION BAR
-         ═══════════════════════════════════════════════════════════════════════ -->
-    <nav class="topnav" role="navigation" aria-label="Patient navigation">
-
-        <!-- Left: back arrow · patient ID · risk badge -->
-        <div class="topnav-left">
-            <a href="/" class="back-link" title="Back to Dashboard" aria-label="Back to Dashboard">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <path d="M19 12H5"/>
-                    <path d="M12 19l-7-7 7-7"/>
-                </svg>
-            </a>
-
-            <span class="patient-label">Patient {{ patient.id }}</span>
-
-            {# Risk badge — color depends on patient.risk_level.
-               The existing app.py dict uses 'status'; the new adapters set 'risk_level'.
-               We check both so the base template works during the transition. #}
-            {% set risk   = patient.risk_level if patient.risk_level is defined and patient.risk_level else '' %}
-            {% set pstat  = patient.status if patient.status is defined else '' %}
-            {% if risk == 'high' %}
-                <span class="risk-badge risk-high" aria-label="High Risk patient">High Risk</span>
-                {% if pstat == 'outreach' %}
-                    <span class="action-hint urgent">&#8594; Schedule urgent follow-up</span>
-                {% elif pstat == 'follow-up' %}
-                    <span class="action-hint urgent">&#8594; Follow-up within 7 days</span>
-                {% else %}
-                    <span class="action-hint warn">&#8594; Review latest readings</span>
-                {% endif %}
-            {% elif risk == 'medium' %}
-                <span class="risk-badge risk-medium" aria-label="Medium Risk patient">Medium Risk</span>
-                {% if pstat == 'outreach' %}
-                    <span class="action-hint warn">&#8594; Schedule follow-up within 2 weeks</span>
-                {% else %}
-                    <span class="action-hint">&#8594; Monitor closely</span>
-                {% endif %}
-            {% elif risk == 'low' %}
-                <span class="risk-badge risk-low" aria-label="Low Risk patient">Low Risk</span>
-                <span class="action-hint">&#8594; Routine monitoring</span>
+        {% set risk  = patient.risk_level if patient.risk_level is defined and patient.risk_level else '' %}
+        {% set pstat = patient.status if patient.status is defined else '' %}
+        {% if risk == 'high' %}
+            <span class="risk-badge risk-high" aria-label="High Risk patient">High Risk</span>
+            {% if pstat == 'outreach' %}
+                <span class="action-hint urgent">&#8594; Schedule urgent follow-up</span>
+            {% elif pstat == 'follow-up' %}
+                <span class="action-hint urgent">&#8594; Follow-up within 7 days</span>
+            {% else %}
+                <span class="action-hint warn">&#8594; Review latest readings</span>
             {% endif %}
-        </div>
+        {% elif risk == 'medium' %}
+            <span class="risk-badge risk-medium" aria-label="Medium Risk patient">Medium Risk</span>
+            {% if pstat == 'outreach' %}
+                <span class="action-hint warn">&#8594; Schedule follow-up within 2 weeks</span>
+            {% else %}
+                <span class="action-hint">&#8594; Monitor closely</span>
+            {% endif %}
+        {% elif risk == 'low' %}
+            <span class="risk-badge risk-low" aria-label="Low Risk patient">Low Risk</span>
+            <span class="action-hint">&#8594; Routine monitoring</span>
+        {% endif %}
+    </div>
 
-        <!-- Center: tab pill group (centered via CSS grid 1fr/auto/1fr) -->
-        <div class="tab-nav" role="tablist" aria-label="Patient view tabs">
-            <a href="/patient/{{ patient.id }}"
-               class="tab {% if active_tab == 'overview' %}tab-active{% endif %}"
-               role="tab"
-               aria-selected="{{ 'true' if active_tab == 'overview' else 'false' }}">
-                Biometrics
-            </a>
-            <a href="/patient/{{ patient.id }}/data-explorer"
-               class="tab {% if active_tab == 'data-explorer' %}tab-active{% endif %}"
-               role="tab"
-               aria-selected="{{ 'true' if active_tab == 'data-explorer' else 'false' }}">
-                Data Explorer
-            </a>
-            <a href="/patient/{{ patient.id }}/model-lab"
-               class="tab {% if active_tab == 'model-lab' %}tab-active{% endif %}"
-               role="tab"
-               aria-selected="{{ 'true' if active_tab == 'model-lab' else 'false' }}">
-                Risk Analysis
-            </a>
-            <a href="/patient/{{ patient.id }}/ai-assistant"
-               class="tab {% if active_tab == 'ai-assistant' %}tab-active{% endif %}"
-               role="tab"
-               aria-selected="{{ 'true' if active_tab == 'ai-assistant' else 'false' }}">
-                AI Assistant
-            </a>
-        </div>
+    <!-- Center: tab pill group -->
+    <div class="tab-nav" role="tablist" aria-label="Patient view tabs">
+        <a href="/patient/{{ patient.id }}"
+           class="tab {% if active_tab == 'overview' %}tab-active{% endif %}"
+           role="tab" aria-selected="{{ 'true' if active_tab == 'overview' else 'false' }}">
+            Biometrics
+        </a>
+        <a href="/patient/{{ patient.id }}/data-explorer"
+           class="tab {% if active_tab == 'data-explorer' %}tab-active{% endif %}"
+           role="tab" aria-selected="{{ 'true' if active_tab == 'data-explorer' else 'false' }}">
+            Data Explorer
+        </a>
+        <a href="/patient/{{ patient.id }}/model-lab"
+           class="tab {% if active_tab == 'model-lab' %}tab-active{% endif %}"
+           role="tab" aria-selected="{{ 'true' if active_tab == 'model-lab' else 'false' }}">
+            Risk Analysis
+        </a>
+    </div>
 
-        <!-- Right: paradigm selector + export button + user avatar -->
-        <div class="topnav-right">
+    <!-- Right: paradigm selector + export + chat toggle + avatar -->
+    <div class="topnav-right">
 
-            <!-- Paradigm Selector -->
-            <div class="paradigm-wrapper" id="paradigmWrapper">
-                <button class="paradigm-btn" id="paradigmBtn"
-                        type="button"
-                        aria-haspopup="listbox"
-                        aria-expanded="false"
-                        aria-label="Select clinical paradigm">
-                    <span class="paradigm-btn-icon" id="paradigmIcon">🫀</span>
-                    <span class="paradigm-btn-label" id="paradigmLabel">Liver Disease</span>
-                    <!-- Chevron icon -->
-                    <svg class="paradigm-btn-arrow" id="paradigmArrow"
-                         viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round"
-                         aria-hidden="true">
-                        <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                </button>
-
-                <div class="paradigm-dropdown" id="paradigmDropdown" role="listbox" aria-label="Clinical paradigms">
-                    <!-- Options rendered by JS -->
-                </div>
-            </div>
-
-            <button class="btn-export" type="button" title="Export patient findings as PDF">
-                <!-- Download icon -->
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
+        <div class="paradigm-wrapper" id="paradigmWrapper">
+            <button class="paradigm-btn" id="paradigmBtn" type="button"
+                    aria-haspopup="listbox" aria-expanded="false"
+                    aria-label="Select clinical paradigm">
+                <span class="paradigm-btn-icon" id="paradigmIcon">🫀</span>
+                <span class="paradigm-btn-label" id="paradigmLabel">Liver Disease</span>
+                <svg class="paradigm-btn-arrow" id="paradigmArrow"
+                     viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"/>
                 </svg>
-                <span>Export Findings</span>
             </button>
-
-            <div class="avatar" title="Dr. A. Buckholz" aria-label="Logged-in user: AB">AB</div>
+            <div class="paradigm-dropdown" id="paradigmDropdown" role="listbox" aria-label="Clinical paradigms"></div>
         </div>
 
-    </nav><!-- /.topnav -->
+        <button class="btn-export" type="button" title="Export patient findings as PDF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Export Findings</span>
+        </button>
 
+        <!-- Chat toggle — wired up by base_layout.html JS -->
+        <button class="chat-toggle" id="chatToggle" title="Research Assistant" aria-label="Open Research Assistant">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </button>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         PAGE CONTENT  (child templates fill this block)
-         ═══════════════════════════════════════════════════════════════════════ -->
-    <main class="main-content">
-        {% block content %}{% endblock %}
-    </main>
+        <div class="avatar" title="Dr. A. Buckholz" aria-label="Logged-in user: AB">AB</div>
+    </div>
 
+</nav>
+{% endblock %}
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         PAGE-SPECIFIC SCRIPTS  (child templates inject here)
-         ═══════════════════════════════════════════════════════════════════════ -->
-    {% block scripts %}{% endblock %}
+{% block main %}
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+{% endblock %}
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         PARADIGM SELECTOR  — vanilla JS, no framework dependency
-         ═══════════════════════════════════════════════════════════════════════ -->
-    <script>
-    (function () {
-        'use strict';
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
 
-        const PARADIGMS = [
-            {
-                id: 'liver',
-                name: 'Liver Disease',
-                icon: '🫀',
-                desc: 'Hepatic encephalopathy & decompensation',
-                color: '#F59E0B',
-                colorLight: '#FEF3C7',
-            },
-            {
-                id: 'cirrhosis',
-                name: 'Cirrhosis',
-                icon: '🔬',
-                desc: 'Complication prevention & monitoring',
-                color: '#DC2626',
-                colorLight: '#FEE2E2',
-            },
-            {
-                id: 'transplant',
-                name: 'Post-Transplant',
-                icon: '🏥',
-                desc: 'Rejection detection & medication adherence',
-                color: '#10B981',
-                colorLight: '#D1FAE5',
-            },
-            {
-                id: 'metabolic',
-                name: 'Metabolic Syndrome',
-                icon: '💊',
-                desc: 'MASLD / NASH & cardiovascular risk',
-                color: '#8B5CF6',
-                colorLight: '#EDE9FE',
-            },
-            {
-                id: 'general',
-                name: 'General Medicine',
-                icon: '🩺',
-                desc: 'General health monitoring',
-                color: '#3B82F6',
-                colorLight: '#DBEAFE',
-            },
-        ];
+    const PARADIGMS = [
+        { id: 'liver',     name: 'Liver Disease',    icon: '🫀', desc: 'Hepatic encephalopathy & decompensation',    color: '#F59E0B', colorLight: '#FEF3C7' },
+        { id: 'cirrhosis', name: 'Cirrhosis',         icon: '🔬', desc: 'Complication prevention & monitoring',       color: '#DC2626', colorLight: '#FEE2E2' },
+        { id: 'transplant',name: 'Post-Transplant',   icon: '🏥', desc: 'Rejection detection & medication adherence', color: '#10B981', colorLight: '#D1FAE5' },
+        { id: 'metabolic', name: 'Metabolic Syndrome',icon: '💊', desc: 'MASLD / NASH & cardiovascular risk',        color: '#8B5CF6', colorLight: '#EDE9FE' },
+        { id: 'general',   name: 'General Medicine',  icon: '🩺', desc: 'General health monitoring',                 color: '#3B82F6', colorLight: '#DBEAFE' },
+    ];
 
-        const STORAGE_KEY = 'jhe_paradigm';
+    const STORAGE_KEY = 'jhe_paradigm';
+    const btn      = document.getElementById('paradigmBtn');
+    const icon     = document.getElementById('paradigmIcon');
+    const label    = document.getElementById('paradigmLabel');
+    const arrow    = document.getElementById('paradigmArrow');
+    const dropdown = document.getElementById('paradigmDropdown');
+    const wrapper  = document.getElementById('paradigmWrapper');
 
-        // ── DOM refs ────────────────────────────────────────────────────────
-        const btn      = document.getElementById('paradigmBtn');
-        const icon     = document.getElementById('paradigmIcon');
-        const label    = document.getElementById('paradigmLabel');
-        const arrow    = document.getElementById('paradigmArrow');
-        const dropdown = document.getElementById('paradigmDropdown');
-        const wrapper  = document.getElementById('paradigmWrapper');
+    if (!btn) return;
 
-        if (!btn) return;   // guard: skip if base template not fully loaded
+    let isOpen   = false;
+    let activeId = localStorage.getItem(STORAGE_KEY) || 'liver';
 
-        // ── State ───────────────────────────────────────────────────────────
-        let isOpen = false;
-        let activeId = localStorage.getItem(STORAGE_KEY) || 'liver';
-
-        // ── Build dropdown options ───────────────────────────────────────────
-        function buildOptions() {
-            dropdown.innerHTML = PARADIGMS.map(p => `
-                <div class="paradigm-option ${p.id === activeId ? 'active' : ''}"
-                     role="option"
-                     aria-selected="${p.id === activeId}"
-                     data-id="${p.id}"
-                     style="--option-color: ${p.color}"
-                     tabindex="0">
-                    <span class="paradigm-option-icon">${p.icon}</span>
-                    <div class="paradigm-option-text">
-                        <div class="paradigm-option-name">${p.name}</div>
-                        <div class="paradigm-option-desc">${p.desc}</div>
-                    </div>
-                    <!-- Checkmark SVG -->
-                    <svg class="paradigm-option-check" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round"
-                         aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+    function buildOptions() {
+        dropdown.innerHTML = PARADIGMS.map(p => `
+            <div class="paradigm-option ${p.id === activeId ? 'active' : ''}"
+                 role="option" aria-selected="${p.id === activeId}"
+                 data-id="${p.id}" style="--option-color: ${p.color}" tabindex="0">
+                <span class="paradigm-option-icon">${p.icon}</span>
+                <div class="paradigm-option-text">
+                    <div class="paradigm-option-name">${p.name}</div>
+                    <div class="paradigm-option-desc">${p.desc}</div>
                 </div>
-            `).join('');
+                <svg class="paradigm-option-check" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </div>`).join('');
 
-            dropdown.querySelectorAll('.paradigm-option').forEach(el => {
-                el.addEventListener('click', () => selectParadigm(el.dataset.id));
-                el.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        selectParadigm(el.dataset.id);
-                    }
-                });
+        dropdown.querySelectorAll('.paradigm-option').forEach(el => {
+            el.addEventListener('click', () => selectParadigm(el.dataset.id));
+            el.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectParadigm(el.dataset.id); }
             });
-        }
-
-        // ── Apply paradigm to UI ─────────────────────────────────────────────
-        function applyParadigm(id) {
-            const p = PARADIGMS.find(x => x.id === id) || PARADIGMS[0];
-            // Button
-            icon.textContent  = p.icon;
-            label.textContent = p.name;
-            btn.title         = `Clinical paradigm: ${p.name}`;
-            // CSS variables → propagates to .tab-active and any other themed element
-            document.documentElement.style.setProperty('--accent-color',       p.color);
-            document.documentElement.style.setProperty('--accent-color-light', p.colorLight);
-        }
-
-        // ── Select handler ───────────────────────────────────────────────────
-        function selectParadigm(id) {
-            activeId = id;
-            localStorage.setItem(STORAGE_KEY, id);
-            applyParadigm(id);
-            buildOptions();    // re-render to update active/checkmark state
-            closeDropdown();
-
-            // Dispatch a custom event so future components (data sources, features)
-            // can react without polling localStorage
-            document.dispatchEvent(new CustomEvent('paradigmChanged', { detail: { id } }));
-        }
-
-        // ── Toggle helpers ────────────────────────────────────────────────────
-        function openDropdown() {
-            isOpen = true;
-            dropdown.classList.add('open');
-            arrow.classList.add('open');
-            btn.setAttribute('aria-expanded', 'true');
-        }
-
-        function closeDropdown() {
-            isOpen = false;
-            dropdown.classList.remove('open');
-            arrow.classList.remove('open');
-            btn.setAttribute('aria-expanded', 'false');
-        }
-
-        // ── Event listeners ───────────────────────────────────────────────────
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            isOpen ? closeDropdown() : openDropdown();
         });
+    }
 
-        // Close when clicking outside the wrapper
-        document.addEventListener('click', e => {
-            if (isOpen && !wrapper.contains(e.target)) closeDropdown();
-        });
+    function applyParadigm(id) {
+        const p = PARADIGMS.find(x => x.id === id) || PARADIGMS[0];
+        icon.textContent  = p.icon;
+        label.textContent = p.name;
+        btn.title         = `Clinical paradigm: ${p.name}`;
+        document.documentElement.style.setProperty('--accent-color',       p.color);
+        document.documentElement.style.setProperty('--accent-color-light', p.colorLight);
+    }
 
-        // Close on Escape
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && isOpen) closeDropdown();
-        });
-
-        // ── Init ──────────────────────────────────────────────────────────────
+    function selectParadigm(id) {
+        activeId = id;
+        localStorage.setItem(STORAGE_KEY, id);
+        applyParadigm(id);
         buildOptions();
-        applyParadigm(activeId);
-    })();
-    </script>
+        closeDropdown();
+        document.dispatchEvent(new CustomEvent('paradigmChanged', { detail: { id } }));
+    }
 
-</body>
-</html>
+    function openDropdown()  { isOpen = true;  dropdown.classList.add('open');    arrow.classList.add('open');    btn.setAttribute('aria-expanded', 'true');  }
+    function closeDropdown() { isOpen = false; dropdown.classList.remove('open'); arrow.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+
+    btn.addEventListener('click', e => { e.stopPropagation(); isOpen ? closeDropdown() : openDropdown(); });
+    document.addEventListener('click', e => { if (isOpen && !wrapper.contains(e.target)) closeDropdown(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) closeDropdown(); });
+
+    buildOptions();
+    applyParadigm(activeId);
+})();
+</script>
+{% endblock %}

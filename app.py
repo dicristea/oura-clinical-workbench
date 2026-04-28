@@ -6,8 +6,11 @@ Exact mockup implementation
 from flask import Flask, render_template, jsonify, request
 import pandas as pd
 from datetime import datetime, timedelta
+import json
 import random
+import re
 import os
+import uuid
 
 app = Flask(__name__)
 
@@ -244,24 +247,163 @@ def format_last_sync(dt):
         return f"{delta.seconds // 60} minutes ago"
 
 
+def _compute_cohort_stats(patients: list) -> dict:
+    """Aggregate cohort-level statistics for the research dashboard."""
+    by_risk: dict = {'high': 0, 'medium': 0, 'low': 0, 'unknown': 0}
+    by_source: dict = {}
+    condition_counts: dict = {}
+
+    for p in patients:
+        risk = (p.get('risk_level') or '').strip().lower()
+        by_risk[risk if risk in by_risk else 'unknown'] += 1
+
+        src = p.get('data_source', 'oura')
+        by_source[src] = by_source.get(src, 0) + 1
+
+        for cond in (p.get('conditions') or '').split(','):
+            cond = cond.strip()
+            if cond and cond.lower() != 'none':
+                condition_counts[cond] = condition_counts.get(cond, 0) + 1
+
+    total = len(patients)
+    return {
+        'total': total,
+        'by_risk': by_risk,
+        'by_source': by_source,
+        'conditions': sorted(condition_counts.items(), key=lambda x: -x[1])[:8],
+        'active': sum(1 for p in patients if p.get('status') == 'active'),
+    }
+
+
+def _chat_respond(message: str, context: dict, history: list) -> tuple:
+    """Rule-based research assistant — swap body for LLM call in Phase 2."""
+    msg = message.lower().strip()
+    patient_id = context.get('patient_id', '')
+
+    all_patients = load_patient_data()
+    patient = next((p for p in all_patients if p['id'] == patient_id), None) if patient_id else None
+    stats = _compute_cohort_stats(all_patients)
+
+    def pct(n):
+        return round(100 * n / max(stats['total'], 1))
+
+    # ── Cohort size / overview ───────────────────────────────────────────────
+    if any(w in msg for w in ['how many', 'total patients', 'cohort size', 'n=', 'participants', 'enrolled']):
+        br = stats['by_risk']
+        src = ', '.join(f"{v} {k}" for k, v in stats['by_source'].items())
+        resp = (f"The cohort has **{stats['total']} participants** ({src}). "
+                f"{br['high']} ({pct(br['high'])}%) are high risk, "
+                f"{br['medium']} ({pct(br['medium'])}%) medium, "
+                f"{br['low']} ({pct(br['low'])}%) low.")
+        return resp, ['Show risk breakdown', 'What conditions are most common?', 'Compare data sources']
+
+    # ── Risk breakdown ───────────────────────────────────────────────────────
+    if any(w in msg for w in ['risk breakdown', 'risk distribution', 'risk split', 'risk level']):
+        br = stats['by_risk']
+        resp = (f"Risk distribution across **{stats['total']} participants**: "
+                f"**{br['high']} high** ({pct(br['high'])}%), "
+                f"**{br['medium']} medium** ({pct(br['medium'])}%), "
+                f"**{br['low']} low** ({pct(br['low'])}%). "
+                f"High risk is flagged by glucose > 200 mg/dL, HbA1c > 9%, or systolic BP > 160 mmHg.")
+        return resp, ['What drives high risk?', 'Show high-risk patients', 'What is HbA1c?']
+
+    # ── Conditions ───────────────────────────────────────────────────────────
+    if any(w in msg for w in ['condition', 'diagnosis', 'diagnoses', 'disease', 'prevalent']):
+        if stats['conditions']:
+            top = ', '.join(f"{n} with {c}" for c, n in stats['conditions'][:5])
+            resp = f"Most prevalent conditions in the cohort: {top}."
+        else:
+            resp = "Condition data is sourced from Synthea FHIR Condition resources and Oura patient metadata."
+        return resp, ['What is the risk for diabetes patients?', 'What is hepatic encephalopathy?']
+
+    # ── Data sources ─────────────────────────────────────────────────────────
+    if any(w in msg for w in ['data source', 'synthea', 'oura', 'fhir', 'wearable', 'compare source']):
+        resp = ("This workbench fuses two data layers: **Synthea FHIR** (synthetic EHR — metabolic labs, "
+                "diagnoses, clinical vitals) and **Oura Ring** (wearable — sleep architecture, HRV, SpO2, activity). "
+                "Synthea is the clinical ground truth; Oura provides continuous longitudinal signals.")
+        return resp, ['What features does Synthea provide?', 'What does Oura measure?', 'How many from each source?']
+
+    # ── Current patient (context-aware) ─────────────────────────────────────
+    if patient and any(w in msg for w in ['this patient', 'participant', 'their risk', 'vitals', 'profile']):
+        risk = patient.get('risk_level', 'unknown')
+        conds = patient.get('conditions', 'None')
+        src = patient.get('data_source', 'unknown')
+        resp = (f"**{patient_id}** — {risk} risk · {src} data source. "
+                f"Conditions: {conds}. Last sync: {patient.get('last_sync', 'unknown')}.")
+        return resp, ['What are their key risk factors?', 'What is HbA1c?', 'View data explorer']
+
+    # ── Clinical definitions ─────────────────────────────────────────────────
+    if 'hba1c' in msg or 'hemoglobin a1c' in msg or 'a1c' in msg:
+        resp = ("**HbA1c** reflects average blood glucose over 2–3 months. "
+                "Normal < 5.7% · Pre-diabetes 5.7–6.4% · Diabetes ≥ 6.5%. "
+                "Values > 9% indicate poor glycaemic control and drive high-risk classification here.")
+        return resp, ['What is blood glucose?', 'How is risk calculated?']
+
+    if any(w in msg for w in ['glucose', 'blood sugar', 'blood glucose']):
+        resp = ("**Blood glucose** (mg/dL): fasting normal 70–99 · pre-diabetes 100–125 · diabetes ≥ 126. "
+                "In this cohort glucose > 200 mg/dL triggers a high-risk flag.")
+        return resp, ['What is HbA1c?', 'Show metabolic trends']
+
+    if any(w in msg for w in ['hrv', 'heart rate variability', 'rmssd']):
+        resp = ("**HRV (Heart Rate Variability)** — milliseconds between heartbeats. Higher HRV = better "
+                "autonomic function. In HE research, declining HRV during sleep is an early marker of "
+                "covert cognitive impairment, preceding clinical detection by weeks.")
+        return resp, ['What is hepatic encephalopathy?', 'What is REM sleep?']
+
+    if any(w in msg for w in ['rem', 'deep sleep', 'sleep architecture', 'waso', 'sleep stage']):
+        resp = ("**Sleep architecture** spans REM, deep (slow-wave), and light stages. "
+                "Reduced REM % and elevated WASO (Wake After Sleep Onset) are the primary wearable biomarkers "
+                "for covert hepatic encephalopathy in this study — they precede measurable ammonia elevation.")
+        return resp, ['What is hepatic encephalopathy?', 'What is HRV?', 'How is sleep scored?']
+
+    if any(w in msg for w in ['hepatic encephalopathy', 'liver', 'cirrhosis', 'meld', 'ammonia', 'he ']):
+        resp = ("**Hepatic encephalopathy (HE)** — cognitive dysfunction from liver failure to clear toxins. "
+                "Covert HE affects ~30% of cirrhosis patients and is routinely missed. "
+                "This study tests whether Oura wearable signals (REM %, HRV, circadian rhythm) can detect "
+                "it earlier than pen-and-paper cognitive tests. MELD-Na score tracks disease severity.")
+        return resp, ['What biomarkers predict HE?', 'What is MELD?', 'Show HRV data']
+
+    if any(w in msg for w in ['spo2', 'oxygen', 'saturation']):
+        resp = ("**SpO2** (blood oxygen saturation) is measured nightly by the Oura ring. "
+                "Normal ≥ 95%. Nocturnal desaturation can indicate sleep apnea — a key confounder "
+                "in HE research that must be controlled for in model training.")
+        return resp, ['What is WASO?', 'What confounders matter?']
+
+    if any(w in msg for w in ['model', 'xgboost', 'random forest', 'lstm', 'prediction', 'auc', 'shap', 'feature importance']):
+        resp = ("The Model Lab supports **XGBoost**, **Random Forest**, and **LSTM** classifiers, "
+                "evaluated by AUC-ROC, precision, recall, and F1. SHAP values explain feature contributions. "
+                "Best demo result: XGBoost AUC 0.91 on 5 sleep + HRV features.")
+        return resp, ['What features matter most?', 'How does SHAP work?', 'Run an experiment']
+
+    if any(w in msg for w in ['what can you', 'help', 'capabilities', 'what do you know']):
+        resp = ("I'm your **Research Assistant**. I can help with:\n"
+                "- Cohort statistics (size, risk, conditions, sources)\n"
+                "- Clinical definitions (HbA1c, HRV, REM, WASO, MELD, SpO2)\n"
+                "- Study background (hepatic encephalopathy, design, goals)\n"
+                "- Model interpretation (SHAP, AUC, feature importance)\n"
+                "- Patient-specific context when you're viewing a participant profile")
+        return resp, ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']
+
+    if any(w in msg for w in ['study', 'research', 'about this', 'purpose', 'goal', 'what is this']):
+        resp = ("This workbench supports a **Cornell/Columbia clinical research study** — "
+                "can Oura Ring wearable biomarkers (sleep architecture, HRV, circadian rhythm) "
+                "detect covert hepatic encephalopathy earlier than current clinical methods? "
+                "~140 cirrhosis patients, 6+ years of data. Synthea FHIR provides a parallel "
+                "synthetic metabolic cohort for algorithm development.")
+        return resp, ['What is hepatic encephalopathy?', 'How many patients?', 'What models are used?']
+
+    # ── Fallback ─────────────────────────────────────────────────────────────
+    resp = ("I can help you explore the cohort, understand clinical biomarkers, or interpret model results. "
+            "Try asking about the cohort size, specific biomarkers (HbA1c, HRV, REM sleep), "
+            "the study background, or a specific participant if you're viewing their profile.")
+    return resp, ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']
+
+
 @app.route('/')
 def dashboard():
     patients = load_patient_data()
-    
-    # Calculate counts
-    all_count = len(patients)
-    generating_count = len([p for p in patients if p['has_oura'] or p['has_ehr']])
-    overlap_count = len([p for p in patients if p['has_oura'] and p['has_ehr']])
-    complete_count = len([p for p in patients if p['status'] == 'complete'])
-    follow_up_count = len([p for p in patients if p['status'] in ['follow-up', 'outreach']])
-    
-    return render_template('dashboard.html',
-                          patients=patients,
-                          all_count=all_count,
-                          generating_count=generating_count,
-                          overlap_count=overlap_count,
-                          complete_count=complete_count,
-                          follow_up_count=follow_up_count)
+    cohort_stats = _compute_cohort_stats(patients)
+    return render_template('dashboard.html', patients=patients, cohort_stats=cohort_stats)
 
 
 @app.route('/api/patients')
@@ -371,6 +513,179 @@ def api_run_experiment():
     })
 
 
+@app.route('/api/generate-patient', methods=['POST'])
+def api_generate_patient():
+    """Generate a new synthetic Synthea patient, save a FHIR bundle, return patient dict."""
+    synthea_dir = 'demo_data/demo_synthea'
+    os.makedirs(synthea_dir, exist_ok=True)
+
+    # Next available PT-3xxx ID
+    existing_nums = []
+    for fname in os.listdir(synthea_dir):
+        m = re.match(r'^PT-3(\d+)\.json$', fname)
+        if m:
+            existing_nums.append(int(m.group(1)))
+    next_num = max(existing_nums, default=5) + 1
+    patient_id = f'PT-3{next_num:03d}'
+
+    risk_level = random.choices(['high', 'medium', 'low'], weights=[0.3, 0.4, 0.3])[0]
+
+    try:
+        from data.synthea_adapter import SyntheaAdapter
+        pts = SyntheaAdapter().load_demo_data(patient_id, risk_level)
+    except Exception as e:
+        return jsonify({'error': f'Failed to generate patient data: {e}'}), 500
+
+    ts = pts.time_series
+    sf = pts.static_features
+
+    # ── Build minimal FHIR R4 Bundle ─────────────────────────────────────────
+    fhir_id    = str(uuid.uuid5(uuid.NAMESPACE_DNS, patient_id))
+    birth_year = datetime.now().year - sf.get('age', 50)
+    gender     = 'male' if sf.get('sex') == 'M' else 'female'
+
+    def _loinc(code, display):
+        return {'coding': [{'system': 'http://loinc.org', 'code': code, 'display': display}],
+                'text': display}
+
+    def _obs(pat_ref, code, display, value, unit, unit_code, date_str):
+        return {'resourceType': 'Observation', 'status': 'final',
+                'code': _loinc(code, display),
+                'subject': {'reference': f'urn:uuid:{pat_ref}'},
+                'effectiveDateTime': date_str,
+                'valueQuantity': {'value': value, 'unit': unit,
+                                  'system': 'http://unitsofmeasure.org', 'code': unit_code}}
+
+    def _bp_obs(pat_ref, sbp, dbp, date_str):
+        return {'resourceType': 'Observation', 'status': 'final',
+                'code': _loinc('55284-4', 'Blood pressure systolic and diastolic'),
+                'subject': {'reference': f'urn:uuid:{pat_ref}'},
+                'effectiveDateTime': date_str,
+                'component': [
+                    {'code': _loinc('8480-6', 'Systolic blood pressure'),
+                     'valueQuantity': {'value': sbp, 'unit': 'mmHg',
+                                       'system': 'http://unitsofmeasure.org', 'code': 'mm[Hg]'}},
+                    {'code': _loinc('8462-4', 'Diastolic blood pressure'),
+                     'valueQuantity': {'value': dbp, 'unit': 'mmHg',
+                                       'system': 'http://unitsofmeasure.org', 'code': 'mm[Hg]'}},
+                ]}
+
+    def _cond(pat_ref, snomed_code, display):
+        return {'resourceType': 'Condition',
+                'clinicalStatus': {'coding': [{'system': 'http://terminology.hl7.org/CodeSystem/condition-clinical',
+                                               'code': 'active'}]},
+                'code': {'coding': [{'system': 'http://snomed.info/sct',
+                                     'code': snomed_code, 'display': display}], 'text': display},
+                'subject': {'reference': f'urn:uuid:{pat_ref}'}}
+
+    _CONDITIONS_BY_RISK = {
+        'high':   [('44054006', 'Diabetes mellitus type 2'), ('38341003', 'Hypertension')],
+        'medium': [('38341003', 'Hypertension')],
+        'low':    [],
+    }
+    _OBS_MAP = [
+        ('8867-4',  'Heart rate',        'heart_rate',             'bpm',    '/min'),
+        ('9279-1',  'Respiratory rate',  'respiratory_rate',       'br/min', '/min'),
+        ('8310-5',  'Body temperature',  'body_temperature',       '°C',     'Cel'),
+        ('29463-7', 'Body weight',       'body_weight_kg',         'kg',     'kg'),
+        ('39156-5', 'Body mass index',   'bmi',                    'kg/m2',  'kg/m2'),
+        ('2339-0',  'Glucose',           'glucose_mgdl',           'mg/dL',  'mg/dL'),
+        ('4548-4',  'Hemoglobin A1c',    'hba1c_pct',              '%',      '%'),
+        ('2093-3',  'Total cholesterol', 'total_cholesterol_mgdl', 'mg/dL',  'mg/dL'),
+        ('18262-6', 'LDL cholesterol',   'ldl_cholesterol_mgdl',   'mg/dL',  'mg/dL'),
+    ]
+
+    entries = [{'fullUrl': f'urn:uuid:{fhir_id}', 'resource': {
+        'resourceType': 'Patient', 'id': fhir_id,
+        'name': [{'use': 'official', 'family': f'Demo-{patient_id}',
+                  'given': [risk_level.capitalize()]}],
+        'gender': gender,
+        'birthDate': f'{birth_year}-06-15',
+    }}]
+
+    for obs_date, row in ts.iterrows():
+        date_str = pd.Timestamp(obs_date).strftime('%Y-%m-%dT00:00:00+00:00')
+        entries.append({'resource': _bp_obs(
+            fhir_id,
+            round(float(row['systolic_bp']), 2),
+            round(float(row['diastolic_bp']), 2),
+            date_str,
+        )})
+        for loinc, display, feat, unit, unit_code in _OBS_MAP:
+            if feat in row and not (isinstance(row[feat], float) and pd.isna(row[feat])):
+                entries.append({'resource': _obs(
+                    fhir_id, loinc, display,
+                    round(float(row[feat]), 2), unit, unit_code, date_str,
+                )})
+
+    for snomed, display in _CONDITIONS_BY_RISK.get(risk_level, []):
+        entries.append({'resource': _cond(fhir_id, snomed, display)})
+
+    bundle = {'resourceType': 'Bundle', 'type': 'collection', 'entry': entries}
+
+    out_path = os.path.join(synthea_dir, f'{patient_id}.json')
+    try:
+        with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(bundle, f, indent=2)
+    except Exception as e:
+        return jsonify({'error': f'Failed to save FHIR bundle: {e}'}), 500
+
+    # ── Build response patient dict (mirrors load_synthea_patients logic) ────
+    last_date     = ts.index.max() if not ts.empty else None
+    last_dt       = last_date.to_pydatetime().replace(tzinfo=None) if last_date else None
+    last_sync_str = format_last_sync(last_dt) if last_dt else 'Never'
+    days_since    = (datetime.now() - last_dt).days if last_dt else 999
+
+    if days_since <= 4:
+        status = 'active'
+    elif days_since <= 30:
+        status = 'follow-up'
+    else:
+        status = 'outreach'
+
+    _risk_map = {
+        'high':   ('alert', 'Risk Signal Detected'),
+        'medium': ('warn',  'Borderline Range'),
+        'low':    ('ok',    'Within Normal Range'),
+    }
+    model_status_level, model_status_label = _risk_map.get(risk_level, ('pending', 'Insufficient Data'))
+
+    condition_str = ', '.join(
+        k.replace('_', ' ').title() for k, v in sf.items() if isinstance(v, bool) and v
+    ) or 'None'
+
+    return jsonify({
+        'patient': {
+            'id':                 patient_id,
+            'name':               sf.get('name', patient_id),
+            'risk_level':         risk_level,
+            'conditions':         condition_str,
+            'status':             status,
+            'last_sync':          last_sync_str,
+            'model_status_level': model_status_level,
+            'model_status_label': model_status_label,
+            'data_source':        'synthea',
+        },
+        'message': f'Patient {patient_id} generated ({risk_level} risk).',
+    })
+
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    """Research assistant chatbot endpoint."""
+    body = request.get_json(silent=True) or {}
+    message = str(body.get('message', '')).strip()
+    context = body.get('context', {})
+    history = body.get('history', [])
+    if not message:
+        return jsonify({'error': 'message is required'}), 400
+    try:
+        response, suggestions = _chat_respond(message, context, history)
+        return jsonify({'response': response, 'suggestions': suggestions})
+    except Exception:
+        return jsonify({'response': 'Sorry, I encountered an error. Please try again.', 'suggestions': []}), 200
+
+
 @app.route('/patient/<patient_id>')
 def patient_detail(patient_id):
     """Show detailed patient metrics view."""
@@ -476,7 +791,6 @@ def patient_detail(patient_id):
                 'data_points':       patient.get('outpatient', 0),
                 'data_source_label': 'Oura Ring V2 + EHR Flowsheets',
                 'last_encounter':    'Dec 01, 2024',
-                'study_note':        'Cornell/Columbia Hepatic Encephalopathy Study',
             }
         except Exception as e:
             print(f"[patient_detail] Oura clinical history error for {patient_id}: {e}")
@@ -542,7 +856,6 @@ def patient_detail(patient_id):
                 'data_points':     pts.metadata.get('data_points_count', len(ts)),
                 'data_source_label': pts.metadata.get('data_source_label', 'Synthea FHIR'),
                 'last_encounter':  ts.index[-1].strftime('%b %d, %Y') if not ts.empty else None,
-                'study_note':      'Synthea FHIR — Metabolic Risk Demo Cohort',
             }
         except Exception as e:
             print(f"[patient_detail] Synthea clinical history error for {patient_id}: {e}")

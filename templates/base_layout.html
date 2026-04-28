@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Research Workbench{% endblock %} — JupyterHealth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #F59E0B; --accent-light: #FEF3C7; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc; color: #1e293b; line-height: 1.5;
+        }
+        svg { flex-shrink: 0; }
+
+        /* ── Chat toggle button (injected into each nav) ───────────────────── */
+        .chat-toggle {
+            position: relative; width: 36px; height: 36px;
+            border-radius: 8px; border: 1.5px solid #e2e8f0;
+            background: #fff; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            color: #64748b; transition: all 0.15s; flex-shrink: 0;
+        }
+        .chat-toggle:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .chat-toggle.active { background: #eff6ff; border-color: #3b82f6; color: #3b82f6; }
+
+        /* ── Chat panel ────────────────────────────────────────────────────── */
+        .chat-panel {
+            position: fixed; top: 64px; right: 0; bottom: 0; width: 380px;
+            background: #fff; border-left: 1px solid #e2e8f0;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+            z-index: 300; display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+        .chat-panel.open { transform: translateX(0); }
+
+        .chat-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; border-bottom: 1px solid #f1f5f9;
+            background: #fff; flex-shrink: 0;
+        }
+        .chat-panel-header-left {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 14px; font-weight: 600; color: #1e293b;
+        }
+        .chat-panel-header-left svg { color: #3b82f6; }
+        .chat-close-btn {
+            width: 28px; height: 28px; border: none; background: transparent;
+            border-radius: 6px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; color: #64748b;
+            transition: background 0.15s, color 0.15s;
+        }
+        .chat-close-btn:hover { background: #f1f5f9; color: #334155; }
+
+        /* ── Conversation tabs ─────────────────────────────────────────────── */
+        .chat-tabs-bar {
+            display: flex; align-items: center; gap: 2px;
+            padding: 8px 12px 0; border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc; overflow-x: auto; flex-shrink: 0;
+            scrollbar-width: none;
+        }
+        .chat-tabs-bar::-webkit-scrollbar { display: none; }
+        .chat-tab {
+            display: flex; align-items: center; gap: 5px;
+            padding: 6px 10px; border-radius: 6px 6px 0 0;
+            font-size: 12px; font-weight: 500; color: #64748b;
+            cursor: pointer; background: transparent;
+            border: 1px solid transparent; border-bottom: none;
+            white-space: nowrap; transition: background 0.15s, color 0.15s;
+            user-select: none; flex-shrink: 0;
+        }
+        .chat-tab:hover:not(.active) { background: #f1f5f9; color: #334155; }
+        .chat-tab.active { background: #fff; color: #1e293b; font-weight: 600; border-color: #e2e8f0; }
+        .chat-tab-close-x {
+            border: none; background: transparent; font-size: 13px;
+            line-height: 1; cursor: pointer; color: #94a3b8;
+            padding: 0 1px; transition: color 0.15s;
+        }
+        .chat-tab-close-x:hover { color: #ef4444; }
+        .chat-add-tab-btn {
+            padding: 4px 9px; border: none; background: transparent;
+            font-size: 18px; font-weight: 300; cursor: pointer; color: #94a3b8;
+            border-radius: 6px; transition: background 0.15s, color 0.15s;
+            line-height: 1; flex-shrink: 0;
+        }
+        .chat-add-tab-btn:hover { background: #f1f5f9; color: #3b82f6; }
+
+        /* ── Messages ──────────────────────────────────────────────────────── */
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .chat-msg { display: flex; flex-direction: column; max-width: 90%; }
+        .chat-msg-user { align-self: flex-end; align-items: flex-end; }
+        .chat-msg-bot  { align-self: flex-start; align-items: flex-start; }
+        .chat-bubble {
+            padding: 10px 13px; border-radius: 12px;
+            font-size: 13px; line-height: 1.6; word-break: break-word;
+        }
+        .chat-msg-user .chat-bubble {
+            background: #3b82f6; color: #fff; border-bottom-right-radius: 4px;
+        }
+        .chat-msg-bot .chat-bubble {
+            background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Typing indicator */
+        .chat-typing { display: flex; align-items: center; gap: 5px; padding: 12px 14px; }
+        .chat-typing span {
+            width: 7px; height: 7px; background: #94a3b8; border-radius: 50%;
+            animation: chatBounce 1.2s infinite;
+        }
+        .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes chatBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* Suggestion chips */
+        .chat-suggestions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .chat-sugg {
+            padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 9999px;
+            background: #fff; font-size: 11px; font-family: inherit;
+            color: #475569; cursor: pointer; white-space: nowrap;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .chat-sugg:hover { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+
+        /* ── Input row ─────────────────────────────────────────────────────── */
+        .chat-input-row {
+            display: flex; align-items: flex-end; gap: 8px;
+            padding: 12px 14px; border-top: 1px solid #f1f5f9;
+            background: #fff; flex-shrink: 0;
+        }
+        .chat-input-row textarea {
+            flex: 1; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 8px 11px; font-size: 13px; font-family: inherit;
+            resize: none; outline: none; color: #1e293b; background: #f8fafc;
+            max-height: 110px; line-height: 1.5;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .chat-input-row textarea:focus {
+            border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+            background: #fff;
+        }
+        .chat-input-row textarea::placeholder { color: #94a3b8; }
+        .chat-send-btn {
+            width: 36px; height: 36px; border: none; border-radius: 8px;
+            background: #3b82f6; color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s; flex-shrink: 0;
+        }
+        .chat-send-btn:hover { background: #2563eb; }
+        .chat-send-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+{% block topnav %}{% endblock %}
+
+{% block main %}{% endblock %}
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     RESEARCH ASSISTANT CHATBOT PANEL
+     ═══════════════════════════════════════════════════════════════════════ -->
+<aside class="chat-panel" id="chatPanel" aria-label="Research Assistant">
+
+    <div class="chat-panel-header">
+        <div class="chat-panel-header-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10a10 10 0 0 1-10-10C2 6.48 6.48 2 12 2z"/>
+                <path d="M12 8v4l3 3"/>
+            </svg>
+            Research Assistant
+        </div>
+        <button class="chat-close-btn" id="chatCloseBtn" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="chat-tabs-bar" id="chatTabsBar">
+        <button class="chat-add-tab-btn" id="chatAddTabBtn" title="New conversation">+</button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages" role="log" aria-live="polite"></div>
+
+    <div class="chat-input-row">
+        <textarea id="chatInput" rows="1"
+                  placeholder="Ask about the cohort, biomarkers, or a participant…"
+                  maxlength="600" aria-label="Chat input"></textarea>
+        <button class="chat-send-btn" id="chatSendBtn" aria-label="Send">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+        </button>
+    </div>
+</aside>
+
+{% block scripts %}{% endblock %}
+
+<script>
+(function () {
+    'use strict';
+
+    /* ── State ──────────────────────────────────────────────────────────── */
+    const convs = [];   // { id, name, messages: [{role, content, suggestions}] }
+    let activeId = null;
+    let nextId   = 1;
+    let isOpen   = false;
+
+    /* ── DOM ────────────────────────────────────────────────────────────── */
+    const panel    = document.getElementById('chatPanel');
+    const closeBtn = document.getElementById('chatCloseBtn');
+    const tabsBar  = document.getElementById('chatTabsBar');
+    const addTabBtn= document.getElementById('chatAddTabBtn');
+    const msgsEl   = document.getElementById('chatMessages');
+    const inputEl  = document.getElementById('chatInput');
+    const sendBtn  = document.getElementById('chatSendBtn');
+    const toggleBtn= document.getElementById('chatToggle');  // in each nav
+
+    /* ── Context from URL ───────────────────────────────────────────────── */
+    function getContext() {
+        const p = window.location.pathname;
+        const m = p.match(/^\/patient\/([^/]+)(?:\/([^/]+))?/);
+        if (m) return { page: m[2] || 'overview', patient_id: m[1] };
+        return { page: 'dashboard', patient_id: null };
+    }
+
+    /* ── Markdown → HTML ────────────────────────────────────────────────── */
+    function md(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n- /g, '<br>• ')
+            .replace(/\n/g, '<br>');
+    }
+
+    /* ── Render tabs ────────────────────────────────────────────────────── */
+    function renderTabs() {
+        tabsBar.querySelectorAll('.chat-tab').forEach(el => el.remove());
+        convs.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'chat-tab' + (c.id === activeId ? ' active' : '');
+            div.dataset.id = c.id;
+            div.innerHTML =
+                `<span>${c.name}</span>` +
+                (convs.length > 1
+                    ? `<button class="chat-tab-close-x" data-id="${c.id}" title="Close">×</button>`
+                    : '');
+            div.addEventListener('click', e => {
+                if (!e.target.classList.contains('chat-tab-close-x')) switchConv(c.id);
+            });
+            const x = div.querySelector('.chat-tab-close-x');
+            if (x) x.addEventListener('click', e => { e.stopPropagation(); removeConv(c.id); });
+            tabsBar.insertBefore(div, addTabBtn);
+        });
+    }
+
+    /* ── Render messages for active conversation ────────────────────────── */
+    function renderMsgs() {
+        const conv = convs.find(c => c.id === activeId);
+        if (!conv) return;
+        msgsEl.innerHTML = conv.messages.map(msg => {
+            const isUser = msg.role === 'user';
+            const suggs  = (!isUser && msg.suggestions && msg.suggestions.length)
+                ? `<div class="chat-suggestions">${msg.suggestions.map(s =>
+                    `<button class="chat-sugg" onclick="window._chatSugg(${JSON.stringify(s)})">${s}</button>`
+                  ).join('')}</div>`
+                : '';
+            return `<div class="chat-msg chat-msg-${isUser ? 'user' : 'bot'}">
+                        <div class="chat-bubble">${md(msg.content)}</div>${suggs}
+                    </div>`;
+        }).join('');
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    /* ── Conversation management ────────────────────────────────────────── */
+    function newConv(name) {
+        const id = nextId++;
+        convs.push({ id, name: name || `Chat ${id}`, messages: [] });
+        return id;
+    }
+
+    function switchConv(id) {
+        activeId = id;
+        renderTabs();
+        renderMsgs();
+    }
+
+    function removeConv(id) {
+        const idx = convs.findIndex(c => c.id === id);
+        if (idx === -1) return;
+        convs.splice(idx, 1);
+        if (!convs.length) { const nid = newConv('Chat 1'); activeId = nid; }
+        else if (activeId === id) activeId = convs[convs.length - 1].id;
+        renderTabs();
+        renderMsgs();
+    }
+
+    function addMsg(role, content, suggestions) {
+        const conv = convs.find(c => c.id === activeId);
+        if (conv) conv.messages.push({ role, content, suggestions: suggestions || [] });
+        renderMsgs();
+    }
+
+    /* ── Typing indicator ───────────────────────────────────────────────── */
+    function showTyping() {
+        const d = document.createElement('div');
+        d.id = 'chatTyping';
+        d.className = 'chat-msg chat-msg-bot';
+        d.innerHTML = '<div class="chat-bubble chat-typing"><span></span><span></span><span></span></div>';
+        msgsEl.appendChild(d);
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+    function hideTyping() { const el = document.getElementById('chatTyping'); if (el) el.remove(); }
+
+    /* ── Send message ───────────────────────────────────────────────────── */
+    async function send() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+        inputEl.value = '';
+        inputEl.style.height = 'auto';
+        addMsg('user', text);
+        sendBtn.disabled = true;
+        showTyping();
+
+        const conv = convs.find(c => c.id === activeId);
+        const history = (conv?.messages || []).slice(-8).map(m => ({ role: m.role, content: m.content }));
+
+        try {
+            const res  = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, context: getContext(), history }),
+            });
+            const data = await res.json();
+            hideTyping();
+            addMsg('assistant', data.response || 'No response.', data.suggestions || []);
+        } catch (_) {
+            hideTyping();
+            addMsg('assistant', 'Connection error — please try again.', []);
+        } finally {
+            sendBtn.disabled = false;
+            inputEl.focus();
+        }
+    }
+
+    /* ── Open / close ───────────────────────────────────────────────────── */
+    function open()  { isOpen = true;  panel.classList.add('open');    if (toggleBtn) toggleBtn.classList.add('active');    inputEl.focus(); }
+    function close() { isOpen = false; panel.classList.remove('open'); if (toggleBtn) toggleBtn.classList.remove('active'); }
+
+    /* ── Event listeners ────────────────────────────────────────────────── */
+    if (toggleBtn) toggleBtn.addEventListener('click', () => isOpen ? close() : open());
+    closeBtn.addEventListener('click', close);
+    addTabBtn.addEventListener('click', () => {
+        const id = newConv();
+        switchConv(id);
+        const ctx = getContext();
+        addMsg('assistant', 'New conversation started. What would you like to explore?',
+               ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']);
+        open();
+    });
+    sendBtn.addEventListener('click', send);
+    inputEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    inputEl.addEventListener('input', () => {
+        inputEl.style.height = 'auto';
+        inputEl.style.height = Math.min(inputEl.scrollHeight, 110) + 'px';
+    });
+
+    /* ── Global suggestion click handler ────────────────────────────────── */
+    window._chatSugg = function(text) { inputEl.value = text; send(); };
+
+    /* ── Init ───────────────────────────────────────────────────────────── */
+    const firstId = newConv('Chat 1');
+    activeId = firstId;
+    renderTabs();
+
+    const ctx = getContext();
+    const welcome = ctx.patient_id
+        ? `Hello! You're viewing **${ctx.patient_id}**. Ask me about their risk factors, clinical features, or anything about the cohort.`
+        : `Hello! I'm your **Research Assistant**. I can help you explore the cohort, understand clinical biomarkers, or interpret model results.`;
+
+    addMsg('assistant', welcome, ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']);
+})();
+</script>
+</body>
+</html>
