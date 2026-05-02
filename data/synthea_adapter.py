@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,13 @@ import pandas as pd
 
 from data.base import DataSource, PatientTimeSeries
 from data.feature_registry import get_feature_groups_for_source
+
+
+def _stable_seed(*parts: str) -> int:
+    """Return a reproducible integer seed independent of Python hash randomization."""
+    key = ":".join(str(part) for part in parts)
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    return int(digest[:16], 16)
 
 # ---------------------------------------------------------------------------
 # LOINC code → registry feature name
@@ -273,6 +281,7 @@ class SyntheaAdapter:
         self,
         patient_id: str,
         risk_level: str = "medium",
+        seed: int | None = None,
     ) -> PatientTimeSeries:
         """Generate synthetic Synthea-style encounter data for demo/testing.
 
@@ -287,11 +296,13 @@ class SyntheaAdapter:
         Args:
             patient_id: Arbitrary identifier string.
             risk_level: ``"high"``, ``"medium"``, or ``"low"``.
+            seed: Optional dataset-level seed for reproducible generated cohorts.
 
         Returns:
             A PatientTimeSeries with 12 monthly encounter rows.
         """
-        rng = random.Random(hash((patient_id, risk_level)))
+        seed_parts = (str(seed), patient_id, risk_level) if seed is not None else (patient_id, risk_level)
+        rng = random.Random(_stable_seed(*seed_parts))
 
         end_date = datetime(2024, 12, 1)
         dates = [end_date - timedelta(days=30 * i) for i in range(11, -1, -1)]

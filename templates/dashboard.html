@@ -218,6 +218,8 @@
     }
     .src-badge.oura    { background: #eff6ff; color: #1d4ed8; }
     .src-badge.synthea { background: #f0fdf4; color: #166534; }
+    .src-badge.omh_ieee,
+    .src-badge.synthea_omh_ieee { background: #ecfeff; color: #0e7490; }
 
     /* Conditions cell */
     .cond-tags { display: flex; flex-wrap: wrap; gap: 3px; }
@@ -688,7 +690,9 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
                         </td>
                         <td>
                             {% set src = patient.data_source | default('oura') %}
-                            <span class="src-badge {{ src }}">{{ src | capitalize }}</span>
+                            <span class="src-badge {{ src }}">
+                                {{ 'Synthea' if src == 'synthea_omh_ieee' else 'OMH/IEEE' if src == 'omh_ieee' else src | capitalize }}
+                            </span>
                         </td>
                         <td>{{ patient.last_sync | default('—') }}</td>
                         <td class="arrow-col">

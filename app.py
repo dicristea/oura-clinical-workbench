@@ -6,6 +6,7 @@ Exact mockup implementation
 from flask import Flask, render_template, jsonify, request
 import pandas as pd
 from datetime import datetime, timedelta
+from functools import lru_cache
 import json
 import random
 import re
@@ -17,6 +18,7 @@ app = Flask(__name__)
 # Ordered color palette assigned to features by their declaration index.
 STUDY_CONFIG_PATH     = 'demo_data/study_config.json'
 CONDITIONS_DICT_PATH  = 'data/conditions_dict.json'
+STANDARD_WEARABLE_DATASET_DIR = 'demo_data/demo_omh_ieee'
 
 FEATURE_COLORS = [
     '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
@@ -124,6 +126,130 @@ def load_synthea_patients():
     return patients
 
 
+@lru_cache(maxsize=1)
+def _standard_wearable_series_by_patient() -> dict:
+    """Load OMH/IEEE wearable records and cache PatientTimeSeries by patient id."""
+    try:
+        from data.standard_wearable_adapter import StandardWearableAdapter
+    except Exception as e:
+        print(f"[StandardWearable] Could not import adapter: {e}")
+        return {}
+
+    by_patient = {}
+    adapter = StandardWearableAdapter()
+    if not os.path.isdir(STANDARD_WEARABLE_DATASET_DIR):
+        return {}
+    try:
+        for pts in adapter.load_all_from_dir(STANDARD_WEARABLE_DATASET_DIR):
+            by_patient[pts.patient_id] = pts
+    except Exception as e:
+        print(f"[StandardWearable] Could not load {STANDARD_WEARABLE_DATASET_DIR}: {e}")
+    return by_patient
+
+
+def get_standard_wearable_series(patient_id: str):
+    """Return standard OMH/IEEE wearable time series for one patient, if present."""
+    return _standard_wearable_series_by_patient().get(str(patient_id))
+
+
+def load_standard_wearable_patients():
+    """Return dashboard patient dicts backed by OMH/IEEE wearable records."""
+    patients = []
+    for patient_id, pts in _standard_wearable_series_by_patient().items():
+        ts = pts.time_series
+        meta = pts.metadata
+        sf = pts.static_features
+
+        last_date = ts.index.max() if not ts.empty else None
+        last_dt = last_date.to_pydatetime().replace(tzinfo=None) if last_date else None
+        last_sync_str = format_last_sync(last_dt) if last_dt else "Never"
+        days_since = (datetime.now() - last_dt).days if last_dt else 999
+
+        if days_since <= 4:
+            status = "active"
+        elif days_since <= 30:
+            status = "follow-up"
+        else:
+            status = "outreach"
+
+        risk = meta.get('risk_level', '')
+        if risk == 'high':
+            model_status_level = 'alert'
+            model_status_label = 'Sleep Risk Signal'
+        elif risk == 'medium':
+            model_status_level = 'warn'
+            model_status_label = 'Borderline Sleep Range'
+        elif risk == 'low':
+            model_status_level = 'ok'
+            model_status_label = 'Wearable Signals Stable'
+        else:
+            model_status_level = 'pending'
+            model_status_label = 'Insufficient Data'
+
+        conditions = sf.get('conditions') or 'None'
+        patients.append({
+            'id':                  patient_id,
+            'mrn':                 patient_id,
+            'name':                sf.get('name') or patient_id,
+            'inpatient':           0,
+            'outpatient':          len(ts),
+            'last_sync':           last_sync_str,
+            'last_visit':          last_dt.strftime('%b %d, %Y') if last_dt else None,
+            'model_status_level':  model_status_level,
+            'model_status_label':  model_status_label,
+            'has_oura':            True,
+            'has_ehr':             False,
+            'has_synthea':         False,
+            'has_omh_ieee':        True,
+            'data_source':         'omh_ieee',
+            'status':              status,
+            'hospital_start':      None,
+            'hospital_end':        None,
+            'risk_level':          risk,
+            'conditions':          conditions,
+            'sleep_score':         [],
+            'hrv_average':         [],
+            'activity_score':      [],
+        })
+    return patients
+
+
+def merge_standard_wearable_patients(patients: list[dict]) -> list[dict]:
+    """Attach OMH/IEEE wearable availability to matching dashboard patients."""
+    wearable_patients = load_standard_wearable_patients()
+    by_id = {p['id']: p for p in patients}
+
+    for wearable_patient in wearable_patients:
+        patient_id = wearable_patient['id']
+        existing = by_id.get(patient_id)
+        if existing is None:
+            patients.append(wearable_patient)
+            by_id[patient_id] = wearable_patient
+            continue
+
+        existing['has_oura'] = True
+        existing['has_omh_ieee'] = True
+        existing['data_source'] = (
+            'synthea_omh_ieee' if existing.get('has_synthea') else 'omh_ieee'
+        )
+        existing['last_sync'] = wearable_patient.get('last_sync') or existing.get('last_sync')
+        existing['status'] = wearable_patient.get('status') or existing.get('status')
+        existing['outpatient'] = max(
+            int(existing.get('outpatient') or 0),
+            int(wearable_patient.get('outpatient') or 0),
+        )
+        existing['model_status_level'] = wearable_patient.get(
+            'model_status_level',
+            existing.get('model_status_level'),
+        )
+        existing['model_status_label'] = wearable_patient.get(
+            'model_status_label',
+            existing.get('model_status_label'),
+        )
+
+    return patients
+
+
 def load_patient_data():
     """Load and process patient data from Excel file."""
     try:
@@ -219,13 +345,14 @@ def load_patient_data():
                 'activity_score':      activity_score,
             })
         
-        # Append Synthea patients from FHIR bundles
+        # Append Synthea clinical patients, then merge matching OMH/IEEE wearable records.
         patients.extend(load_synthea_patients())
-        return patients
+        return merge_standard_wearable_patients(patients)
     except Exception as e:
         print(f"Error loading data: {e}")
-        # Still try to return Synthea patients even if Excel fails
-        return load_synthea_patients()
+        # Still try to return adapter-backed patients even if Excel fails.
+        patients = load_synthea_patients()
+        return merge_standard_wearable_patients(patients)
 
 
 def format_date(date_val):
@@ -315,9 +442,26 @@ def _compute_cohort_stats(patients: list) -> dict:
 
 
 def _compute_sleep_summaries(patients: list) -> list:
-    """Generate stable per-patient sleep metric summaries for the cohort explorer."""
+    """Compute sleep summaries from OMH/IEEE records when available."""
     summaries = []
     for p in patients:
+        standard_ts = get_standard_wearable_series(p['id'])
+        if standard_ts is not None and not standard_ts.time_series.empty:
+            ts = standard_ts.get_analysis_window(14)
+            tst = ts['total_sleep_time_hours'] if 'total_sleep_time_hours' in ts else ts.get('sleep_duration_hours')
+            summaries.append({
+                'id':             p['id'],
+                'risk':           p.get('risk_level', ''),
+                'avg_tst':        round(float(tst.mean()), 1) if tst is not None else 0,
+                'avg_rem_pct':    round(float(ts['rem_sleep_pct'].mean()), 1) if 'rem_sleep_pct' in ts else 0,
+                'avg_deep_pct':   round(float(ts['deep_sleep_pct'].mean()), 1) if 'deep_sleep_pct' in ts else 0,
+                'avg_efficiency': round(float(ts['sleep_efficiency_pct'].mean()), 1) if 'sleep_efficiency_pct' in ts else 0,
+                'avg_latency':    int(round(float(ts['sleep_latency'].mean()))) if 'sleep_latency' in ts else 0,
+                'avg_waso':       int(round(float(ts['waso_minutes'].mean()))) if 'waso_minutes' in ts else 0,
+                'avg_spo2':       round(float(ts['spo2_pct'].mean()), 1) if 'spo2_pct' in ts else 0,
+            })
+            continue
+
         rng = random.Random(abs(hash(p['id'])) % (2 ** 31))
         avg_tst = round(rng.uniform(5.2, 8.6), 1)
         avg_rem = round(rng.uniform(12, 26), 1)
@@ -912,6 +1056,47 @@ def patient_detail(patient_id):
     patient['sleep_start_data']      = sleep_start_data
     patient['sleep_end_data']        = sleep_end_data
 
+    standard_wearable = get_standard_wearable_series(patient_id)
+    if standard_wearable is not None and not standard_wearable.time_series.empty:
+        ts = standard_wearable.get_analysis_window(14).copy()
+        if not ts.empty:
+            patient['dates'] = [pd.Timestamp(d).strftime("%b %d") for d in ts.index]
+
+            def _values(col: str, default=None, digits: int | None = 1):
+                if col not in ts:
+                    return [default for _ in range(len(ts))]
+                vals = []
+                for value in ts[col].tolist():
+                    if pd.isna(value):
+                        vals.append(default)
+                    elif digits is None:
+                        vals.append(int(round(float(value))))
+                    else:
+                        vals.append(round(float(value), digits))
+                return vals
+
+            patient['heart_rate_data'] = _values('resting_hr', default=0, digits=None)
+            patient['respiratory_data'] = _values('respiratory_rate', default=0, digits=1)
+            patient['sleep_duration_data'] = _values('sleep_duration_hours', default=0, digits=1)
+            patient['steps_data'] = _values('step_count', default=0, digits=None)
+            patient['time_in_bed_data'] = _values('time_in_bed_hours', default=0, digits=1)
+            patient['sleep_latency_data'] = _values('sleep_latency', default=0, digits=None)
+            patient['waso_data'] = _values('waso_minutes', default=0, digits=None)
+            patient['sleep_efficiency_data'] = _values('sleep_efficiency_pct', default=0, digits=1)
+            patient['spo2_data'] = _values('spo2_pct', default=0, digits=1)
+            patient['rem_data'] = _values('rem_sleep_hours', default=0, digits=1)
+            patient['deep_data'] = _values('deep_sleep_hours', default=0, digits=1)
+            patient['light_data'] = _values('light_sleep_hours', default=0, digits=1)
+            patient['awake_data'] = _values('awake_hours', default=0, digits=1)
+            patient['sleep_start_data'] = (
+                ts['sleep_start_label'].fillna('').tolist()
+                if 'sleep_start_label' in ts else ['' for _ in range(len(ts))]
+            )
+            patient['sleep_end_data'] = (
+                ts['sleep_end_label'].fillna('').tolist()
+                if 'sleep_end_label' in ts else ['' for _ in range(len(ts))]
+            )
+
     # ── Clinical history ──────────────────────────────────────────────────
     clinical_history = None
     ds_key = 'synthea' if patient_id.startswith('PT-3') else 'oura'
@@ -975,7 +1160,10 @@ def patient_detail(patient_id):
                     'Ammonia': round(ammonia - _ch_rng.randint(20, 40), 1),
                 },
                 'data_points':       patient.get('outpatient', 0),
-                'data_source_label': 'Oura Ring V2 + EHR Flowsheets',
+                'data_source_label': (
+                    standard_wearable.metadata.get('data_source_label')
+                    if standard_wearable is not None else 'Oura Ring V2 + EHR Flowsheets'
+                ),
                 'last_encounter':    'Dec 01, 2024',
             }
         except Exception as e:
@@ -1167,25 +1355,33 @@ def data_explorer(patient_id):
     if not patient:
         return "Patient not found", 404
 
-    # Detect data source (PT-3xxx → Synthea, all others → Oura)
-    ds_key       = 'synthea' if patient_id.startswith('PT-3') else 'oura'
-    source_label = {'synthea': 'Synthea FHIR', 'oura': 'Oura V2 API'}[ds_key]
+    # Detect data source (PT-3xxx → Synthea, all others → Oura).
+    # If OMH/IEEE wearable records exist, the explorer should show that layer.
+    ds_key = 'synthea' if patient_id.startswith('PT-3') else 'oura'
+    standard_wearable = get_standard_wearable_series(patient_id)
+    explorer_source_key = 'oura' if standard_wearable is not None else ds_key
+    source_label = (
+        standard_wearable.metadata.get('data_source_label', 'OMH/IEEE Wearable Records')
+        if standard_wearable is not None
+        else {'synthea': 'Synthea FHIR', 'oura': 'Oura V2 API'}[ds_key]
+    )
 
     # Load feature registry
     try:
         from data.feature_registry import get_feature_groups_for_source, get_features_for_source
         from data.base import DataSource
-        source_enum    = DataSource.SYNTHEA if ds_key == 'synthea' else DataSource.OURA
+        source_enum    = DataSource.SYNTHEA if explorer_source_key == 'synthea' else DataSource.OURA
         feature_groups = get_feature_groups_for_source(source_enum)
         all_features   = get_features_for_source(source_enum)
     except Exception:
         feature_groups = {}
         all_features   = []
 
-    # For Synthea, load real data from the FHIR bundle; otherwise generate synthetic
+    # For Synthea, load FHIR. For wearable patients, prefer OMH/IEEE records.
     import numpy as np
     synthea_ts = None
-    if ds_key == 'synthea':
+    standard_ts = standard_wearable.time_series if standard_wearable is not None else None
+    if standard_ts is None and ds_key == 'synthea':
         try:
             from data.synthea_adapter import SyntheaAdapter
             fhir_path = f'demo_data/demo_synthea/{patient_id}.json'
@@ -1194,7 +1390,11 @@ def data_explorer(patient_id):
         except Exception as e:
             print(f"[data-explorer] Could not load Synthea FHIR: {e}")
 
-    if synthea_ts is not None and not synthea_ts.empty:
+    if standard_ts is not None and not standard_ts.empty:
+        idx      = standard_ts.index
+        N_DAYS   = len(idx)
+        col_data = {col: standard_ts[col].tolist() for col in standard_ts.columns}
+    elif synthea_ts is not None and not synthea_ts.empty:
         idx      = synthea_ts.index
         N_DAYS   = len(idx)
         col_data = {col: synthea_ts[col].tolist() for col in synthea_ts.columns}

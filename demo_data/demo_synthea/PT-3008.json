@@ -17,7 +17,7 @@
           }
         ],
         "gender": "male",
-        "birthDate": "1988-06-15"
+        "birthDate": "1969-06-15"
       }
     },
     {
@@ -51,7 +51,7 @@
               "text": "Systolic blood pressure"
             },
             "valueQuantity": {
-              "value": 146.9,
+              "value": 145.4,
               "unit": "mmHg",
               "system": "http://unitsofmeasure.org",
               "code": "mm[Hg]"
@@ -69,7 +69,7 @@
               "text": "Diastolic blood pressure"
             },
             "valueQuantity": {
-              "value": 90.2,
+              "value": 85.1,
               "unit": "mmHg",
               "system": "http://unitsofmeasure.org",
               "code": "mm[Hg]"
@@ -82,6 +82,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -97,7 +108,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 64.0,
+          "value": 84.0,
           "unit": "bpm",
           "system": "http://unitsofmeasure.org",
           "code": "/min"
@@ -108,6 +119,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -123,7 +145,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 15.0,
+          "value": 17.0,
           "unit": "br/min",
           "system": "http://unitsofmeasure.org",
           "code": "/min"
@@ -134,6 +156,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -149,7 +182,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 36.7,
+          "value": 37.0,
           "unit": "\u00b0C",
           "system": "http://unitsofmeasure.org",
           "code": "Cel"
@@ -160,6 +193,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -175,7 +219,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 83.2,
+          "value": 90.2,
           "unit": "kg",
           "system": "http://unitsofmeasure.org",
           "code": "kg"
@@ -186,6 +230,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -201,7 +256,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 28.6,
+          "value": 29.3,
           "unit": "kg/m2",
           "system": "http://unitsofmeasure.org",
           "code": "kg/m2"
@@ -212,6 +267,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -227,7 +293,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 140.5,
+          "value": 163.7,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -238,6 +304,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -253,7 +330,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 8.1,
+          "value": 7.3,
           "unit": "%",
           "system": "http://unitsofmeasure.org",
           "code": "%"
@@ -264,6 +341,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -279,7 +367,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 201.0,
+          "value": 202.0,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -290,6 +378,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -305,7 +404,7 @@
         },
         "effectiveDateTime": "2024-01-06T00:00:00+00:00",
         "valueQuantity": {
-          "value": 126.8,
+          "value": 129.5,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -343,2051 +442,7 @@
               "text": "Systolic blood pressure"
             },
             "valueQuantity": {
-              "value": 146.3,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 89.6,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 75.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 16.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 36.8,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 83.4,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.6,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 140.0,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.2,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.1,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.7,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 146.0,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 89.1,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 83.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 14.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 37.1,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 83.7,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.6,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 139.7,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.2,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.2,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.6,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 145.6,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 88.6,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 71.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 15.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 36.8,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 83.9,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.6,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 139.4,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.3,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.3,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.5,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 145.0,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 88.2,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 81.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 16.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 36.6,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 84.2,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.5,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 139.1,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.3,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.3,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.5,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 144.7,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 87.9,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 74.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 18.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 36.6,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 84.5,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.5,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 138.7,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.4,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.4,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.4,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 144.4,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 87.1,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 83.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 14.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 37.2,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 84.7,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.5,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 138.3,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.4,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.5,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.3,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 143.9,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 86.3,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 76.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 18.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 37.1,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 84.9,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.5,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 138.0,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.5,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.5,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.3,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 143.5,
+              "value": 146.1,
               "unit": "mmHg",
               "system": "http://unitsofmeasure.org",
               "code": "mm[Hg]"
@@ -2418,298 +473,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 67.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 17.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 36.6,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 85.1,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.4,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 138.0,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.5,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.5,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.2,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "component": [
+        "category": [
           {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 143.2,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 85.7,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
           }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
+        ],
         "code": {
           "coding": [
             {
@@ -2723,9 +497,9 @@
         "subject": {
           "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
         },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
         "valueQuantity": {
-          "value": 65.0,
+          "value": 73.0,
           "unit": "bpm",
           "system": "http://unitsofmeasure.org",
           "code": "/min"
@@ -2736,298 +510,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "9279-1",
-              "display": "Respiratory rate"
-            }
-          ],
-          "text": "Respiratory rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 17.0,
-          "unit": "br/min",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8310-5",
-              "display": "Body temperature"
-            }
-          ],
-          "text": "Body temperature"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 37.0,
-          "unit": "\u00b0C",
-          "system": "http://unitsofmeasure.org",
-          "code": "Cel"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "29463-7",
-              "display": "Body weight"
-            }
-          ],
-          "text": "Body weight"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 85.3,
-          "unit": "kg",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "39156-5",
-              "display": "Body mass index"
-            }
-          ],
-          "text": "Body mass index"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 28.4,
-          "unit": "kg/m2",
-          "system": "http://unitsofmeasure.org",
-          "code": "kg/m2"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2339-0",
-              "display": "Glucose"
-            }
-          ],
-          "text": "Glucose"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 137.8,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "4548-4",
-              "display": "Hemoglobin A1c"
-            }
-          ],
-          "text": "Hemoglobin A1c"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 8.6,
-          "unit": "%",
-          "system": "http://unitsofmeasure.org",
-          "code": "%"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "2093-3",
-              "display": "Total cholesterol"
-            }
-          ],
-          "text": "Total cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 201.6,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "18262-6",
-              "display": "LDL cholesterol"
-            }
-          ],
-          "text": "LDL cholesterol"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 126.2,
-          "unit": "mg/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "mg/dL"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "55284-4",
-              "display": "Blood pressure systolic and diastolic"
-            }
-          ],
-          "text": "Blood pressure systolic and diastolic"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
-        "component": [
+        "category": [
           {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8480-6",
-                  "display": "Systolic blood pressure"
-                }
-              ],
-              "text": "Systolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 142.7,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
-          },
-          {
-            "code": {
-              "coding": [
-                {
-                  "system": "http://loinc.org",
-                  "code": "8462-4",
-                  "display": "Diastolic blood pressure"
-                }
-              ],
-              "text": "Diastolic blood pressure"
-            },
-            "valueQuantity": {
-              "value": 85.4,
-              "unit": "mmHg",
-              "system": "http://unitsofmeasure.org",
-              "code": "mm[Hg]"
-            }
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
           }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [
-            {
-              "system": "http://loinc.org",
-              "code": "8867-4",
-              "display": "Heart rate"
-            }
-          ],
-          "text": "Heart rate"
-        },
-        "subject": {
-          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
-        },
-        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
-        "valueQuantity": {
-          "value": 62.0,
-          "unit": "bpm",
-          "system": "http://unitsofmeasure.org",
-          "code": "/min"
-        }
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Observation",
-        "status": "final",
+        ],
         "code": {
           "coding": [
             {
@@ -3041,9 +534,9 @@
         "subject": {
           "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
         },
-        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
         "valueQuantity": {
-          "value": 16.0,
+          "value": 14.0,
           "unit": "br/min",
           "system": "http://unitsofmeasure.org",
           "code": "/min"
@@ -3054,6 +547,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3067,7 +571,7 @@
         "subject": {
           "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
         },
-        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
         "valueQuantity": {
           "value": 36.5,
           "unit": "\u00b0C",
@@ -3080,6 +584,3536 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 90.0,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 29.2,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 160.4,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 7.5,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 201.4,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-02-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 128.6,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 147.0,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 86.4,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 72.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 17.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 36.9,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 89.5,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 29.1,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 158.4,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 7.5,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 200.4,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-03-06T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 127.2,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 147.6,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 88.1,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 77.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 17.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 36.4,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 89.2,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.9,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 157.5,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 7.6,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 198.9,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-04-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 125.6,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 147.7,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 88.0,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 65.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 16.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 37.0,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 89.0,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.8,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 154.6,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 7.7,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 198.2,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-05-05T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 123.5,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 148.5,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 89.2,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 86.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 17.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 37.2,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 88.7,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.8,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 152.6,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 7.8,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 197.8,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-06-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 121.8,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 149.1,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 90.1,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 64.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 15.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 37.0,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 88.4,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.7,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 151.7,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 8.0,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 196.7,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-07-04T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 119.2,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 149.5,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 90.5,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 66.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 15.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 36.6,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 88.0,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.6,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 149.2,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 8.0,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 196.5,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-08-03T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 117.9,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 150.4,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 91.2,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 68.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 17.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 36.8,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 87.4,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.5,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 148.1,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 8.1,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 196.1,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-09-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 117.0,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 150.8,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 91.7,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 87.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 14.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 37.2,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ],
+          "text": "Body weight"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 87.0,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ],
+          "text": "Body mass index"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 28.4,
+          "unit": "kg/m2",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2339-0",
+              "display": "Glucose"
+            }
+          ],
+          "text": "Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 143.2,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ],
+          "text": "Hemoglobin A1c"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 8.1,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2093-3",
+              "display": "Total cholesterol"
+            }
+          ],
+          "text": "Total cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 194.9,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18262-6",
+              "display": "LDL cholesterol"
+            }
+          ],
+          "text": "LDL cholesterol"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-10-02T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 116.0,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure systolic and diastolic"
+            }
+          ],
+          "text": "Blood pressure systolic and diastolic"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ],
+              "text": "Systolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 151.6,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ],
+              "text": "Diastolic blood pressure"
+            },
+            "valueQuantity": {
+              "value": 92.7,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ],
+          "text": "Heart rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 78.0,
+          "unit": "bpm",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ],
+          "text": "Respiratory rate"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 13.0,
+          "unit": "br/min",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ],
+          "text": "Body temperature"
+        },
+        "subject": {
+          "reference": "urn:uuid:9ba0e68b-f000-571c-8476-67af50ab274e"
+        },
+        "effectiveDateTime": "2024-11-01T00:00:00+00:00",
+        "valueQuantity": {
+          "value": 37.0,
+          "unit": "\u00b0C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3095,7 +4129,7 @@
         },
         "effectiveDateTime": "2024-11-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 85.5,
+          "value": 86.7,
           "unit": "kg",
           "system": "http://unitsofmeasure.org",
           "code": "kg"
@@ -3106,6 +4140,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3132,6 +4177,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3147,7 +4203,7 @@
         },
         "effectiveDateTime": "2024-11-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 137.4,
+          "value": 141.1,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -3158,6 +4214,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3173,7 +4240,7 @@
         },
         "effectiveDateTime": "2024-11-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 8.6,
+          "value": 8.3,
           "unit": "%",
           "system": "http://unitsofmeasure.org",
           "code": "%"
@@ -3184,6 +4251,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3199,7 +4277,7 @@
         },
         "effectiveDateTime": "2024-11-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 201.6,
+          "value": 193.9,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -3210,6 +4288,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3225,7 +4314,7 @@
         },
         "effectiveDateTime": "2024-11-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 126.2,
+          "value": 115.1,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -3263,7 +4352,7 @@
               "text": "Systolic blood pressure"
             },
             "valueQuantity": {
-              "value": 142.5,
+              "value": 152.1,
               "unit": "mmHg",
               "system": "http://unitsofmeasure.org",
               "code": "mm[Hg]"
@@ -3281,7 +4370,7 @@
               "text": "Diastolic blood pressure"
             },
             "valueQuantity": {
-              "value": 84.9,
+              "value": 93.7,
               "unit": "mmHg",
               "system": "http://unitsofmeasure.org",
               "code": "mm[Hg]"
@@ -3294,6 +4383,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3309,7 +4409,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 86.0,
+          "value": 66.0,
           "unit": "bpm",
           "system": "http://unitsofmeasure.org",
           "code": "/min"
@@ -3320,6 +4420,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3335,7 +4446,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 15.0,
+          "value": 16.0,
           "unit": "br/min",
           "system": "http://unitsofmeasure.org",
           "code": "/min"
@@ -3346,6 +4457,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3361,7 +4483,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 36.7,
+          "value": 36.6,
           "unit": "\u00b0C",
           "system": "http://unitsofmeasure.org",
           "code": "Cel"
@@ -3372,6 +4494,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3387,7 +4520,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 85.5,
+          "value": 86.3,
           "unit": "kg",
           "system": "http://unitsofmeasure.org",
           "code": "kg"
@@ -3398,6 +4531,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3413,7 +4557,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 28.4,
+          "value": 28.2,
           "unit": "kg/m2",
           "system": "http://unitsofmeasure.org",
           "code": "kg/m2"
@@ -3424,6 +4568,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3450,6 +4605,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3465,7 +4631,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 8.6,
+          "value": 8.4,
           "unit": "%",
           "system": "http://unitsofmeasure.org",
           "code": "%"
@@ -3476,6 +4642,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3491,7 +4668,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 201.7,
+          "value": 193.2,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"
@@ -3502,6 +4679,17 @@
       "resource": {
         "resourceType": "Observation",
         "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs",
+                "display": "Vital Signs"
+              }
+            ]
+          }
+        ],
         "code": {
           "coding": [
             {
@@ -3517,7 +4705,7 @@
         },
         "effectiveDateTime": "2024-12-01T00:00:00+00:00",
         "valueQuantity": {
-          "value": 126.1,
+          "value": 113.4,
           "unit": "mg/dL",
           "system": "http://unitsofmeasure.org",
           "code": "mg/dL"

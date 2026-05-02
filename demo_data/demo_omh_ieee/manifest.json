@@ -1,0 +1,119 @@
+{
+  "generated_at": "2026-05-02T23:40:25.659334Z",
+  "generator": {
+    "source_name": "demo-synthea-omh-ieee-generator",
+    "synthea_input": "/Users/yany_henry/Library/Mobile Documents/com~apple~CloudDocs/Yyh./Cornell Tech/courses/INFO 7900/oura-clinical-workbench/demo_data/demo_synthea",
+    "days": 30,
+    "end_date": "2026-04-19",
+    "seed": 1151398118,
+    "patient_limit": null
+  },
+  "patient_count": 8,
+  "counts_by_schema": {
+    "ieee:heart-rate:1.0": 240,
+    "ieee:physical-activity:1.0": 240,
+    "ieee:sleep-episode:1.0": 240,
+    "ieee:time-in-bed:1.0": 240,
+    "omh:heart-rate:2.0": 240,
+    "omh:oxygen-saturation:2.0": 240,
+    "omh:respiratory-rate:2.0": 240,
+    "omh:sleep-episode:1.1": 240,
+    "omh:total-sleep-time:1.0": 240
+  },
+  "patients": [
+    {
+      "patient_id": "PT-3001",
+      "display_name": "High Demo-PT-3001",
+      "gender": "female",
+      "age": 40,
+      "conditions": [
+        "Diabetes mellitus type 2",
+        "Hypertension"
+      ],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3001/records.json"
+    },
+    {
+      "patient_id": "PT-3002",
+      "display_name": "High Demo-PT-3002",
+      "gender": "male",
+      "age": 48,
+      "conditions": [
+        "Diabetes mellitus type 2",
+        "Hypertension"
+      ],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3002/records.json"
+    },
+    {
+      "patient_id": "PT-3003",
+      "display_name": "Medium Demo-PT-3003",
+      "gender": "female",
+      "age": 50,
+      "conditions": [
+        "Hypertension"
+      ],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3003/records.json"
+    },
+    {
+      "patient_id": "PT-3004",
+      "display_name": "Medium Demo-PT-3004",
+      "gender": "male",
+      "age": 40,
+      "conditions": [
+        "Hypertension"
+      ],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3004/records.json"
+    },
+    {
+      "patient_id": "PT-3005",
+      "display_name": "Low Demo-PT-3005",
+      "gender": "male",
+      "age": 47,
+      "conditions": [],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3005/records.json"
+    },
+    {
+      "patient_id": "PT-3006",
+      "display_name": "Medium Demo-PT-3006",
+      "gender": "female",
+      "age": 49,
+      "conditions": [
+        "Hypertension"
+      ],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3006/records.json"
+    },
+    {
+      "patient_id": "PT-3007",
+      "display_name": "Low Demo-PT-3007",
+      "gender": "male",
+      "age": 40,
+      "conditions": [],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3007/records.json"
+    },
+    {
+      "patient_id": "PT-3008",
+      "display_name": "Medium Demo-PT-3008",
+      "gender": "male",
+      "age": 56,
+      "conditions": [
+        "Hypertension"
+      ],
+      "record_count": 270,
+      "warning_count": 0,
+      "output_file": "patients/PT-3008/records.json"
+    }
+  ]
+}
