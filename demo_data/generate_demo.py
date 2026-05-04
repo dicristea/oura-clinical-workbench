@@ -6,21 +6,22 @@ Run from the project root:
 
 Outputs
 -------
-demo_data/demo_oura.xlsx
-    10 patients × 30 days of Oura data in the format that
-    OuraAdapter.load_from_excel() can re-read.
-
 demo_data/demo_synthea/
     One FHIR R4 Bundle JSON per Synthea demo patient.
+
+demo_data/demo_omh_ieee/
+    OMH/IEEE wearable records generated from the Synthea FHIR patient
+    profiles above.
 
 No real patient data is used or required.
 """
 
 from __future__ import annotations
 
+import argparse
 import random
 import sys
-from datetime import datetime
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -31,148 +32,31 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from data.oura_adapter import OuraAdapter          # noqa: E402 (after sys.path)
 from data.synthea_adapter import SyntheaAdapter   # noqa: E402
+from demo_data.omh_ieee_generator.pipeline import generate_dataset  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Output locations
 # ---------------------------------------------------------------------------
 DEMO_DATA_DIR    = PROJECT_ROOT / "demo_data"
 DEMO_SYNTHEA_DIR = DEMO_DATA_DIR / "demo_synthea"
-DEMO_OURA_FILE   = DEMO_DATA_DIR / "demo_oura.xlsx"
+DEMO_OMH_IEEE_DIR = DEMO_DATA_DIR / "demo_omh_ieee"
+DEMO_REFERENCE_DATE = date(2026, 4, 19)
 
 # ---------------------------------------------------------------------------
 # Patient rosters
 # ---------------------------------------------------------------------------
-# (patient_id, risk_level)  — 2 high / 2 medium / 1 low
+# (patient_id, risk_level)  — 2 high / 4 medium / 2 low
 SYNTHEA_PATIENTS: list[tuple[str, str]] = [
     ("PT-3001", "high"),
     ("PT-3002", "high"),
     ("PT-3003", "medium"),
     ("PT-3004", "medium"),
     ("PT-3005", "low"),
+    ("PT-3006", "medium"),
+    ("PT-3007", "low"),
+    ("PT-3008", "medium"),
 ]
-
-# (patient_id, desired_risk_level)
-# Distribution: 3 high / 4 medium / 3 low
-OURA_PATIENTS: list[tuple[str, str]] = [
-    ("PT-1001", "high"),
-    ("PT-1002", "high"),
-    ("PT-1003", "high"),
-    ("PT-1004", "medium"),
-    ("PT-1005", "medium"),
-    ("PT-1006", "medium"),
-    ("PT-1007", "medium"),
-    ("PT-1008", "low"),
-    ("PT-1009", "low"),
-    ("PT-1010", "low"),
-]
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _scale_to_risk_level(
-    ts: pd.DataFrame, target: str, rng: random.Random
-) -> pd.DataFrame:
-    """Rescale HRV and REM columns so the time_series yields the desired risk.
-
-    Thresholds mirror OuraAdapter._compute_risk_level:
-        high   – mean HRV < 30  OR  mean REM % < 16
-        medium – mean HRV 30-45 OR  mean REM % 16-20
-        low    – mean HRV > 45  AND mean REM % > 20
-    """
-    HRV_TARGET_RANGES: dict[str, tuple[float, float]] = {
-        "high":   (22.0, 28.0),   # forces mean < 30
-        "medium": (34.0, 42.0),   # inside 30-45
-        "low":    (50.0, 65.0),   # forces mean > 45
-    }
-    REM_TARGET_RANGES: dict[str, tuple[float, float]] = {
-        "high":   (11.0, 15.0),   # forces mean < 16
-        "medium": (17.0, 20.0),   # inside 16-20
-        "low":    (21.0, 24.0),   # forces mean > 20
-    }
-
-    ts = ts.copy()
-
-    if "hrv_balance" in ts.columns:
-        cur = ts["hrv_balance"].mean()
-        if cur > 0:
-            lo, hi = HRV_TARGET_RANGES[target]
-            scale = rng.uniform(lo, hi) / cur
-            ts["hrv_balance"] = (
-                ts["hrv_balance"].mul(scale).clip(lower=5.0, upper=100.0).round(1)
-            )
-
-    if "rem_sleep_pct" in ts.columns:
-        cur = ts["rem_sleep_pct"].mean()
-        if cur > 0:
-            lo, hi = REM_TARGET_RANGES[target]
-            scale = rng.uniform(lo, hi) / cur
-            ts["rem_sleep_pct"] = (
-                ts["rem_sleep_pct"].mul(scale).clip(lower=5.0, upper=35.0).round(1)
-            )
-
-    return ts
-
-
-def _verify_risk(ts: pd.DataFrame) -> str:
-    """Recompute risk level from a scaled time_series (local replica of adapter logic)."""
-    hrv_mean = ts["hrv_balance"].mean() if "hrv_balance" in ts.columns else float("nan")
-    rem_mean = ts["rem_sleep_pct"].mean() if "rem_sleep_pct" in ts.columns else float("nan")
-    if hrv_mean < 30 or rem_mean < 16:
-        return "high"
-    if hrv_mean <= 45 or rem_mean <= 20:
-        return "medium"
-    return "low"
-
-
-# ---------------------------------------------------------------------------
-# Oura Excel generator
-# ---------------------------------------------------------------------------
-
-def generate_oura_excel() -> None:
-    """Write demo_oura.xlsx — 10 patients × 30 daily rows, risk-adjusted."""
-    adapter = OuraAdapter()
-    blocks: list[pd.DataFrame] = []
-
-    print(f"\n{'─' * 48}")
-    print(f"  Oura patients  →  {DEMO_OURA_FILE.relative_to(PROJECT_ROOT)}")
-    print(f"{'─' * 48}")
-    print(f"  {'Patient ID':<12} {'Target':<9} {'Actual':<9}  mean HRV  mean REM%")
-
-    for patient_id, target_risk in OURA_PATIENTS:
-        pts = adapter.load_demo_data(patient_id)
-        # Use a separate, deterministic RNG for the scaling step so the
-        # patient's own data stays reproducible.
-        scale_rng = random.Random(hash((patient_id, "scale")))
-        scaled_ts = _scale_to_risk_level(pts.time_series, target_risk, scale_rng)
-        actual_risk = _verify_risk(scaled_ts)
-
-        hrv_mean = scaled_ts["hrv_balance"].mean()
-        rem_mean = scaled_ts["rem_sleep_pct"].mean()
-        status = "✓" if actual_risk == target_risk else "!"
-        print(
-            f"  {patient_id:<12} {target_risk:<9} {actual_risk:<9}  "
-            f"{hrv_mean:>6.1f} ms  {rem_mean:>5.1f}%  {status}"
-        )
-
-        # Flatten to one row-per-day; use the index name trick so reset_index
-        # produces a column with the exact name the adapter expects.
-        scaled_ts.index.name = "flowsheet_record_date"
-        block = scaled_ts.reset_index()
-        block.insert(0, "mrn", patient_id)
-        # Include static demographics so load_from_excel can populate them
-        block["age"] = pts.static_features.get("age", "")
-        block["sex"] = pts.static_features.get("sex", "")
-        blocks.append(block)
-
-    combined = pd.concat(blocks, ignore_index=True)
-    DEMO_OURA_FILE.parent.mkdir(parents=True, exist_ok=True)
-    combined.to_excel(DEMO_OURA_FILE, index=False)
-
-    print(f"\n  {len(combined)} rows written  ({len(OURA_PATIENTS)} patients × 30 days)")
-
 
 # ---------------------------------------------------------------------------
 # Synthea FHIR JSON generator
@@ -232,13 +116,15 @@ def _make_condition(patient_ref: str, snomed_code: str, display: str) -> dict:
     }
 
 
-def generate_synthea_fhir() -> None:
+def generate_synthea_fhir(seed: int) -> None:
     """Write one FHIR R4 Bundle JSON per Synthea demo patient."""
     import json as _json
     import uuid
 
     adapter = SyntheaAdapter()
     DEMO_SYNTHEA_DIR.mkdir(parents=True, exist_ok=True)
+    for stale_bundle in DEMO_SYNTHEA_DIR.glob("*.json"):
+        stale_bundle.unlink()
 
     print(f"\n{'─' * 60}")
     print(f"  Synthea patients  →  {DEMO_SYNTHEA_DIR.relative_to(PROJECT_ROOT)}/")
@@ -253,12 +139,12 @@ def generate_synthea_fhir() -> None:
     }
 
     for patient_id, risk_level in SYNTHEA_PATIENTS:
-        pts = adapter.load_demo_data(patient_id, risk_level)
+        pts = adapter.load_demo_data(patient_id, risk_level, seed=seed)
         ts  = pts.time_series
         sf  = pts.static_features
 
         fhir_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, patient_id))
-        birth_year = datetime.now().year - sf.get("age", 50)
+        birth_year = DEMO_REFERENCE_DATE.year - sf.get("age", 50)
         gender = "male" if sf.get("sex") == "M" else "female"
 
         entries: list[dict] = []
@@ -319,21 +205,70 @@ def generate_synthea_fhir() -> None:
 
 
 # ---------------------------------------------------------------------------
+# OMH/IEEE wearable JSON generator
+# ---------------------------------------------------------------------------
+
+def generate_omh_ieee_wearable_records(seed: int) -> None:
+    """Write OMH/IEEE Oura-like wearable records from demo Synthea FHIR."""
+    print(f"\n{'─' * 60}")
+    print(f"  OMH/IEEE wearable records  →  {DEMO_OMH_IEEE_DIR.relative_to(PROJECT_ROOT)}/")
+    print(f"{'─' * 60}")
+
+    manifest = generate_dataset(
+        DEMO_SYNTHEA_DIR,
+        DEMO_OMH_IEEE_DIR,
+        days=30,
+        end_date=DEMO_REFERENCE_DATE,
+        seed=seed,
+        source_name="demo-synthea-omh-ieee-generator",
+    )
+
+    print(f"  {manifest['patient_count']} patients")
+    print(f"  {sum(manifest['counts_by_schema'].values())} total records")
+    print("  Schemas:")
+    for schema_id, count in manifest["counts_by_schema"].items():
+        print(f"    {schema_id:<34} {count:>4}")
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate dashboard demo Synthea FHIR and OMH/IEEE wearable data."
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Optional integer seed. Omit it to generate a new random demo dataset.",
+    )
+    return parser.parse_args()
+
+
+def _resolve_seed(seed: int | None) -> int:
+    if seed is not None:
+        return seed
+    return random.SystemRandom().randint(1, 2_147_483_647)
+
+
 def main() -> None:
+    args = _parse_args()
+    seed = _resolve_seed(args.seed)
+
     print("=" * 60)
     print("  oura-clinical-workbench  —  demo data generator")
     print("=" * 60)
+    print(f"  Seed: {seed}" + (" (provided)" if args.seed is not None else " (random)"))
 
-    generate_oura_excel()
-    generate_synthea_fhir()
+    generate_synthea_fhir(seed)
+    generate_omh_ieee_wearable_records(seed)
 
     print(f"\n{'─' * 60}")
     print("  All files written. Load them with:")
-    print("    OuraAdapter().load_from_excel('demo_data/demo_oura.xlsx', 'PT-1001')")
     print("    SyntheaAdapter().load_from_fhir('demo_data/demo_synthea/PT-3001.json', 'PT-3001')")
+    print("    StandardWearableAdapter().load_all_from_dir('demo_data/demo_omh_ieee')")
     print(f"{'─' * 60}\n")
 
 

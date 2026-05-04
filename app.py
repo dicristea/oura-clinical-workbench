@@ -6,12 +6,22 @@ Exact mockup implementation
 from flask import Flask, render_template, jsonify, request
 import pandas as pd
 from datetime import datetime, timedelta
+from functools import lru_cache
+import json
 import random
+import re
 import os
+import uuid
 
 app = Flask(__name__)
 
 # Ordered color palette assigned to features by their declaration index.
+STUDY_CONFIG_PATH             = 'demo_data/study_config.json'
+CONDITIONS_DICT_PATH          = 'data/conditions_dict.json'
+STANDARD_WEARABLE_DATASET_DIR = 'demo_data/demo_omh_ieee'
+NOTEBOOKS_DIR                 = 'notebooks'
+JUPYTER_BASE_URL              = os.environ.get('JUPYTER_BASE_URL', 'http://localhost:8888')
+
 FEATURE_COLORS = [
     '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
     '#ef4444', '#8b5cf6', '#f97316', '#ec4899',
@@ -118,6 +128,130 @@ def load_synthea_patients():
     return patients
 
 
+@lru_cache(maxsize=1)
+def _standard_wearable_series_by_patient() -> dict:
+    """Load OMH/IEEE wearable records and cache PatientTimeSeries by patient id."""
+    try:
+        from data.standard_wearable_adapter import StandardWearableAdapter
+    except Exception as e:
+        print(f"[StandardWearable] Could not import adapter: {e}")
+        return {}
+
+    by_patient = {}
+    adapter = StandardWearableAdapter()
+    if not os.path.isdir(STANDARD_WEARABLE_DATASET_DIR):
+        return {}
+    try:
+        for pts in adapter.load_all_from_dir(STANDARD_WEARABLE_DATASET_DIR):
+            by_patient[pts.patient_id] = pts
+    except Exception as e:
+        print(f"[StandardWearable] Could not load {STANDARD_WEARABLE_DATASET_DIR}: {e}")
+    return by_patient
+
+
+def get_standard_wearable_series(patient_id: str):
+    """Return standard OMH/IEEE wearable time series for one patient, if present."""
+    return _standard_wearable_series_by_patient().get(str(patient_id))
+
+
+def load_standard_wearable_patients():
+    """Return dashboard patient dicts backed by OMH/IEEE wearable records."""
+    patients = []
+    for patient_id, pts in _standard_wearable_series_by_patient().items():
+        ts = pts.time_series
+        meta = pts.metadata
+        sf = pts.static_features
+
+        last_date = ts.index.max() if not ts.empty else None
+        last_dt = last_date.to_pydatetime().replace(tzinfo=None) if last_date else None
+        last_sync_str = format_last_sync(last_dt) if last_dt else "Never"
+        days_since = (datetime.now() - last_dt).days if last_dt else 999
+
+        if days_since <= 4:
+            status = "active"
+        elif days_since <= 30:
+            status = "follow-up"
+        else:
+            status = "outreach"
+
+        risk = meta.get('risk_level', '')
+        if risk == 'high':
+            model_status_level = 'alert'
+            model_status_label = 'Sleep Risk Signal'
+        elif risk == 'medium':
+            model_status_level = 'warn'
+            model_status_label = 'Borderline Sleep Range'
+        elif risk == 'low':
+            model_status_level = 'ok'
+            model_status_label = 'Wearable Signals Stable'
+        else:
+            model_status_level = 'pending'
+            model_status_label = 'Insufficient Data'
+
+        conditions = sf.get('conditions') or 'None'
+        patients.append({
+            'id':                  patient_id,
+            'mrn':                 patient_id,
+            'name':                sf.get('name') or patient_id,
+            'inpatient':           0,
+            'outpatient':          len(ts),
+            'last_sync':           last_sync_str,
+            'last_visit':          last_dt.strftime('%b %d, %Y') if last_dt else None,
+            'model_status_level':  model_status_level,
+            'model_status_label':  model_status_label,
+            'has_oura':            True,
+            'has_ehr':             False,
+            'has_synthea':         False,
+            'has_omh_ieee':        True,
+            'data_source':         'omh_ieee',
+            'status':              status,
+            'hospital_start':      None,
+            'hospital_end':        None,
+            'risk_level':          risk,
+            'conditions':          conditions,
+            'sleep_score':         [],
+            'hrv_average':         [],
+            'activity_score':      [],
+        })
+    return patients
+
+
+def merge_standard_wearable_patients(patients: list[dict]) -> list[dict]:
+    """Attach OMH/IEEE wearable availability to matching dashboard patients."""
+    wearable_patients = load_standard_wearable_patients()
+    by_id = {p['id']: p for p in patients}
+
+    for wearable_patient in wearable_patients:
+        patient_id = wearable_patient['id']
+        existing = by_id.get(patient_id)
+        if existing is None:
+            patients.append(wearable_patient)
+            by_id[patient_id] = wearable_patient
+            continue
+
+        existing['has_oura'] = True
+        existing['has_omh_ieee'] = True
+        existing['data_source'] = (
+            'synthea_omh_ieee' if existing.get('has_synthea') else 'omh_ieee'
+        )
+        existing['last_sync'] = wearable_patient.get('last_sync') or existing.get('last_sync')
+        existing['status'] = wearable_patient.get('status') or existing.get('status')
+        existing['outpatient'] = max(
+            int(existing.get('outpatient') or 0),
+            int(wearable_patient.get('outpatient') or 0),
+        )
+        existing['model_status_level'] = wearable_patient.get(
+            'model_status_level',
+            existing.get('model_status_level'),
+        )
+        existing['model_status_label'] = wearable_patient.get(
+            'model_status_label',
+            existing.get('model_status_label'),
+        )
+
+    return patients
+
+
 def load_patient_data():
     """Load and process patient data from Excel file."""
     try:
@@ -213,13 +347,14 @@ def load_patient_data():
                 'activity_score':      activity_score,
             })
         
-        # Append Synthea patients from FHIR bundles
+        # Append Synthea clinical patients, then merge matching OMH/IEEE wearable records.
         patients.extend(load_synthea_patients())
-        return patients
+        return merge_standard_wearable_patients(patients)
     except Exception as e:
         print(f"Error loading data: {e}")
-        # Still try to return Synthea patients even if Excel fails
-        return load_synthea_patients()
+        # Still try to return adapter-backed patients even if Excel fails.
+        patients = load_synthea_patients()
+        return merge_standard_wearable_patients(patients)
 
 
 def format_date(date_val):
@@ -244,30 +379,323 @@ def format_last_sync(dt):
         return f"{delta.seconds // 60} minutes ago"
 
 
+def load_study_config() -> dict:
+    """Load study config from disk, creating it if missing."""
+    if os.path.exists(STUDY_CONFIG_PATH):
+        with open(STUDY_CONFIG_PATH) as f:
+            return json.load(f)
+    return {'conditions_of_interest': []}
+
+
+def save_study_config(config: dict) -> None:
+    config['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+    with open(STUDY_CONFIG_PATH, 'w') as f:
+        json.dump(config, f, indent=2)
+
+
+def _compute_cohort_stats(patients: list) -> dict:
+    """Aggregate cohort-level statistics for the research dashboard."""
+    by_risk: dict = {'high': 0, 'medium': 0, 'low': 0, 'unknown': 0}
+    by_source: dict = {}
+    condition_counts: dict = {}
+
+    for p in patients:
+        risk = (p.get('risk_level') or '').strip().lower()
+        by_risk[risk if risk in by_risk else 'unknown'] += 1
+
+        src = p.get('data_source', 'oura')
+        by_source[src] = by_source.get(src, 0) + 1
+
+        for cond in (p.get('conditions') or '').split(','):
+            cond = cond.strip()
+            if cond and cond.lower() != 'none':
+                condition_counts[cond] = condition_counts.get(cond, 0) + 1
+
+    total = len(patients)
+
+    # Observed conditions (from patient data), sorted by frequency
+    observed = sorted(condition_counts.items(), key=lambda x: -x[1])
+
+    # Study-defined conditions of interest
+    study_cfg = load_study_config()
+    study_conds = study_cfg.get('conditions_of_interest', [])
+    study_names_lower = {c['name'].lower() for c in study_conds}
+
+    # Merge: observed list (with counts) + study-only (count=0, not yet in patient data)
+    observed_names_lower = {name.lower() for name, _ in observed}
+    all_conditions = [
+        {'name': name, 'count': cnt, 'study_tracked': name.lower() in study_names_lower}
+        for name, cnt in observed
+    ] + [
+        {'name': c['name'], 'count': 0, 'study_tracked': True, 'category': c.get('category', '')}
+        for c in study_conds
+        if c['name'].lower() not in observed_names_lower
+    ]
+
+    return {
+        'total': total,
+        'by_risk': by_risk,
+        'by_source': by_source,
+        'conditions': observed[:8],          # legacy: list of (name, count) tuples
+        'all_conditions': all_conditions,    # merged: list of dicts
+        'study_conditions': study_conds,
+        'active': sum(1 for p in patients if p.get('status') == 'active'),
+    }
+
+
+def _compute_sleep_summaries(patients: list) -> list:
+    """Compute sleep summaries from OMH/IEEE records when available."""
+    summaries = []
+    for p in patients:
+        standard_ts = get_standard_wearable_series(p['id'])
+        if standard_ts is not None and not standard_ts.time_series.empty:
+            ts = standard_ts.get_analysis_window(14)
+            tst = ts['total_sleep_time_hours'] if 'total_sleep_time_hours' in ts else ts.get('sleep_duration_hours')
+            summaries.append({
+                'id':             p['id'],
+                'risk':           p.get('risk_level', ''),
+                'avg_tst':        round(float(tst.mean()), 1) if tst is not None else 0,
+                'avg_rem_pct':    round(float(ts['rem_sleep_pct'].mean()), 1) if 'rem_sleep_pct' in ts else 0,
+                'avg_deep_pct':   round(float(ts['deep_sleep_pct'].mean()), 1) if 'deep_sleep_pct' in ts else 0,
+                'avg_efficiency': round(float(ts['sleep_efficiency_pct'].mean()), 1) if 'sleep_efficiency_pct' in ts else 0,
+                'avg_latency':    int(round(float(ts['sleep_latency'].mean()))) if 'sleep_latency' in ts else 0,
+                'avg_waso':       int(round(float(ts['waso_minutes'].mean()))) if 'waso_minutes' in ts else 0,
+                'avg_spo2':       round(float(ts['spo2_pct'].mean()), 1) if 'spo2_pct' in ts else 0,
+            })
+            continue
+
+        rng = random.Random(abs(hash(p['id'])) % (2 ** 31))
+        avg_tst = round(rng.uniform(5.2, 8.6), 1)
+        avg_rem = round(rng.uniform(12, 26), 1)
+        avg_deep = round(rng.uniform(10, 23), 1)
+        avg_eff = round(rng.uniform(72, 94), 1)
+        avg_lat = int(round(rng.uniform(7, 40)))
+        avg_waso = int(round(rng.uniform(12, 58)))
+        avg_spo2 = round(rng.uniform(93.2, 98.1), 1)
+        summaries.append({
+            'id':           p['id'],
+            'risk':         p.get('risk_level', ''),
+            'avg_tst':      avg_tst,
+            'avg_rem_pct':  avg_rem,
+            'avg_deep_pct': avg_deep,
+            'avg_efficiency': avg_eff,
+            'avg_latency':  avg_lat,
+            'avg_waso':     avg_waso,
+            'avg_spo2':     avg_spo2,
+        })
+    return summaries
+
+
+def _chat_respond(message: str, context: dict, history: list) -> tuple:
+    """Rule-based research assistant — swap body for LLM call in Phase 2."""
+    msg = message.lower().strip()
+    patient_id = context.get('patient_id', '')
+
+    all_patients = load_patient_data()
+    patient = next((p for p in all_patients if p['id'] == patient_id), None) if patient_id else None
+    stats = _compute_cohort_stats(all_patients)
+
+    def pct(n):
+        return round(100 * n / max(stats['total'], 1))
+
+    # ── Cohort size / overview ───────────────────────────────────────────────
+    if any(w in msg for w in ['how many', 'total patients', 'cohort size', 'n=', 'participants', 'enrolled']):
+        br = stats['by_risk']
+        src = ', '.join(f"{v} {k}" for k, v in stats['by_source'].items())
+        resp = (f"The cohort has **{stats['total']} participants** ({src}). "
+                f"{br['high']} ({pct(br['high'])}%) are high risk, "
+                f"{br['medium']} ({pct(br['medium'])}%) medium, "
+                f"{br['low']} ({pct(br['low'])}%) low.")
+        return resp, ['Show risk breakdown', 'What conditions are most common?', 'Compare data sources']
+
+    # ── Risk breakdown ───────────────────────────────────────────────────────
+    if any(w in msg for w in ['risk breakdown', 'risk distribution', 'risk split', 'risk level']):
+        br = stats['by_risk']
+        resp = (f"Risk distribution across **{stats['total']} participants**: "
+                f"**{br['high']} high** ({pct(br['high'])}%), "
+                f"**{br['medium']} medium** ({pct(br['medium'])}%), "
+                f"**{br['low']} low** ({pct(br['low'])}%). "
+                f"High risk is flagged by glucose > 200 mg/dL, HbA1c > 9%, or systolic BP > 160 mmHg.")
+        return resp, ['What drives high risk?', 'Show high-risk patients', 'What is HbA1c?']
+
+    # ── Conditions ───────────────────────────────────────────────────────────
+    if any(w in msg for w in ['condition', 'diagnosis', 'diagnoses', 'disease', 'prevalent']):
+        if stats['conditions']:
+            top = ', '.join(f"{n} with {c}" for c, n in stats['conditions'][:5])
+            resp = f"Most prevalent conditions in the cohort: {top}."
+        else:
+            resp = "Condition data is sourced from Synthea FHIR Condition resources and Oura patient metadata."
+        return resp, ['What is the risk for diabetes patients?', 'What is hepatic encephalopathy?']
+
+    # ── Data sources ─────────────────────────────────────────────────────────
+    if any(w in msg for w in ['data source', 'synthea', 'oura', 'fhir', 'wearable', 'compare source']):
+        resp = ("This workbench fuses two data layers: **Synthea FHIR** (synthetic EHR — metabolic labs, "
+                "diagnoses, clinical vitals) and **Oura Ring** (wearable — sleep architecture, HRV, SpO2, activity). "
+                "Synthea is the clinical ground truth; Oura provides continuous longitudinal signals.")
+        return resp, ['What features does Synthea provide?', 'What does Oura measure?', 'How many from each source?']
+
+    # ── Current patient (context-aware) ─────────────────────────────────────
+    if patient and any(w in msg for w in ['this patient', 'participant', 'their risk', 'vitals', 'profile']):
+        risk = patient.get('risk_level', 'unknown')
+        conds = patient.get('conditions', 'None')
+        src = patient.get('data_source', 'unknown')
+        resp = (f"**{patient_id}** — {risk} risk · {src} data source. "
+                f"Conditions: {conds}. Last sync: {patient.get('last_sync', 'unknown')}.")
+        return resp, ['What are their key risk factors?', 'What is HbA1c?', 'View data explorer']
+
+    # ── Clinical definitions ─────────────────────────────────────────────────
+    if 'hba1c' in msg or 'hemoglobin a1c' in msg or 'a1c' in msg:
+        resp = ("**HbA1c** reflects average blood glucose over 2–3 months. "
+                "Normal < 5.7% · Pre-diabetes 5.7–6.4% · Diabetes ≥ 6.5%. "
+                "Values > 9% indicate poor glycaemic control and drive high-risk classification here.")
+        return resp, ['What is blood glucose?', 'How is risk calculated?']
+
+    if any(w in msg for w in ['glucose', 'blood sugar', 'blood glucose']):
+        resp = ("**Blood glucose** (mg/dL): fasting normal 70–99 · pre-diabetes 100–125 · diabetes ≥ 126. "
+                "In this cohort glucose > 200 mg/dL triggers a high-risk flag.")
+        return resp, ['What is HbA1c?', 'Show metabolic trends']
+
+    if any(w in msg for w in ['hrv', 'heart rate variability', 'rmssd']):
+        resp = ("**HRV (Heart Rate Variability)** — milliseconds between heartbeats. Higher HRV = better "
+                "autonomic function. In HE research, declining HRV during sleep is an early marker of "
+                "covert cognitive impairment, preceding clinical detection by weeks.")
+        return resp, ['What is hepatic encephalopathy?', 'What is REM sleep?']
+
+    if any(w in msg for w in ['rem', 'deep sleep', 'sleep architecture', 'waso', 'sleep stage']):
+        resp = ("**Sleep architecture** spans REM, deep (slow-wave), and light stages. "
+                "Reduced REM % and elevated WASO (Wake After Sleep Onset) are the primary wearable biomarkers "
+                "for covert hepatic encephalopathy in this study — they precede measurable ammonia elevation.")
+        return resp, ['What is hepatic encephalopathy?', 'What is HRV?', 'How is sleep scored?']
+
+    if any(w in msg for w in ['hepatic encephalopathy', 'liver', 'cirrhosis', 'meld', 'ammonia', 'he ']):
+        resp = ("**Hepatic encephalopathy (HE)** — cognitive dysfunction from liver failure to clear toxins. "
+                "Covert HE affects ~30% of cirrhosis patients and is routinely missed. "
+                "This study tests whether Oura wearable signals (REM %, HRV, circadian rhythm) can detect "
+                "it earlier than pen-and-paper cognitive tests. MELD-Na score tracks disease severity.")
+        return resp, ['What biomarkers predict HE?', 'What is MELD?', 'Show HRV data']
+
+    if any(w in msg for w in ['spo2', 'oxygen', 'saturation']):
+        resp = ("**SpO2** (blood oxygen saturation) is measured nightly by the Oura ring. "
+                "Normal ≥ 95%. Nocturnal desaturation can indicate sleep apnea — a key confounder "
+                "in HE research that must be controlled for in model training.")
+        return resp, ['What is WASO?', 'What confounders matter?']
+
+    if any(w in msg for w in ['model', 'xgboost', 'random forest', 'lstm', 'prediction', 'auc', 'shap', 'feature importance']):
+        resp = ("The Model Lab supports **XGBoost**, **Random Forest**, and **LSTM** classifiers, "
+                "evaluated by AUC-ROC, precision, recall, and F1. SHAP values explain feature contributions. "
+                "Best demo result: XGBoost AUC 0.91 on 5 sleep + HRV features.")
+        return resp, ['What features matter most?', 'How does SHAP work?', 'Run an experiment']
+
+    if any(w in msg for w in ['what can you', 'help', 'capabilities', 'what do you know']):
+        resp = ("I'm your **Research Assistant**. I can help with:\n"
+                "- Cohort statistics (size, risk, conditions, sources)\n"
+                "- Clinical definitions (HbA1c, HRV, REM, WASO, MELD, SpO2)\n"
+                "- Study background (hepatic encephalopathy, design, goals)\n"
+                "- Model interpretation (SHAP, AUC, feature importance)\n"
+                "- Patient-specific context when you're viewing a participant profile")
+        return resp, ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']
+
+    if any(w in msg for w in ['study', 'research', 'about this', 'purpose', 'goal', 'what is this']):
+        resp = ("This workbench supports a **Cornell/Columbia clinical research study** — "
+                "can Oura Ring wearable biomarkers (sleep architecture, HRV, circadian rhythm) "
+                "detect covert hepatic encephalopathy earlier than current clinical methods? "
+                "~140 cirrhosis patients, 6+ years of data. Synthea FHIR provides a parallel "
+                "synthetic metabolic cohort for algorithm development.")
+        return resp, ['What is hepatic encephalopathy?', 'How many patients?', 'What models are used?']
+
+    # ── Fallback ─────────────────────────────────────────────────────────────
+    resp = ("I can help you explore the cohort, understand clinical biomarkers, or interpret model results. "
+            "Try asking about the cohort size, specific biomarkers (HbA1c, HRV, REM sleep), "
+            "the study background, or a specific participant if you're viewing their profile.")
+    return resp, ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']
+
+
 @app.route('/')
 def dashboard():
     patients = load_patient_data()
-    
-    # Calculate counts
-    all_count = len(patients)
-    generating_count = len([p for p in patients if p['has_oura'] or p['has_ehr']])
-    overlap_count = len([p for p in patients if p['has_oura'] and p['has_ehr']])
-    complete_count = len([p for p in patients if p['status'] == 'complete'])
-    follow_up_count = len([p for p in patients if p['status'] in ['follow-up', 'outreach']])
-    
-    return render_template('dashboard.html',
-                          patients=patients,
-                          all_count=all_count,
-                          generating_count=generating_count,
-                          overlap_count=overlap_count,
-                          complete_count=complete_count,
-                          follow_up_count=follow_up_count)
+    cohort_stats = _compute_cohort_stats(patients)
+    sleep_summaries = _compute_sleep_summaries(patients)
+    return render_template('dashboard.html', patients=patients, cohort_stats=cohort_stats,
+                           sleep_summaries=sleep_summaries)
 
 
 @app.route('/api/patients')
 def get_patients():
     patients = load_patient_data()
     return jsonify(patients)
+
+
+@app.route('/api/conditions/search')
+def conditions_search():
+    """Search the bundled clinical conditions dictionary."""
+    q = request.args.get('q', '').strip().lower()
+    if len(q) < 2:
+        return jsonify([])
+
+    # Load dictionary
+    try:
+        with open(CONDITIONS_DICT_PATH) as f:
+            dictionary = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify([])
+
+    # Cohort condition counts for annotation
+    patients = load_patient_data()
+    stats = _compute_cohort_stats(patients)
+    cohort_map = {name.lower(): cnt for name, cnt in stats['conditions']}
+
+    # Study-tracked names for annotation
+    study_cfg = load_study_config()
+    tracked = {c['name'].lower() for c in study_cfg.get('conditions_of_interest', [])}
+
+    # Filter dictionary
+    matches = [c for c in dictionary if q in c['name'].lower()]
+    for m in matches:
+        m['cohort_count']   = cohort_map.get(m['name'].lower(), 0)
+        m['study_tracked']  = m['name'].lower() in tracked
+
+    # Sort: cohort matches first, then alphabetical
+    matches.sort(key=lambda x: (-x['cohort_count'], x['name']))
+    return jsonify(matches[:12])
+
+
+@app.route('/api/study/conditions', methods=['POST'])
+def add_study_condition():
+    """Add a condition to the study conditions of interest."""
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'name is required'}), 400
+
+    config = load_study_config()
+    existing = {c['name'].lower() for c in config.get('conditions_of_interest', [])}
+    if name.lower() in existing:
+        return jsonify({'error': 'already tracked'}), 409
+
+    config.setdefault('conditions_of_interest', []).append({
+        'name':     name,
+        'code':     data.get('code', ''),
+        'system':   data.get('system', 'custom'),
+        'category': data.get('category', ''),
+        'added_date': datetime.now().strftime('%Y-%m-%d'),
+    })
+    save_study_config(config)
+    return jsonify({'ok': True, 'name': name})
+
+
+@app.route('/api/study/conditions/<path:name>', methods=['DELETE'])
+def remove_study_condition(name):
+    """Remove a condition from the study conditions of interest."""
+    config = load_study_config()
+    before = len(config.get('conditions_of_interest', []))
+    config['conditions_of_interest'] = [
+        c for c in config.get('conditions_of_interest', [])
+        if c['name'].lower() != name.lower()
+    ]
+    if len(config['conditions_of_interest']) == before:
+        return jsonify({'error': 'not found'}), 404
+    save_study_config(config)
+    return jsonify({'ok': True})
 
 
 @app.route('/api/run-experiment', methods=['POST'])
@@ -371,6 +799,179 @@ def api_run_experiment():
     })
 
 
+@app.route('/api/generate-patient', methods=['POST'])
+def api_generate_patient():
+    """Generate a new synthetic Synthea patient, save a FHIR bundle, return patient dict."""
+    synthea_dir = 'demo_data/demo_synthea'
+    os.makedirs(synthea_dir, exist_ok=True)
+
+    # Next available PT-3xxx ID
+    existing_nums = []
+    for fname in os.listdir(synthea_dir):
+        m = re.match(r'^PT-3(\d+)\.json$', fname)
+        if m:
+            existing_nums.append(int(m.group(1)))
+    next_num = max(existing_nums, default=5) + 1
+    patient_id = f'PT-3{next_num:03d}'
+
+    risk_level = random.choices(['high', 'medium', 'low'], weights=[0.3, 0.4, 0.3])[0]
+
+    try:
+        from data.synthea_adapter import SyntheaAdapter
+        pts = SyntheaAdapter().load_demo_data(patient_id, risk_level)
+    except Exception as e:
+        return jsonify({'error': f'Failed to generate patient data: {e}'}), 500
+
+    ts = pts.time_series
+    sf = pts.static_features
+
+    # ── Build minimal FHIR R4 Bundle ─────────────────────────────────────────
+    fhir_id    = str(uuid.uuid5(uuid.NAMESPACE_DNS, patient_id))
+    birth_year = datetime.now().year - sf.get('age', 50)
+    gender     = 'male' if sf.get('sex') == 'M' else 'female'
+
+    def _loinc(code, display):
+        return {'coding': [{'system': 'http://loinc.org', 'code': code, 'display': display}],
+                'text': display}
+
+    def _obs(pat_ref, code, display, value, unit, unit_code, date_str):
+        return {'resourceType': 'Observation', 'status': 'final',
+                'code': _loinc(code, display),
+                'subject': {'reference': f'urn:uuid:{pat_ref}'},
+                'effectiveDateTime': date_str,
+                'valueQuantity': {'value': value, 'unit': unit,
+                                  'system': 'http://unitsofmeasure.org', 'code': unit_code}}
+
+    def _bp_obs(pat_ref, sbp, dbp, date_str):
+        return {'resourceType': 'Observation', 'status': 'final',
+                'code': _loinc('55284-4', 'Blood pressure systolic and diastolic'),
+                'subject': {'reference': f'urn:uuid:{pat_ref}'},
+                'effectiveDateTime': date_str,
+                'component': [
+                    {'code': _loinc('8480-6', 'Systolic blood pressure'),
+                     'valueQuantity': {'value': sbp, 'unit': 'mmHg',
+                                       'system': 'http://unitsofmeasure.org', 'code': 'mm[Hg]'}},
+                    {'code': _loinc('8462-4', 'Diastolic blood pressure'),
+                     'valueQuantity': {'value': dbp, 'unit': 'mmHg',
+                                       'system': 'http://unitsofmeasure.org', 'code': 'mm[Hg]'}},
+                ]}
+
+    def _cond(pat_ref, snomed_code, display):
+        return {'resourceType': 'Condition',
+                'clinicalStatus': {'coding': [{'system': 'http://terminology.hl7.org/CodeSystem/condition-clinical',
+                                               'code': 'active'}]},
+                'code': {'coding': [{'system': 'http://snomed.info/sct',
+                                     'code': snomed_code, 'display': display}], 'text': display},
+                'subject': {'reference': f'urn:uuid:{pat_ref}'}}
+
+    _CONDITIONS_BY_RISK = {
+        'high':   [('44054006', 'Diabetes mellitus type 2'), ('38341003', 'Hypertension')],
+        'medium': [('38341003', 'Hypertension')],
+        'low':    [],
+    }
+    _OBS_MAP = [
+        ('8867-4',  'Heart rate',        'heart_rate',             'bpm',    '/min'),
+        ('9279-1',  'Respiratory rate',  'respiratory_rate',       'br/min', '/min'),
+        ('8310-5',  'Body temperature',  'body_temperature',       '°C',     'Cel'),
+        ('29463-7', 'Body weight',       'body_weight_kg',         'kg',     'kg'),
+        ('39156-5', 'Body mass index',   'bmi',                    'kg/m2',  'kg/m2'),
+        ('2339-0',  'Glucose',           'glucose_mgdl',           'mg/dL',  'mg/dL'),
+        ('4548-4',  'Hemoglobin A1c',    'hba1c_pct',              '%',      '%'),
+        ('2093-3',  'Total cholesterol', 'total_cholesterol_mgdl', 'mg/dL',  'mg/dL'),
+        ('18262-6', 'LDL cholesterol',   'ldl_cholesterol_mgdl',   'mg/dL',  'mg/dL'),
+    ]
+
+    entries = [{'fullUrl': f'urn:uuid:{fhir_id}', 'resource': {
+        'resourceType': 'Patient', 'id': fhir_id,
+        'name': [{'use': 'official', 'family': f'Demo-{patient_id}',
+                  'given': [risk_level.capitalize()]}],
+        'gender': gender,
+        'birthDate': f'{birth_year}-06-15',
+    }}]
+
+    for obs_date, row in ts.iterrows():
+        date_str = pd.Timestamp(obs_date).strftime('%Y-%m-%dT00:00:00+00:00')
+        entries.append({'resource': _bp_obs(
+            fhir_id,
+            round(float(row['systolic_bp']), 2),
+            round(float(row['diastolic_bp']), 2),
+            date_str,
+        )})
+        for loinc, display, feat, unit, unit_code in _OBS_MAP:
+            if feat in row and not (isinstance(row[feat], float) and pd.isna(row[feat])):
+                entries.append({'resource': _obs(
+                    fhir_id, loinc, display,
+                    round(float(row[feat]), 2), unit, unit_code, date_str,
+                )})
+
+    for snomed, display in _CONDITIONS_BY_RISK.get(risk_level, []):
+        entries.append({'resource': _cond(fhir_id, snomed, display)})
+
+    bundle = {'resourceType': 'Bundle', 'type': 'collection', 'entry': entries}
+
+    out_path = os.path.join(synthea_dir, f'{patient_id}.json')
+    try:
+        with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(bundle, f, indent=2)
+    except Exception as e:
+        return jsonify({'error': f'Failed to save FHIR bundle: {e}'}), 500
+
+    # ── Build response patient dict (mirrors load_synthea_patients logic) ────
+    last_date     = ts.index.max() if not ts.empty else None
+    last_dt       = last_date.to_pydatetime().replace(tzinfo=None) if last_date else None
+    last_sync_str = format_last_sync(last_dt) if last_dt else 'Never'
+    days_since    = (datetime.now() - last_dt).days if last_dt else 999
+
+    if days_since <= 4:
+        status = 'active'
+    elif days_since <= 30:
+        status = 'follow-up'
+    else:
+        status = 'outreach'
+
+    _risk_map = {
+        'high':   ('alert', 'Risk Signal Detected'),
+        'medium': ('warn',  'Borderline Range'),
+        'low':    ('ok',    'Within Normal Range'),
+    }
+    model_status_level, model_status_label = _risk_map.get(risk_level, ('pending', 'Insufficient Data'))
+
+    condition_str = ', '.join(
+        k.replace('_', ' ').title() for k, v in sf.items() if isinstance(v, bool) and v
+    ) or 'None'
+
+    return jsonify({
+        'patient': {
+            'id':                 patient_id,
+            'name':               sf.get('name', patient_id),
+            'risk_level':         risk_level,
+            'conditions':         condition_str,
+            'status':             status,
+            'last_sync':          last_sync_str,
+            'model_status_level': model_status_level,
+            'model_status_label': model_status_label,
+            'data_source':        'synthea',
+        },
+        'message': f'Patient {patient_id} generated ({risk_level} risk).',
+    })
+
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    """Research assistant chatbot endpoint."""
+    body = request.get_json(silent=True) or {}
+    message = str(body.get('message', '')).strip()
+    context = body.get('context', {})
+    history = body.get('history', [])
+    if not message:
+        return jsonify({'error': 'message is required'}), 400
+    try:
+        response, suggestions = _chat_respond(message, context, history)
+        return jsonify({'response': response, 'suggestions': suggestions})
+    except Exception:
+        return jsonify({'response': 'Sorry, I encountered an error. Please try again.', 'suggestions': []}), 200
+
+
 @app.route('/patient/<patient_id>')
 def patient_detail(patient_id):
     """Show detailed patient metrics view."""
@@ -410,6 +1011,93 @@ def patient_detail(patient_id):
     patient['sleep_duration_data'] = sleep_duration_data
     patient['steps_data'] = steps_data
     patient['temperature_data'] = temperature_data
+
+    # ── Sleep-specific metrics (14 days) ─────────────────────────────────
+    rem_data, deep_data, light_data, awake_data = [], [], [], []
+    time_in_bed_data, sleep_latency_data, waso_data = [], [], []
+    sleep_efficiency_data, spo2_data = [], []
+    sleep_start_data, sleep_end_data = [], []
+
+    for i in range(14):
+        total = sleep_duration_data[i]
+        rem   = round(max(0.5, random.uniform(0.15, 0.25) * total + random.uniform(-0.2, 0.2)), 1)
+        deep  = round(max(0.3, random.uniform(0.13, 0.22) * total + random.uniform(-0.15, 0.15)), 1)
+        awake = round(random.uniform(0.1, 0.6), 1)
+        light = round(max(0.4, total - rem - deep), 1)
+        lat   = random.randint(5, 38)
+        w     = random.randint(8, 55)
+        tib   = round(total + awake + lat / 60 + w / 60, 1)
+        eff   = round((total / tib * 100) if tib > 0 else 0, 1)
+        sp    = round(random.uniform(93.0, 98.5), 1)
+        start_hr  = random.randint(21, 23)
+        start_min = random.choice([0, 15, 30, 45])
+        end_total = start_hr * 60 + start_min + int(tib * 60)
+        end_hr, end_min = (end_total // 60) % 24, end_total % 60
+
+        rem_data.append(rem)
+        deep_data.append(deep)
+        light_data.append(light)
+        awake_data.append(awake)
+        time_in_bed_data.append(tib)
+        sleep_latency_data.append(lat)
+        waso_data.append(w)
+        sleep_efficiency_data.append(eff)
+        spo2_data.append(sp)
+        sleep_start_data.append(f"{start_hr % 12 or 12}:{start_min:02d} {'PM' if start_hr >= 12 else 'AM'}")
+        sleep_end_data.append(f"{end_hr % 12 or 12}:{end_min:02d} {'AM' if end_hr < 12 else 'PM'}")
+
+    patient['rem_data']              = rem_data
+    patient['deep_data']             = deep_data
+    patient['light_data']            = light_data
+    patient['awake_data']            = awake_data
+    patient['time_in_bed_data']      = time_in_bed_data
+    patient['sleep_latency_data']    = sleep_latency_data
+    patient['waso_data']             = waso_data
+    patient['sleep_efficiency_data'] = sleep_efficiency_data
+    patient['spo2_data']             = spo2_data
+    patient['sleep_start_data']      = sleep_start_data
+    patient['sleep_end_data']        = sleep_end_data
+
+    standard_wearable = get_standard_wearable_series(patient_id)
+    if standard_wearable is not None and not standard_wearable.time_series.empty:
+        ts = standard_wearable.get_analysis_window(14).copy()
+        if not ts.empty:
+            patient['dates'] = [pd.Timestamp(d).strftime("%b %d") for d in ts.index]
+
+            def _values(col: str, default=None, digits: int | None = 1):
+                if col not in ts:
+                    return [default for _ in range(len(ts))]
+                vals = []
+                for value in ts[col].tolist():
+                    if pd.isna(value):
+                        vals.append(default)
+                    elif digits is None:
+                        vals.append(int(round(float(value))))
+                    else:
+                        vals.append(round(float(value), digits))
+                return vals
+
+            patient['heart_rate_data'] = _values('resting_hr', default=0, digits=None)
+            patient['respiratory_data'] = _values('respiratory_rate', default=0, digits=1)
+            patient['sleep_duration_data'] = _values('sleep_duration_hours', default=0, digits=1)
+            patient['steps_data'] = _values('step_count', default=0, digits=None)
+            patient['time_in_bed_data'] = _values('time_in_bed_hours', default=0, digits=1)
+            patient['sleep_latency_data'] = _values('sleep_latency', default=0, digits=None)
+            patient['waso_data'] = _values('waso_minutes', default=0, digits=None)
+            patient['sleep_efficiency_data'] = _values('sleep_efficiency_pct', default=0, digits=1)
+            patient['spo2_data'] = _values('spo2_pct', default=0, digits=1)
+            patient['rem_data'] = _values('rem_sleep_hours', default=0, digits=1)
+            patient['deep_data'] = _values('deep_sleep_hours', default=0, digits=1)
+            patient['light_data'] = _values('light_sleep_hours', default=0, digits=1)
+            patient['awake_data'] = _values('awake_hours', default=0, digits=1)
+            patient['sleep_start_data'] = (
+                ts['sleep_start_label'].fillna('').tolist()
+                if 'sleep_start_label' in ts else ['' for _ in range(len(ts))]
+            )
+            patient['sleep_end_data'] = (
+                ts['sleep_end_label'].fillna('').tolist()
+                if 'sleep_end_label' in ts else ['' for _ in range(len(ts))]
+            )
 
     # ── Clinical history ──────────────────────────────────────────────────
     clinical_history = None
@@ -474,9 +1162,11 @@ def patient_detail(patient_id):
                     'Ammonia': round(ammonia - _ch_rng.randint(20, 40), 1),
                 },
                 'data_points':       patient.get('outpatient', 0),
-                'data_source_label': 'Oura Ring V2 + EHR Flowsheets',
+                'data_source_label': (
+                    standard_wearable.metadata.get('data_source_label')
+                    if standard_wearable is not None else 'Oura Ring V2 + EHR Flowsheets'
+                ),
                 'last_encounter':    'Dec 01, 2024',
-                'study_note':        'Cornell/Columbia Hepatic Encephalopathy Study',
             }
         except Exception as e:
             print(f"[patient_detail] Oura clinical history error for {patient_id}: {e}")
@@ -542,7 +1232,6 @@ def patient_detail(patient_id):
                 'data_points':     pts.metadata.get('data_points_count', len(ts)),
                 'data_source_label': pts.metadata.get('data_source_label', 'Synthea FHIR'),
                 'last_encounter':  ts.index[-1].strftime('%b %d, %Y') if not ts.empty else None,
-                'study_note':      'Synthea FHIR — Metabolic Risk Demo Cohort',
             }
         except Exception as e:
             print(f"[patient_detail] Synthea clinical history error for {patient_id}: {e}")
@@ -668,25 +1357,33 @@ def data_explorer(patient_id):
     if not patient:
         return "Patient not found", 404
 
-    # Detect data source (PT-3xxx → Synthea, all others → Oura)
-    ds_key       = 'synthea' if patient_id.startswith('PT-3') else 'oura'
-    source_label = {'synthea': 'Synthea FHIR', 'oura': 'Oura V2 API'}[ds_key]
+    # Detect data source (PT-3xxx → Synthea, all others → Oura).
+    # If OMH/IEEE wearable records exist, the explorer should show that layer.
+    ds_key = 'synthea' if patient_id.startswith('PT-3') else 'oura'
+    standard_wearable = get_standard_wearable_series(patient_id)
+    explorer_source_key = 'oura' if standard_wearable is not None else ds_key
+    source_label = (
+        standard_wearable.metadata.get('data_source_label', 'OMH/IEEE Wearable Records')
+        if standard_wearable is not None
+        else {'synthea': 'Synthea FHIR', 'oura': 'Oura V2 API'}[ds_key]
+    )
 
     # Load feature registry
     try:
         from data.feature_registry import get_feature_groups_for_source, get_features_for_source
         from data.base import DataSource
-        source_enum    = DataSource.SYNTHEA if ds_key == 'synthea' else DataSource.OURA
+        source_enum    = DataSource.SYNTHEA if explorer_source_key == 'synthea' else DataSource.OURA
         feature_groups = get_feature_groups_for_source(source_enum)
         all_features   = get_features_for_source(source_enum)
     except Exception:
         feature_groups = {}
         all_features   = []
 
-    # For Synthea, load real data from the FHIR bundle; otherwise generate synthetic
+    # For Synthea, load FHIR. For wearable patients, prefer OMH/IEEE records.
     import numpy as np
     synthea_ts = None
-    if ds_key == 'synthea':
+    standard_ts = standard_wearable.time_series if standard_wearable is not None else None
+    if standard_ts is None and ds_key == 'synthea':
         try:
             from data.synthea_adapter import SyntheaAdapter
             fhir_path = f'demo_data/demo_synthea/{patient_id}.json'
@@ -695,7 +1392,11 @@ def data_explorer(patient_id):
         except Exception as e:
             print(f"[data-explorer] Could not load Synthea FHIR: {e}")
 
-    if synthea_ts is not None and not synthea_ts.empty:
+    if standard_ts is not None and not standard_ts.empty:
+        idx      = standard_ts.index
+        N_DAYS   = len(idx)
+        col_data = {col: standard_ts[col].tolist() for col in standard_ts.columns}
+    elif synthea_ts is not None and not synthea_ts.empty:
         idx      = synthea_ts.index
         N_DAYS   = len(idx)
         col_data = {col: synthea_ts[col].tolist() for col in synthea_ts.columns}
@@ -819,6 +1520,157 @@ def ai_assistant(patient_id):
         model_name='XGBoost Classifier (placeholder)',
         error=None,
     )
+
+
+@app.route('/api/notebooks')
+def list_notebooks():
+    """List all .ipynb files in the notebooks directory."""
+    os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
+    notebooks = []
+    for fname in sorted(os.listdir(NOTEBOOKS_DIR)):
+        if not fname.endswith('.ipynb'):
+            continue
+        fpath = os.path.join(NOTEBOOKS_DIR, fname)
+        stat  = os.stat(fpath)
+        notebooks.append({
+            'name':        fname,
+            'created':     datetime.fromtimestamp(stat.st_ctime).strftime('%b %d, %Y'),
+            'modified':    datetime.fromtimestamp(stat.st_mtime).strftime('%b %d, %Y %H:%M'),
+            'size_kb':     round(stat.st_size / 1024, 1),
+            'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{fname}',
+            'path':        f'{NOTEBOOKS_DIR}/{fname}',
+        })
+    return jsonify({'notebooks': notebooks, 'jupyter_base': JUPYTER_BASE_URL})
+
+
+@app.route('/api/notebooks/new', methods=['POST'])
+def create_notebook():
+    """Create a starter .ipynb pre-loaded with cohort sleep data."""
+    body = request.get_json(silent=True) or {}
+    name = re.sub(r'[^\w\- ]', '_', (body.get('name') or '').strip())
+    if not name:
+        name = f"cohort_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    if not name.endswith('.ipynb'):
+        name += '.ipynb'
+
+    os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
+    fpath = os.path.join(NOTEBOOKS_DIR, name)
+    if os.path.exists(fpath):
+        return jsonify({'error': f'Notebook "{name}" already exists'}), 409
+
+    patients       = load_patient_data()
+    cohort_stats   = _compute_cohort_stats(patients)
+    sleep_summaries = _compute_sleep_summaries(patients)
+
+    cohort_payload = {
+        'patients': [
+            {'id': p['id'], 'risk_level': p.get('risk_level', ''),
+             'conditions': p.get('conditions', ''), 'data_source': p.get('data_source', 'oura')}
+            for p in patients
+        ],
+        'sleep_summaries': sleep_summaries,
+        'cohort_stats': {'total': cohort_stats['total'], 'by_risk': cohort_stats['by_risk']},
+    }
+
+    nb = _build_notebook(json.dumps(cohort_payload, indent=2), len(patients), cohort_stats)
+    with open(fpath, 'w', encoding='utf-8') as f:
+        json.dump(nb, f, indent=2)
+
+    return jsonify({
+        'name':        name,
+        'path':        fpath,
+        'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{name}',
+    })
+
+
+def _build_notebook(cohort_json: str, n: int, stats: dict) -> dict:
+    """Return a Jupyter notebook dict pre-loaded with cohort data."""
+    br   = stats.get('by_risk', {})
+    now  = datetime.now().strftime('%Y-%m-%d %H:%M')
+    return {
+        'nbformat': 4, 'nbformat_minor': 5,
+        'metadata': {
+            'kernelspec': {'display_name': 'Python 3', 'language': 'python', 'name': 'python3'},
+            'language_info': {'name': 'python', 'version': '3.12.0'},
+        },
+        'cells': [
+            {'cell_type': 'markdown', 'id': 'intro', 'metadata': {}, 'source': [
+                f'# JupyterHealth — Cohort Analysis\n',
+                f'\n',
+                f'**Study:** Hepatic Encephalopathy Sleep Biomarkers  \n',
+                f'**Cohort:** {n} participants | High: {br.get("high",0)} · Medium: {br.get("medium",0)} · Low: {br.get("low",0)}  \n',
+                f'**Generated:** {now}\n',
+                f'\n',
+                f'`cohort_data` contains:\n',
+                f'- `patients` — ID, risk level, conditions, data source\n',
+                f'- `sleep_summaries` — 14-day avg sleep metrics (REM, Deep, Efficiency, WASO, SpO₂, …)\n',
+                f'- `cohort_stats` — risk distribution\n',
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'imports', 'metadata': {}, 'outputs': [], 'source': [
+                'import pandas as pd\n',
+                'import numpy as np\n',
+                'import matplotlib.pyplot as plt\n',
+                'import matplotlib.patches as mpatches\n',
+                'from matplotlib import rcParams\n',
+                '\n',
+                "rcParams['figure.figsize'] = (12, 4)\n",
+                "plt.style.use('seaborn-v0_8-whitegrid')\n",
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'load-data', 'metadata': {}, 'outputs': [], 'source': [
+                f'# ── Cohort data from JupyterHealth workbench ──────────────────────────\n',
+                f'import json\n',
+                f'cohort_data  = json.loads(r\'\'\'{cohort_json}\'\'\')\n',
+                f'patients_df  = pd.DataFrame(cohort_data["patients"])\n',
+                f'sleep_df     = pd.DataFrame(cohort_data["sleep_summaries"])\n',
+                f'\n',
+                f'print(f"Cohort: {{len(patients_df)}} participants")\n',
+                f'sleep_df.head()\n',
+            ]},
+            {'cell_type': 'markdown', 'id': 'analysis-md', 'metadata': {}, 'source': [
+                '## Sleep Biomarkers by Risk Level\n',
+                '\n',
+                'Compare REM %, Sleep Efficiency, and WASO across high / medium / low risk groups.\n',
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'sleep-by-risk', 'metadata': {}, 'outputs': [], 'source': [
+                'merged   = sleep_df.merge(patients_df[["id","risk_level"]], on="id", how="left")\n',
+                'merged   = merged[merged["risk_level"].isin(["high","medium","low"])]\n',
+                'metrics  = ["avg_rem_pct","avg_deep_pct","avg_efficiency","avg_waso","avg_spo2"]\n',
+                'labels   = ["REM %","Deep %","Efficiency %","WASO (min)","SpO₂ %"]\n',
+                'colors   = {"high":"#ef4444","medium":"#f59e0b","low":"#22c55e"}\n',
+                '\n',
+                'fig, axes = plt.subplots(1, len(metrics), figsize=(16, 4))\n',
+                'for ax, metric, label in zip(axes, metrics, labels):\n',
+                '    for risk in ["high","medium","low"]:\n',
+                '        vals = merged[merged["risk_level"]==risk][metric]\n',
+                '        ax.bar(risk, vals.mean(), color=colors[risk], alpha=0.85)\n',
+                '        ax.errorbar(risk, vals.mean(), yerr=vals.std(), fmt="none", color="#475569", capsize=4)\n',
+                '    ax.set_title(label, fontsize=11, fontweight="bold"); ax.set_xlabel("")\n',
+                'handles = [mpatches.Patch(color=c,label=r.capitalize()) for r,c in colors.items()]\n',
+                'axes[0].legend(handles=handles, fontsize=9)\n',
+                'fig.suptitle("Sleep Biomarkers by Risk Level", fontsize=13, fontweight="bold", y=1.02)\n',
+                'plt.tight_layout(); plt.show()\n',
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'correlation', 'metadata': {}, 'outputs': [], 'source': [
+                'cols   = ["avg_tst","avg_rem_pct","avg_deep_pct","avg_efficiency","avg_latency","avg_waso","avg_spo2"]\n',
+                'labels = ["TST","REM%","Deep%","Efficiency","Latency","WASO","SpO₂"]\n',
+                'corr   = sleep_df[cols].corr()\n',
+                '\n',
+                'fig, ax = plt.subplots(figsize=(7, 6))\n',
+                'im = ax.imshow(corr, cmap="RdBu_r", vmin=-1, vmax=1)\n',
+                'plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)\n',
+                'ax.set_xticks(range(len(cols))); ax.set_yticks(range(len(cols)))\n',
+                'ax.set_xticklabels(labels, rotation=45, ha="right")\n',
+                'ax.set_yticklabels(labels)\n',
+                'for i in range(len(cols)):\n',
+                '    for j in range(len(cols)):\n',
+                '        v = corr.iloc[i,j]\n',
+                '        ax.text(j,i,f"{v:.2f}",ha="center",va="center",fontsize=8,\n',
+                '                color="white" if abs(v)>0.5 else "black")\n',
+                'ax.set_title("Sleep Metric Correlation Matrix", fontsize=12, fontweight="bold")\n',
+                'plt.tight_layout(); plt.show()\n',
+            ]},
+        ],
+    }
 
 
 if __name__ == '__main__':

@@ -1,740 +1,1572 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Wearables Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            line-height: 1.5;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px 32px;
-        }
-        
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 32px;
-        }
-        
-        .header-left h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 4px;
-        }
-        
-        .header-left p {
-            font-size: 14px;
-            color: #64748b;
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+{% extends "base_layout.html" %}
 
-        .user-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: #334155;
-        }
+{% block title %}Cohort Overview{% endblock %}
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-        }
+{% block head %}
+<style>
+    :root { --accent: #3b82f6; }
+    body { padding-top: 64px; }
 
-        /* ── Paradigm Selector ─────────────────────────────────────────────── */
-        .paradigm-wrapper { position: relative; }
+    /* ── Top nav ──────────────────────────────────────────────────────── */
+    .topnav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+        height: 64px; background: #fff; border-bottom: 1px solid #e2e8f0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 32px; gap: 16px;
+    }
+    .topnav-brand {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 16px; font-weight: 700; color: #1e293b; text-decoration: none;
+        white-space: nowrap;
+    }
+    .topnav-brand-sub {
+        font-size: 12px; font-weight: 400; color: #64748b;
+        padding-left: 10px; border-left: 1px solid #e2e8f0; margin-left: 2px;
+    }
+    .topnav-right { display: flex; align-items: center; gap: 12px; }
 
-        .paradigm-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 12px;
-            background: #F59E0B;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-        }
-        .paradigm-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
-        .paradigm-btn:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .paradigm-btn-arrow { width:14px; height:14px; transition: transform 0.2s ease; opacity:0.85; }
-        .paradigm-btn-arrow.open { transform: rotate(180deg); }
+    .btn-add {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 16px; border: none; border-radius: 10px;
+        background: #10b981; color: #fff; font-family: inherit;
+        font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(16,185,129,0.3);
+        transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-add:hover:not(:disabled) { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16,185,129,0.35); }
+    .btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-add .spinner {
+        width: 12px; height: 12px;
+        border: 2px solid rgba(255,255,255,0.35);
+        border-top-color: #fff; border-radius: 50%;
+        animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        .paradigm-dropdown {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 320px;
-            background: #ffffff;
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-            z-index: 1000;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-6px);
-            pointer-events: none;
-            transition: opacity 0.18s ease, transform 0.18s ease;
-        }
-        .paradigm-dropdown.open { opacity:1; transform:translateY(0); pointer-events:auto; }
+    .avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-weight: 600; font-size: 13px; flex-shrink: 0;
+        user-select: none;
+    }
 
-        .paradigm-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            cursor: pointer;
-            border-bottom: 1px solid #F3F4F6;
-            transition: background 0.15s;
-            position: relative;
-        }
-        .paradigm-option:last-child { border-bottom: none; }
-        .paradigm-option:hover { background: #F9FAFB; }
-        .paradigm-option.active {
-            background: #EFF6FF;
-            border-left: 3px solid var(--option-color, #F59E0B);
-            padding-left: 15px;
-        }
-        .paradigm-option-icon { font-size:22px; line-height:1; flex-shrink:0; }
-        .paradigm-option-text { flex:1; min-width:0; }
-        .paradigm-option-name { font-size:13px; font-weight:600; color:#1A2332; line-height:1.3; }
-        .paradigm-option-desc { font-size:12px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .paradigm-option-check { width:16px; height:16px; color:var(--option-color,#F59E0B); flex-shrink:0; opacity:0; transition:opacity 0.15s; }
-        .paradigm-option.active .paradigm-option-check { opacity:1; }
-        
-        /* Filter Tabs */
-        .filter-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-tab {
-            padding: 10px 20px;
-            border-radius: 9999px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #e2e8f0;
-            background: white;
-            color: #475569;
-        }
-        
-        .filter-tab:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-        
-        .filter-tab.active {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-        
-        /* Search Box */
-        .search-container {
-            margin-bottom: 24px;
-        }
-        
-        .search-box {
-            position: relative;
-            max-width: 300px;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px 16px 12px 44px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #334155;
-            background: white;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        
-        .search-box input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .search-box input::placeholder {
-            color: #94a3b8;
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-        }
-        
-        /* Patient Table */
-        .table-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-        
-        .table-header {
-            display: grid;
-            grid-template-columns: 190px 130px 1fr;
-            padding: 16px 24px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            gap: 16px;
-        }
+    /* ── Page layout ──────────────────────────────────────────────────── */
+    .page { max-width: 1440px; margin: 0 auto; padding: 28px 32px; }
 
-        .table-header span {
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+    .page-heading { margin-bottom: 24px; }
+    .page-heading h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+    .page-heading p  { font-size: 13px; color: #64748b; }
 
-        .patient-row {
-            display: grid;
-            grid-template-columns: 190px 130px 1fr;
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f5f9;
-            align-items: center;
-            gap: 16px;
-            transition: background 0.15s ease;
-        }
-        
-        .patient-row:hover {
-            background: #f8fafc;
-        }
-        
-        .patient-row:last-child {
-            border-bottom: none;
-        }
-        
-        /* Patient ID */
-        .patient-id {
-            font-weight: 600;
-            color: #2563eb;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        
-        .patient-id:hover {
-            text-decoration: underline;
-        }
-        
-        /* Patient cell */
-        .patient-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .patient-name {
-            font-size: 12px;
-            color: #64748b;
-        }
-        .notify-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 4px;
-            padding: 4px 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            background: #ffffff;
-            color: #475569;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            width: fit-content;
-            transition: background 0.15s, border-color 0.15s, color 0.15s;
-        }
-        .notify-btn:hover {
-            background: #eff6ff;
-            border-color: #93c5fd;
-            color: #1d4ed8;
-        }
-        .notify-btn.sent {
-            background: #dcfce7;
-            border-color: #86efac;
-            color: #166534;
-        }
+    /* ── Stat cards row ───────────────────────────────────────────────── */
+    .stat-row {
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        gap: 16px; margin-bottom: 28px;
+    }
+    .stat-card {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        padding: 20px 22px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .stat-card-label {
+        font-size: 11px; font-weight: 600; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .stat-card-value {
+        font-size: 32px; font-weight: 700; color: #1e293b; line-height: 1;
+    }
+    .stat-card-sub { font-size: 12px; color: #64748b; }
+    .stat-card.risk-high .stat-card-value { color: #dc2626; }
+    .stat-card.risk-medium .stat-card-value { color: #d97706; }
 
-        /* Status cell — compact */
-        .status-cell { display: flex; align-items: flex-start; }
+    /* ── Two-column body ──────────────────────────────────────────────── */
+    .body-cols {
+        display: grid; grid-template-columns: 320px 1fr;
+        gap: 20px; align-items: start;
+    }
 
-        /* Activity cell */
-        .activity-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .activity-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #475569;
-        }
-        .activity-row svg { flex-shrink: 0; color: #94a3b8; }
-        .activity-label { color: #94a3b8; margin-right: 2px; }
+    /* ── Left panel ───────────────────────────────────────────────────── */
+    .left-panel { display: flex; flex-direction: column; gap: 20px; }
 
-        /* Model status pill */
-        .model-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 600;
-            width: fit-content;
-        }
-        .model-pill-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .model-pill.mp-alert   { background: #fee2e2; color: #991b1b; }
-        .model-pill.mp-alert   .model-pill-dot { background: #ef4444; }
-        .model-pill.mp-warn    { background: #fef3c7; color: #92400e; }
-        .model-pill.mp-warn    .model-pill-dot { background: #f59e0b; }
-        .model-pill.mp-ok      { background: #dcfce7; color: #166534; }
-        .model-pill.mp-ok      .model-pill-dot { background: #22c55e; }
-        .model-pill.mp-pending { background: #f1f5f9; color: #64748b; }
-        .model-pill.mp-pending .model-pill-dot { background: #94a3b8; }
+    .panel-card {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        padding: 20px 22px;
+    }
+    .panel-card-title {
+        font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 16px;
+    }
 
-        /* Column-header inline legend */
-        .col-legend {
-            display: flex;
-            gap: 12px;
-            margin-top: 4px;
-            flex-wrap: wrap;
-        }
-        .col-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            font-weight: 400;
-            color: #94a3b8;
-            text-transform: none;
-            letter-spacing: 0;
-        }
-        .col-legend-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-        }
-        .col-legend-dot.active    { background: #22c55e; }
-        .col-legend-dot.follow-up { background: #f59e0b; }
-        .col-legend-dot.outreach  { background: #ef4444; }
-        .col-legend-dot.complete  { background: #94a3b8; }
+    /* Donut chart */
+    .donut-wrap {
+        display: flex; align-items: center; gap: 20px;
+    }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .donut-legend-item {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 12px; color: #475569;
+    }
+    .donut-legend-dot {
+        width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .donut-legend-item strong { font-weight: 600; color: #1e293b; margin-left: auto; }
 
-        /* Toast notification */
-        #notifyToast {
-            position: fixed;
-            bottom: 28px;
-            right: 28px;
-            background: #1e293b;
-            color: #ffffff;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(8px);
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            pointer-events: none;
-            max-width: 340px;
-        }
-        #notifyToast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* Status Badge */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-        
-        .status-badge.active {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .status-badge.follow-up {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .status-badge.outreach {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .status-badge.complete {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        /* SVG Icons */
-        svg { flex-shrink: 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <h1>Patient Wearables Dashboard</h1>
-                <p>Patient's Wearable Data Integration</p>
-            </div>
-            <div class="header-right">
-                <!-- Paradigm Selector -->
-                <div class="paradigm-wrapper" id="paradigmWrapper">
-                    <button class="paradigm-btn" id="paradigmBtn" type="button"
-                            aria-haspopup="listbox" aria-expanded="false"
-                            aria-label="Select clinical paradigm">
-                        <span id="paradigmIcon">🫀</span>
-                        <span id="paradigmLabel">Liver Disease</span>
-                        <svg class="paradigm-btn-arrow" id="paradigmArrow"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                             aria-hidden="true">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </button>
-                    <div class="paradigm-dropdown" id="paradigmDropdown" role="listbox"
-                         aria-label="Clinical paradigms"></div>
-                </div>
-                <span class="user-name">Dr. A. Buckholz</span>
-                <div class="avatar">AB</div>
-            </div>
-        </header>
-        
-        <!-- Filter Tabs -->
-        <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="all">All Patients ({{ all_count }})</button>
-            <button class="filter-tab" data-filter="generating">Actively Collecting Data ({{ generating_count }})</button>
-            <button class="filter-tab" data-filter="overlap">Dual Data Source ({{ overlap_count }})</button>
-            <button class="filter-tab" data-filter="complete">Complete Admission Data ({{ complete_count }})</button>
-            <button class="filter-tab" data-filter="follow-up">Needs Follow-up ({{ follow_up_count }})</button>
+    /* Condition bars */
+    .cond-list { display: flex; flex-direction: column; gap: 10px; }
+    .cond-row { display: flex; flex-direction: column; gap: 3px; }
+    .cond-row-top {
+        display: flex; justify-content: space-between;
+        font-size: 12px; color: #475569;
+    }
+    .cond-row-top span:last-child { font-weight: 600; color: #1e293b; }
+    .cond-bar-bg {
+        height: 6px; background: #f1f5f9; border-radius: 9999px; overflow: hidden;
+    }
+    .cond-bar-fill {
+        height: 100%; background: #3b82f6; border-radius: 9999px;
+        transition: width 0.6s ease;
+    }
+
+    /* ── Right panel: roster ──────────────────────────────────────────── */
+    .roster-card {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        overflow: hidden;
+    }
+    .roster-toolbar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px 20px; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
+    }
+    .search-wrap {
+        position: relative; flex: 1; min-width: 180px; max-width: 260px;
+    }
+    .search-wrap svg {
+        position: absolute; left: 10px; top: 50%;
+        transform: translateY(-50%); color: #94a3b8; pointer-events: none;
+    }
+    .search-wrap input {
+        width: 100%; padding: 7px 12px 7px 34px;
+        border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px;
+        font-family: inherit; color: #1e293b; background: #f8fafc; outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-wrap input:focus {
+        border-color: #3b82f6; background: #fff;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+    }
+    .search-wrap input::placeholder { color: #94a3b8; }
+
+    /* Filter pills */
+    .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill {
+        padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 9999px;
+        font-size: 12px; font-weight: 500; color: #64748b;
+        cursor: pointer; background: #fff;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        white-space: nowrap; user-select: none;
+    }
+    .pill:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .pill.active { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; font-weight: 600; }
+    .pill.risk-high.active  { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .pill.risk-medium.active{ background: #fef3c7; border-color: #fde68a; color: #92400e; }
+    .pill.risk-low.active   { background: #dcfce7; border-color: #86efac; color: #166534; }
+
+    /* Table */
+    .roster-table { width: 100%; border-collapse: collapse; }
+    .roster-table thead tr {
+        background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+    }
+    .roster-table thead th {
+        padding: 10px 16px; text-align: left;
+        font-size: 11px; font-weight: 600; color: #64748b;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
+    .roster-table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.12s;
+        cursor: pointer;
+    }
+    .roster-table tbody tr:hover { background: #f8fafc; }
+    .roster-table tbody tr:last-child { border-bottom: none; }
+    .roster-table td { padding: 12px 16px; font-size: 13px; color: #475569; vertical-align: middle; }
+
+    .pt-id-link {
+        font-weight: 600; color: #2563eb; text-decoration: none;
+        white-space: nowrap;
+    }
+    .pt-id-link:hover { text-decoration: underline; }
+
+    /* Risk badge */
+    .rbadge {
+        display: inline-flex; align-items: center;
+        padding: 2px 9px; border-radius: 9999px;
+        font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .rbadge-high   { background: #fee2e2; color: #991b1b; }
+    .rbadge-medium { background: #fef3c7; color: #92400e; }
+    .rbadge-low    { background: #dcfce7; color: #166534; }
+    .rbadge-unknown{ background: #f1f5f9; color: #64748b; }
+
+    /* Source badge */
+    .src-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 8px; border-radius: 6px;
+        font-size: 11px; font-weight: 500; white-space: nowrap;
+        background: #f1f5f9; color: #475569;
+    }
+    .src-badge.oura    { background: #eff6ff; color: #1d4ed8; }
+    .src-badge.synthea { background: #f0fdf4; color: #166534; }
+    .src-badge.omh_ieee,
+    .src-badge.synthea_omh_ieee { background: #ecfeff; color: #0e7490; }
+
+    /* Conditions cell */
+    .cond-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+    .cond-tag {
+        padding: 2px 7px; border-radius: 5px;
+        background: #f1f5f9; font-size: 11px; color: #475569;
+        white-space: nowrap;
+    }
+
+    /* Arrow col */
+    .arrow-col { color: #cbd5e1; text-align: right; }
+    .roster-table tbody tr:hover .arrow-col { color: #3b82f6; }
+
+    /* Empty state */
+    .empty-state {
+        padding: 48px 20px; text-align: center; color: #94a3b8;
+        font-size: 14px;
+    }
+
+    /* Stat card + button */
+    .stat-card-top {
+        display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .stat-card-top .stat-card-label { margin-bottom: 0; }
+    .stat-card-plus {
+        width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid #e2e8f0;
+        background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        color: #64748b; font-size: 16px; line-height: 1; flex-shrink: 0;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .stat-card-plus:hover { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+
+    /* Modal overlay */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(15,23,42,0.4);
+        z-index: 500; display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-box {
+        background: #fff; border-radius: 14px; padding: 28px;
+        width: 380px; max-width: calc(100vw - 32px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+        transform: translateY(8px); transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .modal-sub   { font-size: 13px; color: #64748b; margin-bottom: 18px; }
+    .modal-input {
+        width: 100%; padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        font-size: 13px; font-family: inherit; color: #1e293b; outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s; background: #f8fafc;
+        margin-bottom: 14px;
+    }
+    .modal-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.12); background: #fff; }
+    .modal-input::placeholder { color: #94a3b8; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-btn-cancel {
+        padding: 8px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #475569; font-size: 13px; font-weight: 500;
+        font-family: inherit; cursor: pointer; transition: background 0.15s;
+    }
+    .modal-btn-cancel:hover { background: #f8fafc; }
+    .modal-btn-submit {
+        padding: 8px 18px; border: none; border-radius: 8px;
+        background: #3b82f6; color: #fff; font-size: 13px; font-weight: 600;
+        font-family: inherit; cursor: pointer; transition: background 0.15s;
+    }
+    .modal-btn-submit:hover { background: #2563eb; }
+
+    /* Autocomplete result rows */
+    .cond-result {
+        display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+        cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.12s;
+    }
+    .cond-result:last-child { border-bottom: none; }
+    .cond-result:hover { background: #f8fafc; }
+    .cond-result.already-tracked { opacity: 0.55; cursor: default; }
+    .cond-result-main { flex: 1; min-width: 0; }
+    .cond-result-name { font-size: 13px; font-weight: 500; color: #1e293b; }
+    .cond-result-name em { font-style: normal; background: #fef9c3; border-radius: 2px; }
+    .cond-result-meta { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .cond-result-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+    .cond-count-badge {
+        font-size: 11px; font-weight: 600; padding: 1px 7px;
+        border-radius: 9999px; background: #f1f5f9; color: #475569;
+    }
+    .cond-count-badge.has-count { background: #dcfce7; color: #166534; }
+    .cond-tracked-badge {
+        font-size: 10px; font-weight: 600; padding: 1px 6px;
+        border-radius: 4px; background: #eff6ff; color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+    .cond-section-header {
+        padding: 6px 14px 4px; font-size: 10px; font-weight: 700;
+        color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em;
+        background: #f8fafc; border-bottom: 1px solid #f1f5f9;
+        position: sticky; top: 0;
+    }
+    .cond-custom-row {
+        display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+        cursor: pointer; color: #3b82f6; font-size: 13px; font-weight: 500;
+        border-top: 1px solid #f1f5f9; transition: background 0.12s;
+    }
+    .cond-custom-row:hover { background: #eff6ff; }
+
+    /* Source option tiles */
+    .src-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .src-option {
+        padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+        cursor: pointer; text-align: center; transition: border-color 0.15s, background 0.15s;
+        font-family: inherit;
+    }
+    .src-option:hover { border-color: #93c5fd; background: #eff6ff; }
+    .src-option.selected { border-color: #3b82f6; background: #eff6ff; }
+    .src-option-icon { font-size: 20px; margin-bottom: 4px; }
+    .src-option-name { font-size: 12px; font-weight: 600; color: #1e293b; }
+    .src-option-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* Toast */
+    #notifyToast {
+        position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+        background: #1e293b; color: #fff; padding: 12px 20px;
+        border-radius: 10px; font-size: 13px; font-weight: 500;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        opacity: 0; transform: translateY(8px); pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s; max-width: 340px;
+    }
+    #notifyToast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Dashboard tab nav ──────────────────────────────────────────── */
+    .dash-tab-nav {
+        display: flex; gap: 2px; margin-bottom: 28px;
+        background: #f1f5f9; border-radius: 10px; padding: 3px;
+        width: fit-content;
+    }
+    .dash-tab {
+        padding: 7px 20px; border-radius: 8px;
+        font-size: 13px; font-weight: 500; cursor: pointer;
+        border: none; background: transparent; color: #64748b;
+        font-family: inherit; transition: background 0.15s, color 0.15s;
+    }
+    .dash-tab:hover:not(.active) { background: rgba(0,0,0,0.04); color: #334155; }
+    .dash-tab.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* ── Cohort Explorer ───────────────────────────────────────────── */
+    .explorer-heading { margin-bottom: 20px; }
+    .explorer-heading h2 { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+    .explorer-heading p  { font-size: 13px; color: #64748b; }
+
+    .sleep-kpi-row {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;
+    }
+    .sleep-kpi-card {
+        background: #fff; border-radius: 12px; padding: 18px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07); display: flex; flex-direction: column; gap: 5px;
+    }
+    .sleep-kpi-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+    .sleep-kpi-value { font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1; }
+    .sleep-kpi-sub   { font-size: 12px; color: #64748b; }
+    .sleep-kpi-card.warn .sleep-kpi-value { color: #d97706; }
+    .sleep-kpi-card.alert .sleep-kpi-value { color: #dc2626; }
+
+    /* Cohort sleep table */
+    .cohort-sleep-card {
+        background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); overflow: hidden;
+    }
+    .cohort-sleep-toolbar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    }
+    .cohort-sleep-title { font-size: 14px; font-weight: 600; color: #1e293b; flex: 1; }
+    .sleep-table { width: 100%; border-collapse: collapse; }
+    .sleep-table thead tr { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .sleep-table thead th {
+        padding: 10px 14px; text-align: left;
+        font-size: 11px; font-weight: 600; color: #64748b;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    .sleep-table thead th:hover { color: #3b82f6; }
+    .sleep-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.12s; cursor: pointer; }
+    .sleep-table tbody tr:hover { background: #f8fafc; }
+    .sleep-table tbody tr:last-child { border-bottom: none; }
+    .sleep-table td { padding: 11px 14px; font-size: 13px; color: #475569; vertical-align: middle; }
+    .sleep-metric-cell { font-weight: 600; }
+    .sleep-metric-cell.good { color: #166534; }
+    .sleep-metric-cell.warn { color: #92400e; }
+    .sleep-metric-cell.bad  { color: #991b1b; }
+    .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 10px; }
+    .sort-active .sort-arrow { opacity: 1; color: #3b82f6; }
+
+    /* ── Notebooks panel ───────────────────────────────────────────── */
+    #jupyterNotice { display: flex !important; }  /* override inline none until JS runs */
+    #jupyterNotice a { color: #92400e; font-weight: 600; }
+    #jupyterNotice a:hover { text-decoration: underline; }
+    .nb-create-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 2px 8px; border-radius: 9999px;
+        background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+        font-size: 10px; font-weight: 600;
+    }
+
+    @media (max-width: 1100px) {
+        .body-cols { grid-template-columns: 1fr; }
+        .stat-row  { grid-template-columns: repeat(2, 1fr); }
+        .sleep-kpi-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        .page { padding: 20px 16px; }
+        .topnav { padding: 0 16px; }
+        .stat-row { grid-template-columns: 1fr 1fr; }
+        .btn-add span { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block topnav %}
+<nav class="topnav" role="navigation" aria-label="Main navigation">
+    <a class="topnav-brand" href="/">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        JupyterHealth
+        <span class="topnav-brand-sub">Research Workbench</span>
+    </a>
+
+    <div class="topnav-right">
+        <button class="btn-add" id="addPatientBtn" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="19" y2="14"/>
+                <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+            <span>Add Synthetic Patient</span>
+        </button>
+
+        <!-- Chat toggle — wired by base_layout.html JS -->
+        <button class="chat-toggle" id="chatToggle" title="Research Assistant" aria-label="Open Research Assistant">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </button>
+
+        <div class="avatar" title="Dr. A. Buckholz" aria-label="Logged-in user: AB">AB</div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block main %}
+<!-- Pass server data to JS -->
+<script>
+window.__cohortStats    = {{ cohort_stats    | tojson }};
+window.__sleepSummaries = {{ sleep_summaries | tojson }};
+</script>
+
+<div class="page">
+
+    <!-- Dashboard tab navigation -->
+    <div class="dash-tab-nav">
+        <button class="dash-tab active" id="tabOverview"   onclick="switchTab('overview')">Cohort Overview</button>
+        <button class="dash-tab"        id="tabExplorer"   onclick="switchTab('explorer')">Cohort Data Explorer</button>
+        <button class="dash-tab"        id="tabNotebooks"  onclick="switchTab('notebooks')">Notebooks</button>
+    </div>
+
+    <!-- ── Cohort Overview panel ─────────────────────────────────────── -->
+    <div id="panelOverview">
+
+    <div class="page-heading">
+        <h1>Cohort Overview</h1>
+        <p>Wearable &amp; clinical data across all enrolled participants</p>
+    </div>
+
+    <!-- ── Stats cards ───────────────────────────────────────────────── -->
+    {% set stats = cohort_stats %}
+    {% set total = stats.total | default(0) %}
+    {% set high  = stats.by_risk.high   | default(0) %}
+    {% set med   = stats.by_risk.medium | default(0) %}
+    {% set low_r = stats.by_risk.low    | default(0) %}
+
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="stat-card-label">Total Participants</div>
+            <div class="stat-card-value">{{ total }}</div>
+            <div class="stat-card-sub">{{ stats.active | default(0) }} actively collecting</div>
         </div>
-        
-        <!-- Search -->
-        <div class="search-container">
-            <div class="search-box">
-                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input type="text" id="searchInput" placeholder="Search patients...">
+        <div class="stat-card risk-high">
+            <div class="stat-card-label">High Risk</div>
+            <div class="stat-card-value">{{ high }}</div>
+            <div class="stat-card-sub">
+                {% if total > 0 %}{{ ((high / total) * 100) | round | int }}% of cohort{% else %}—{% endif %}
             </div>
         </div>
-
-        <!-- Patient Table -->
-        <div class="table-card">
-            <div class="table-header">
-                <span>Patient</span>
-                <span>Status</span>
-                <span>
-                    EHR Sync &amp; Clinical Activity
-                    <div class="col-legend">
-                        <div class="col-legend-item"><span class="col-legend-dot active"></span>Active</div>
-                        <div class="col-legend-item"><span class="col-legend-dot follow-up"></span>Follow-up</div>
-                        <div class="col-legend-item"><span class="col-legend-dot outreach"></span>Outreach</div>
-                        <div class="col-legend-item"><span class="col-legend-dot complete"></span>Complete</div>
-                    </div>
-                </span>
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <div class="stat-card-label">Conditions Tracked</div>
+                <button class="stat-card-plus" onclick="openCondModal()" title="Add condition">+</button>
             </div>
+            {% set observed_ct = stats.conditions | length %}
+            {% set study_only_ct = stats.all_conditions | selectattr('count', 'equalto', 0) | list | length %}
+            <div class="stat-card-value">{{ stats.all_conditions | length }}</div>
+            <div class="stat-card-sub">
+                {{ observed_ct }} observed
+                {% if study_only_ct %} · {{ study_only_ct }} study-defined{% endif %}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <div class="stat-card-label">Data Sources</div>
+                <button class="stat-card-plus" onclick="openModal('srcModal')" title="Connect data source">+</button>
+            </div>
+            <div class="stat-card-value">{{ stats.by_source | length }}</div>
+            <div class="stat-card-sub">
+                {% for src, cnt in stats.by_source.items() %}{{ cnt }} {{ src }}{% if not loop.last %}, {% endif %}{% endfor %}
+            </div>
+        </div>
+    </div>
 
-            <div id="patientList">
-                {% for patient in patients %}
-                <div class="patient-row" data-status="{{ patient.status }}" data-has-oura="{{ patient.has_oura }}" data-has-ehr="{{ patient.has_ehr }}">
+    <!-- ── Two-column body ───────────────────────────────────────────── -->
+    <div class="body-cols">
 
-                    <!-- Col 1: Patient -->
-                    <div class="patient-cell">
-                        <a href="/patient/{{ patient.id }}" class="patient-id">{{ patient.id }}</a>
-                        {% if patient.name and patient.name != patient.id %}
-                            <span class="patient-name">{{ patient.name }}</span>
+        <!-- Left panel: charts -->
+        <div class="left-panel">
+
+            <!-- Risk distribution donut -->
+            <div class="panel-card">
+                <div class="panel-card-title">Risk Distribution</div>
+                <div class="donut-wrap">
+                    <svg id="donutSvg" width="110" height="110" viewBox="0 0 110 110" aria-label="Risk distribution donut chart">
+                        <!-- JS fills this in -->
+                    </svg>
+                    <div class="donut-legend">
+                        <div class="donut-legend-item">
+                            <span class="donut-legend-dot" style="background:#ef4444"></span>
+                            High Risk
+                            <strong>{{ high }}</strong>
+                        </div>
+                        <div class="donut-legend-item">
+                            <span class="donut-legend-dot" style="background:#f59e0b"></span>
+                            Medium
+                            <strong>{{ med }}</strong>
+                        </div>
+                        <div class="donut-legend-item">
+                            <span class="donut-legend-dot" style="background:#22c55e"></span>
+                            Low
+                            <strong>{{ low_r }}</strong>
+                        </div>
+                        {% if stats.by_risk.unknown | default(0) > 0 %}
+                        <div class="donut-legend-item">
+                            <span class="donut-legend-dot" style="background:#cbd5e1"></span>
+                            Unknown
+                            <strong>{{ stats.by_risk.unknown }}</strong>
+                        </div>
                         {% endif %}
-                        <button class="notify-btn"
-                                onclick="sendNotification(this, '{{ patient.id }}')"
-                                title="Send wearable sync request to patient">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Condition prevalence (observed + study-tracked) -->
+            {% if stats.all_conditions %}
+            <div class="panel-card">
+                <div class="panel-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+                    Condition Prevalence
+                    <button class="stat-card-plus" onclick="openCondModal()" title="Track a condition"
+                            style="margin-left:8px;">+</button>
+                </div>
+                <div class="cond-list">
+                    {% set max_cond = stats.all_conditions[0].count if stats.all_conditions and stats.all_conditions[0].count > 0 else 1 %}
+                    {% for cond in stats.all_conditions %}
+                    <div class="cond-row">
+                        <div class="cond-row-top">
+                            <span style="display:flex;align-items:center;gap:5px;">
+                                {{ cond.name }}
+                                {% if cond.study_tracked %}
+                                <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;
+                                            background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;
+                                            white-space:nowrap;">Study</span>
+                                {% endif %}
+                            </span>
+                            {% if cond.count > 0 %}
+                            <span>{{ cond.count }}</span>
+                            {% else %}
+                            <span style="font-size:11px;color:#94a3b8;">Tracking</span>
+                            {% endif %}
+                        </div>
+                        {% if cond.count > 0 %}
+                        <div class="cond-bar-bg">
+                            <div class="cond-bar-fill"
+                                 style="width:{{ ((cond.count / max_cond) * 100) | round | int }}%;
+                                        background:{% if cond.study_tracked %}#3b82f6{% else %}#94a3b8{% endif %}">
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="cond-bar-bg" style="background:#f1f5f9;">
+                            <div style="height:6px;border-radius:9999px;width:100%;
+                                        background:repeating-linear-gradient(90deg,#bfdbfe 0,#bfdbfe 6px,transparent 6px,transparent 12px);">
+                            </div>
+                        </div>
+                        {% endif %}
+                        <button onclick="removeCondition('{{ cond.name }}')"
+                                style="display:none" class="cond-remove-btn" data-name="{{ cond.name }}">×</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div><!-- /.left-panel -->
+
+        <!-- Right panel: cohort roster -->
+        <div class="roster-card">
+            <div class="roster-toolbar">
+                <div class="search-wrap">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search participants…" aria-label="Search participants">
+                </div>
+
+                <div class="filter-pills" id="filterPills">
+                    <button class="pill active" data-filter="all">All</button>
+                    <button class="pill risk-high"   data-filter="high">High Risk</button>
+                    <button class="pill risk-medium" data-filter="medium">Medium</button>
+                    <button class="pill risk-low"    data-filter="low">Low</button>
+                    {% for src in stats.by_source %}
+                    <button class="pill" data-filter="src:{{ src }}">{{ src | capitalize }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <table class="roster-table" id="rosterTable">
+                <thead>
+                    <tr>
+                        <th>Participant</th>
+                        <th>Risk</th>
+                        <th>Conditions</th>
+                        <th>Source</th>
+                        <th>Last Record</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="rosterBody">
+                    {% for patient in patients %}
+                    <tr data-id="{{ patient.id }}"
+                        data-risk="{{ patient.risk_level | default('') }}"
+                        data-source="{{ patient.data_source | default('oura') }}"
+                        onclick="window.location='/patient/{{ patient.id }}'">
+                        <td>
+                            <a class="pt-id-link"
+                               href="/patient/{{ patient.id }}"
+                               onclick="event.stopPropagation()">{{ patient.id }}</a>
+                        </td>
+                        <td>
+                            {% set rl = patient.risk_level | default('') %}
+                            <span class="rbadge rbadge-{{ rl if rl in ['high','medium','low'] else 'unknown' }}">
+                                {{ rl | capitalize if rl else '—' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="cond-tags">
+                                {% set conds = patient.conditions | default('') %}
+                                {% if conds and conds.lower() != 'none' %}
+                                    {% for c in conds.split(',') %}
+                                        {% set ct = c.strip() %}
+                                        {% if ct %}<span class="cond-tag">{{ ct }}</span>{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <span style="color:#cbd5e1">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% set src = patient.data_source | default('oura') %}
+                            <span class="src-badge {{ src }}">
+                                {{ 'Synthea' if src == 'synthea_omh_ieee' else 'OMH/IEEE' if src == 'omh_ieee' else src | capitalize }}
+                            </span>
+                        </td>
+                        <td>{{ patient.last_sync | default('—') }}</td>
+                        <td class="arrow-col">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if not patients %}
+            <div class="empty-state">No participants enrolled yet. Add a synthetic patient to get started.</div>
+            {% endif %}
+        </div><!-- /.roster-card -->
+
+    </div><!-- /.body-cols -->
+
+    </div><!-- /#panelOverview -->
+
+    <!-- ── Cohort Data Explorer panel ───────────────────────────────── -->
+    <div id="panelExplorer" style="display:none;">
+
+        <div class="explorer-heading">
+            <h2>Cohort Data Explorer</h2>
+            <p>Sleep metrics across all enrolled participants · Oura Ring V2 · OMH Standard</p>
+        </div>
+
+        <!-- KPI summary row -->
+        <div class="sleep-kpi-row" id="sleepKpiRow">
+            <!-- filled by JS -->
+        </div>
+
+        <!-- Patient sleep metrics table -->
+        <div class="cohort-sleep-card">
+            <div class="cohort-sleep-toolbar">
+                <span class="cohort-sleep-title">Participant Sleep Metrics — 14-Day Average</span>
+                <span style="font-size:12px;color:#94a3b8;">Click column headers to sort</span>
+            </div>
+            <table class="sleep-table" id="sleepTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortSleepTable('id')">Participant <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('risk')">Risk <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_tst')">Avg TST (h) <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_rem_pct')">REM % <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_deep_pct')">Deep % <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_efficiency')">Efficiency % <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_latency')">Latency (min) <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_waso')">WASO (min) <span class="sort-arrow">↕</span></th>
+                        <th onclick="sortSleepTable('avg_spo2')">SpO₂ % <span class="sort-arrow">↕</span></th>
+                    </tr>
+                </thead>
+                <tbody id="sleepTableBody">
+                    <!-- filled by JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </div><!-- /#panelExplorer -->
+
+    <!-- ── Notebooks panel ──────────────────────────────────────────── -->
+    <div id="panelNotebooks" style="display:none;">
+
+        <div class="explorer-heading" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h2>Notebooks</h2>
+                <p>Analysis notebooks created from cohort data · opens in Jupyter Lab</p>
+            </div>
+            <button class="btn-add" id="newNbBtn" onclick="openNewNbModal()" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span>New Notebook</span>
+            </button>
+        </div>
+
+        <!-- Jupyter URL notice -->
+        <div id="jupyterNotice" style="display:none;margin-bottom:20px;padding:12px 16px;
+             background:#fffbeb;border:1px solid #fde68a;border-radius:10px;
+             font-size:13px;color:#92400e;display:flex;align-items:center;gap:10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span id="jupyterNoticeText"></span>
+        </div>
+
+        <!-- Empty state -->
+        <div id="nbEmptyState" style="display:none;padding:60px 20px;text-align:center;color:#94a3b8;font-size:14px;">
+            No notebooks yet. Click <strong>New Notebook</strong> to create one pre-loaded with cohort sleep data.
+        </div>
+
+        <!-- Notebooks table -->
+        <div id="nbTableWrap" class="cohort-sleep-card" style="display:none;">
+            <div class="cohort-sleep-toolbar">
+                <span class="cohort-sleep-title">Research Notebooks</span>
+                <span id="nbCount" style="font-size:12px;color:#94a3b8;"></span>
+            </div>
+            <table class="sleep-table" id="nbTable">
+                <thead>
+                    <tr>
+                        <th>Notebook</th>
+                        <th>Created</th>
+                        <th>Last Modified</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="nbTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Loading state -->
+        <div id="nbLoading" style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;">
+            Loading notebooks…
+        </div>
+
+    </div><!-- /#panelNotebooks -->
+
+</div><!-- /.page -->
+
+<div id="notifyToast"></div>
+
+<!-- ── New Notebook Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="newNbModal" onclick="handleOverlayClick(event,'newNbModal')">
+    <div class="modal-box">
+        <div class="modal-title">New Analysis Notebook</div>
+        <div class="modal-sub">Creates a Jupyter notebook pre-loaded with cohort sleep data, ready to open in Jupyter Lab.</div>
+        <input class="modal-input" id="nbNameInput" type="text"
+               placeholder="Notebook name (e.g. rem_sleep_analysis)"
+               maxlength="80" autocomplete="off">
+        <div style="font-size:12px;color:#94a3b8;margin-top:-10px;margin-bottom:14px;">
+            Leave blank for a timestamped name. The file will be saved to <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;">notebooks/</code>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn-cancel" onclick="closeModal('newNbModal')">Cancel</button>
+            <button class="modal-btn-submit" id="nbCreateBtn" onclick="createNotebook()">Create &amp; Open</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Track Condition Modal (autocomplete) ─────────────────────────── -->
+<div class="modal-overlay" id="condModal" onclick="handleOverlayClick(event,'condModal')">
+    <div class="modal-box" style="width:460px;">
+        <div class="modal-title">Track a Condition</div>
+        <div class="modal-sub">Search SNOMED / ICD-10 terms or enter a custom condition to monitor across the cohort.</div>
+
+        <div style="position:relative;">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;"
+                 width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input class="modal-input" id="condSearch" type="text"
+                   style="padding-left:34px;margin-bottom:0;"
+                   placeholder="Search conditions… (e.g. hepatic, diabetes, sleep apnea)"
+                   maxlength="100" autocomplete="off">
+            <!-- Dropdown results -->
+            <div id="condResults" style="
+                display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+                background:#fff; border:1px solid #e2e8f0; border-radius:10px;
+                box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:600;
+                max-height:280px; overflow-y:auto;
+            "></div>
+        </div>
+
+        <!-- Selected condition chip -->
+        <div id="condSelected" style="display:none;margin-top:10px;padding:10px 12px;
+             background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;
+             display:none;align-items:center;justify-content:space-between;gap:8px;">
+            <div>
+                <div id="condSelectedName" style="font-size:13px;font-weight:600;color:#1e293b;"></div>
+                <div id="condSelectedMeta" style="font-size:11px;color:#64748b;margin-top:1px;"></div>
+            </div>
+            <button onclick="clearCondSelection()"
+                    style="border:none;background:transparent;cursor:pointer;color:#64748b;font-size:16px;padding:0 2px;">×</button>
+        </div>
+
+        <div class="modal-footer" style="margin-top:14px;">
+            <button class="modal-btn-cancel" onclick="closeModal('condModal')">Cancel</button>
+            <button class="modal-btn-submit" id="condSubmitBtn" disabled
+                    onclick="submitCondition()" style="opacity:0.5;">Add to Study</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Connect Data Source Modal ────────────────────────────────────── -->
+<div class="modal-overlay" id="srcModal" onclick="handleOverlayClick(event,'srcModal')">
+    <div class="modal-box">
+        <div class="modal-title">Connect a Data Source</div>
+        <div class="modal-sub">Choose a wearable or clinical data integration to add to the cohort.</div>
+        <div class="src-options">
+            <button class="src-option" data-src="oura" onclick="selectSrc(this)">
+                <div class="src-option-icon">💍</div>
+                <div class="src-option-name">Oura Ring</div>
+                <div class="src-option-desc">Sleep &amp; biometrics</div>
+            </button>
+            <button class="src-option" data-src="synthea" onclick="selectSrc(this)">
+                <div class="src-option-icon">🧬</div>
+                <div class="src-option-name">Synthea FHIR</div>
+                <div class="src-option-desc">Synthetic EHR bundles</div>
+            </button>
+            <button class="src-option" data-src="open_wearables" onclick="selectSrc(this)">
+                <div class="src-option-icon">📡</div>
+                <div class="src-option-name">Open Wearables</div>
+                <div class="src-option-desc">Unified API (Q1 2026)</div>
+            </button>
+            <button class="src-option" data-src="ehr" onclick="selectSrc(this)">
+                <div class="src-option-icon">🏥</div>
+                <div class="src-option-name">EHR Flowsheets</div>
+                <div class="src-option-desc">Epic / Cerner export</div>
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn-cancel" onclick="closeModal('srcModal')">Cancel</button>
+            <button class="modal-btn-submit" onclick="submitSource()">Connect</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── Dashboard tab switching ─────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    let _explorerBuilt  = false;
+    let _notebooksBuilt = false;
+
+    const PANELS = ['overview', 'explorer', 'notebooks'];
+
+    window.switchTab = function (name) {
+        PANELS.forEach(p => {
+            const panel = document.getElementById(`panel${p.charAt(0).toUpperCase() + p.slice(1)}`);
+            const tab   = document.getElementById(`tab${p.charAt(0).toUpperCase() + p.slice(1)}`);
+            if (panel) panel.style.display = p === name ? '' : 'none';
+            if (tab)   tab.classList.toggle('active', p === name);
+        });
+        if (name === 'explorer'  && !_explorerBuilt)  { buildSleepExplorer(); _explorerBuilt = true; }
+        if (name === 'notebooks' && !_notebooksBuilt) { loadNotebooks();      _notebooksBuilt = true; }
+    };
+
+    /* ── Cohort Sleep Explorer ───────────────────────────────────────────── */
+    let _sortKey = 'id';
+    let _sortAsc = true;
+    let _data    = window.__sleepSummaries || [];
+
+    function buildSleepExplorer() {
+        renderKpis();
+        renderTable();
+    }
+
+    function avg(arr, key) {
+        if (!arr.length) return 0;
+        return arr.reduce((s, r) => s + (r[key] || 0), 0) / arr.length;
+    }
+
+    function renderKpis() {
+        const el = document.getElementById('sleepKpiRow');
+        if (!el || !_data.length) return;
+        const avgEff  = avg(_data, 'avg_efficiency').toFixed(1);
+        const avgRem  = avg(_data, 'avg_rem_pct').toFixed(1);
+        const avgWaso = Math.round(avg(_data, 'avg_waso'));
+        const avgSpo2 = avg(_data, 'avg_spo2').toFixed(1);
+        const effClass  = +avgEff  >= 85 ? '' : +avgEff  >= 75 ? 'warn' : 'alert';
+        const remClass  = +avgRem  >= 18 ? '' : +avgRem  >= 14 ? 'warn' : 'alert';
+        const wasoClass = avgWaso  <= 20 ? '' : avgWaso  <= 35 ? 'warn' : 'alert';
+        const spo2Class = +avgSpo2 >= 95 ? '' : +avgSpo2 >= 93 ? 'warn' : 'alert';
+        el.innerHTML = `
+            <div class="sleep-kpi-card ${effClass}">
+                <div class="sleep-kpi-label">Avg Sleep Efficiency</div>
+                <div class="sleep-kpi-value">${avgEff}<small style="font-size:16px;font-weight:400;">%</small></div>
+                <div class="sleep-kpi-sub">Normal ≥ 85%</div>
+            </div>
+            <div class="sleep-kpi-card ${remClass}">
+                <div class="sleep-kpi-label">Avg REM %</div>
+                <div class="sleep-kpi-value">${avgRem}<small style="font-size:16px;font-weight:400;">%</small></div>
+                <div class="sleep-kpi-sub">Normal 18–25%</div>
+            </div>
+            <div class="sleep-kpi-card ${wasoClass}">
+                <div class="sleep-kpi-label">Avg WASO</div>
+                <div class="sleep-kpi-value">${avgWaso}<small style="font-size:16px;font-weight:400;"> min</small></div>
+                <div class="sleep-kpi-sub">Normal ≤ 30 min</div>
+            </div>
+            <div class="sleep-kpi-card ${spo2Class}">
+                <div class="sleep-kpi-label">Avg SpO₂</div>
+                <div class="sleep-kpi-value">${avgSpo2}<small style="font-size:16px;font-weight:400;">%</small></div>
+                <div class="sleep-kpi-sub">Normal ≥ 95%</div>
+            </div>`;
+    }
+
+    function riskBadge(risk) {
+        const map = { high: 'rbadge-high', medium: 'rbadge-medium', low: 'rbadge-low' };
+        return `<span class="rbadge ${map[risk] || 'rbadge-unknown'}">${risk ? risk.charAt(0).toUpperCase() + risk.slice(1) : '—'}</span>`;
+    }
+    function mc(val, good, warn) {
+        const cls = +val >= good ? 'good' : +val >= warn ? 'warn' : 'bad';
+        return `<td class="sleep-metric-cell ${cls}">${val}</td>`;
+    }
+    function mcLow(val, good, warn) {
+        const cls = +val <= good ? 'good' : +val <= warn ? 'warn' : 'bad';
+        return `<td class="sleep-metric-cell ${cls}">${val}</td>`;
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('sleepTableBody');
+        if (!tbody) return;
+        const sorted = [..._data].sort((a, b) => {
+            const av = a[_sortKey], bv = b[_sortKey];
+            if (typeof av === 'string') return _sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+            return _sortAsc ? av - bv : bv - av;
+        });
+        document.querySelectorAll('.sleep-table th').forEach(th => th.classList.remove('sort-active'));
+        const keyMap = ['id','risk','avg_tst','avg_rem_pct','avg_deep_pct','avg_efficiency','avg_latency','avg_waso','avg_spo2'];
+        const headers = document.querySelectorAll('.sleep-table th');
+        keyMap.forEach((k, i) => { if (k === _sortKey && headers[i]) headers[i].classList.add('sort-active'); });
+        tbody.innerHTML = sorted.map(r => `
+            <tr onclick="window.location='/patient/${r.id}'">
+                <td><a class="pt-id-link" href="/patient/${r.id}" onclick="event.stopPropagation()">${r.id}</a></td>
+                <td>${riskBadge(r.risk)}</td>
+                <td class="sleep-metric-cell">${r.avg_tst}h</td>
+                ${mc(r.avg_rem_pct,  18, 14)}
+                ${mc(r.avg_deep_pct, 17, 13)}
+                ${mc(r.avg_efficiency, 85, 75)}
+                ${mcLow(r.avg_latency, 20, 35)}
+                ${mcLow(r.avg_waso,    20, 35)}
+                ${mc(r.avg_spo2, 95, 93)}
+            </tr>`).join('');
+    }
+
+    window.sortSleepTable = function (key) {
+        if (_sortKey === key) { _sortAsc = !_sortAsc; } else { _sortKey = key; _sortAsc = true; }
+        renderTable();
+    };
+})();
+
+/* ── Notebooks panel ─────────────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    let _jupyterBase = 'http://localhost:8888';
+
+    /* ── Load notebook list from server ─────────────────────────────────── */
+    async function loadNotebooks() {
+        showNbState('loading');
+        try {
+            const res  = await fetch('/api/notebooks');
+            const data = await res.json();
+            _jupyterBase = data.jupyter_base || _jupyterBase;
+            renderNotebooks(data.notebooks || []);
+        } catch (_) {
+            showNbState('empty');
+        }
+    }
+    window.loadNotebooks = loadNotebooks;
+
+    function showNbState(state) {
+        document.getElementById('nbLoading').style.display    = state === 'loading' ? '' : 'none';
+        document.getElementById('nbEmptyState').style.display = state === 'empty'   ? '' : 'none';
+        document.getElementById('nbTableWrap').style.display  = state === 'table'   ? '' : 'none';
+    }
+
+    function renderNotebooks(notebooks) {
+        const notice   = document.getElementById('jupyterNotice');
+        const noticeEl = document.getElementById('jupyterNoticeText');
+
+        if (notebooks.length === 0) {
+            notice.style.display = 'none';
+            showNbState('empty');
+            return;
+        }
+
+        // Show Jupyter URL hint
+        notice.style.display  = 'flex';
+        noticeEl.innerHTML = `Notebooks open in Jupyter Lab at <a href="${_jupyterBase}" target="_blank"
+            style="color:#92400e;font-weight:600;">${_jupyterBase}</a>.
+            Start Jupyter with <code style="background:#fef9c3;padding:1px 5px;border-radius:3px;">jupyter lab</code> if it isn't running.
+            Set <code style="background:#fef9c3;padding:1px 5px;border-radius:3px;">JUPYTER_BASE_URL</code> env var to change the URL.`;
+
+        document.getElementById('nbCount').textContent = `${notebooks.length} notebook${notebooks.length !== 1 ? 's' : ''}`;
+
+        const tbody = document.getElementById('nbTableBody');
+        tbody.innerHTML = notebooks.map(nb => `
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span style="font-weight:600;color:#1e293b;">${nb.name.replace('.ipynb','')}</span>
+                        <span style="font-size:11px;color:#94a3b8;">.ipynb</span>
+                    </div>
+                </td>
+                <td style="font-size:12px;">${nb.created}</td>
+                <td style="font-size:12px;">${nb.modified}</td>
+                <td style="font-size:12px;color:#94a3b8;">${nb.size_kb} KB</td>
+                <td>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <a href="${nb.jupyter_url}" target="_blank"
+                           style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+                                  background:#f59e0b;color:#fff;border-radius:7px;text-decoration:none;
+                                  font-size:12px;font-weight:600;white-space:nowrap;
+                                  transition:background 0.15s;"
+                           onmouseover="this.style.background='#d97706'"
+                           onmouseout="this.style.background='#f59e0b'">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2.5"
                                  stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 12 19.79 19.79 0 0 1 1.07 3.36 2 2 0 0 1 3.06 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91A16 16 0 0 0 13 14.82l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16v.92z"/>
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
                             </svg>
-                            Send Notification
+                            Open in Jupyter
+                        </a>
+                        <button onclick="copyToClipboard('${nb.path}')"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;
+                                       background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;
+                                       border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;
+                                       font-family:inherit;transition:background 0.15s;"
+                                title="Copy file path">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Copy path
                         </button>
                     </div>
+                </td>
+            </tr>`).join('');
+        showNbState('table');
+    }
 
-                    <!-- Col 2: Status (compact badge only) -->
-                    <div class="status-cell">
-                        <span class="status-badge {{ patient.status }}">
-                            {% if patient.status == 'active' %}Active
-                            {% elif patient.status == 'follow-up' %}Follow-up
-                            {% elif patient.status == 'outreach' %}Outreach
-                            {% else %}Complete{% endif %}
-                        </span>
-                    </div>
+    /* ── Create notebook modal ───────────────────────────────────────────── */
+    window.openNewNbModal = function () {
+        document.getElementById('nbNameInput').value = '';
+        document.getElementById('newNbModal').classList.add('open');
+        setTimeout(() => document.getElementById('nbNameInput').focus(), 60);
+    };
 
-                    <!-- Col 3: EHR Sync & Clinical Activity -->
-                    <div class="activity-cell">
-                        <!-- Wearable → EHR sync -->
-                        <div class="activity-row">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/>
-                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
-                            </svg>
-                            <span class="activity-label">Wearable → EHR:</span>
-                            <strong>{{ patient.last_sync }}</strong>
-                        </div>
-                        <!-- Last visit -->
-                        <div class="activity-row">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                            <span class="activity-label">Last visit:</span>
-                            {{ patient.last_visit or '—' }}
-                        </div>
-                        <!-- Model status pill -->
-                        <div class="activity-row">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
-                            </svg>
-                            <span class="model-pill mp-{{ patient.model_status_level }}">
-                                <span class="model-pill-dot"></span>
-                                Sleep: {{ patient.model_status_label }}
-                            </span>
-                        </div>
-                    </div>
-
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Toast notification element -->
-        <div id="notifyToast"></div>
-        
-    </div>
-    
-    <script>
-        // Filter tabs functionality
-        const filterTabs = document.querySelectorAll('.filter-tab');
-        const patientRows = document.querySelectorAll('.patient-row');
-        
-        filterTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Update active tab
-                filterTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                const filter = tab.dataset.filter;
-                
-                patientRows.forEach(row => {
-                    const status = row.dataset.status;
-                    const hasOura = row.dataset.hasOura === 'True';
-                    const hasEhr = row.dataset.hasEhr === 'True';
-                    
-                    let show = true;
-                    
-                    switch(filter) {
-                        case 'generating':
-                            show = hasOura || hasEhr;
-                            break;
-                        case 'overlap':
-                            show = hasOura && hasEhr;
-                            break;
-                        case 'complete':
-                            show = status === 'complete';
-                            break;
-                        case 'follow-up':
-                            show = status === 'follow-up' || status === 'outreach';
-                            break;
-                        default:
-                            show = true;
-                    }
-                    
-                    row.style.display = show ? 'grid' : 'none';
-                });
+    window.createNotebook = async function () {
+        const btn  = document.getElementById('nbCreateBtn');
+        const name = document.getElementById('nbNameInput').value.trim();
+        btn.disabled = true;
+        btn.textContent = 'Creating…';
+        try {
+            const res  = await fetch('/api/notebooks/new', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
             });
-        });
-        
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            patientRows.forEach(row => {
-                const patientId = row.querySelector('.patient-id').textContent.toLowerCase();
-                row.style.display = patientId.includes(query) ? 'grid' : 'none';
+            const data = await res.json();
+            if (res.status === 409) {
+                showToastNb(`"${data.error}" — choose a different name`);
+            } else if (!res.ok) {
+                throw new Error(data.error || 'Unknown error');
+            } else {
+                closeModal('newNbModal');
+                showToastNb(`"${data.name}" created — opening in Jupyter…`);
+                setTimeout(() => window.open(data.jupyter_url, '_blank'), 600);
+                _notebooksBuilt = false;
+                loadNotebooks();
+            }
+        } catch (err) {
+            showToastNb(`Error: ${err.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Create & Open';
+        }
+    };
+
+    window.copyToClipboard = function (text) {
+        navigator.clipboard.writeText(text).then(() => showToastNb(`Copied: ${text}`));
+    };
+
+    function showToastNb(msg) {
+        const t = document.getElementById('notifyToast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 4500);
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.getElementById('newNbModal')?.classList.contains('open')) {
+            window.createNotebook();
+        }
+    });
+})();
+
+/* ── Main dashboard JS ───────────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    /* ── Donut chart ────────────────────────────────────────────────── */
+    (function drawDonut() {
+        const stats   = window.__cohortStats || {};
+        const br      = stats.by_risk || {};
+        const segments = [
+            { value: br.high    || 0, color: '#ef4444' },
+            { value: br.medium  || 0, color: '#f59e0b' },
+            { value: br.low     || 0, color: '#22c55e' },
+            { value: br.unknown || 0, color: '#cbd5e1' },
+        ];
+        const total = segments.reduce((s, x) => s + x.value, 0);
+        const svg   = document.getElementById('donutSvg');
+        if (!svg) return;
+
+        const cx = 55, cy = 55, R = 42, r = 28;
+        const gap = total > 0 ? 0.02 : 0;  // small gap between segments
+
+        if (total === 0) {
+            svg.innerHTML =
+                `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#f1f5f9"/>
+                 <circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff"/>
+                 <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" fill="#94a3b8">0</text>`;
+            return;
+        }
+
+        let angle = -Math.PI / 2;
+        const paths = segments
+            .filter(s => s.value > 0)
+            .map(s => {
+                const frac  = s.value / total;
+                const sweep = frac * 2 * Math.PI * (1 - gap);
+                const a1    = angle + (frac * 2 * Math.PI * gap) / 2;
+                const a2    = a1 + sweep;
+                angle      += frac * 2 * Math.PI;
+
+                const x1o = cx + R * Math.cos(a1), y1o = cy + R * Math.sin(a1);
+                const x2o = cx + R * Math.cos(a2), y2o = cy + R * Math.sin(a2);
+                const x1i = cx + r * Math.cos(a2), y1i = cy + r * Math.sin(a2);
+                const x2i = cx + r * Math.cos(a1), y2i = cy + r * Math.sin(a1);
+                const lg  = sweep > Math.PI ? 1 : 0;
+
+                return `<path d="M${x1o},${y1o} A${R},${R} 0 ${lg},1 ${x2o},${y2o}
+                               L${x1i},${y1i} A${r},${r} 0 ${lg},0 ${x2i},${y2i} Z"
+                              fill="${s.color}"/>`;
             });
+
+        svg.innerHTML = paths.join('') +
+            `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff"/>
+             <text x="${cx}" y="${cy - 6}" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">${total}</text>
+             <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="10" fill="#94a3b8">enrolled</text>`;
+    })();
+
+    /* ── Filter pills ───────────────────────────────────────────────── */
+    const rows       = Array.from(document.querySelectorAll('#rosterBody tr'));
+    const searchEl   = document.getElementById('searchInput');
+    const pillsEl    = document.getElementById('filterPills');
+    let   activeFilter = 'all';
+    let   searchQuery  = '';
+
+    function applyFilters() {
+        rows.forEach(tr => {
+            const risk   = (tr.dataset.risk   || '').toLowerCase();
+            const source = (tr.dataset.source || '').toLowerCase();
+            const id     = (tr.dataset.id     || '').toLowerCase();
+
+            let show = true;
+            if (activeFilter === 'high'   && risk   !== 'high')   show = false;
+            if (activeFilter === 'medium' && risk   !== 'medium') show = false;
+            if (activeFilter === 'low'    && risk   !== 'low')    show = false;
+            if (activeFilter.startsWith('src:') && source !== activeFilter.slice(4)) show = false;
+            if (searchQuery && !id.includes(searchQuery)) show = false;
+            tr.style.display = show ? '' : 'none';
+        });
+    }
+
+    if (pillsEl) {
+        pillsEl.addEventListener('click', e => {
+            const pill = e.target.closest('.pill');
+            if (!pill) return;
+            pillsEl.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            activeFilter = pill.dataset.filter;
+            applyFilters();
+        });
+    }
+
+    if (searchEl) {
+        searchEl.addEventListener('input', e => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            applyFilters();
+        });
+    }
+
+    /* ── Modals ─────────────────────────────────────────────────────── */
+    function openModal(id) {
+        document.getElementById(id).classList.add('open');
+        const inp = document.querySelector(`#${id} .modal-input`);
+        if (inp) setTimeout(() => inp.focus(), 60);
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function handleOverlayClick(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+    // Expose globally so inline onclick and other IIFEs can call them
+    window.closeModal         = closeModal;
+    window.handleOverlayClick = handleOverlayClick;
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ['condModal','srcModal','newNbModal'].forEach(closeModal);
+    });
+
+    /* ── Condition autocomplete ──────────────────────────────────────── */
+    let _condSelection = null;   // { name, code, system, category }
+    let _debounceTimer = null;
+
+    function openCondModal() {
+        document.getElementById('condModal').classList.add('open');
+        clearCondSelection();
+        document.getElementById('condSearch').value = '';
+        document.getElementById('condResults').style.display = 'none';
+        setTimeout(() => document.getElementById('condSearch').focus(), 60);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const inp = document.getElementById('condSearch');
+        if (!inp) return;
+
+        inp.addEventListener('input', () => {
+            clearTimeout(_debounceTimer);
+            const q = inp.value.trim();
+            if (q.length < 2) {
+                document.getElementById('condResults').style.display = 'none';
+                return;
+            }
+            _debounceTimer = setTimeout(() => fetchCondResults(q), 260);
         });
 
-        // ── Paradigm Selector ──────────────────────────────────────────────
-        (function () {
-            const PARADIGMS = [
-                { id: 'liver',     name: 'Liver Disease',     icon: '🫀', desc: 'Hepatic encephalopathy & decompensation',     color: '#F59E0B' },
-                { id: 'cirrhosis', name: 'Cirrhosis',          icon: '🔬', desc: 'Complication prevention & monitoring',          color: '#DC2626' },
-                { id: 'transplant',name: 'Post-Transplant',    icon: '🏥', desc: 'Rejection detection & medication adherence',    color: '#10B981' },
-                { id: 'metabolic', name: 'Metabolic Syndrome', icon: '💊', desc: 'MASLD / NASH & cardiovascular risk',            color: '#8B5CF6' },
-                { id: 'general',   name: 'General Medicine',   icon: '🩺', desc: 'General health monitoring',                    color: '#3B82F6' },
-            ];
-            const STORAGE_KEY = 'jhe_paradigm';
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                document.getElementById('condResults').style.display = 'none';
+            }
+        });
 
-            const btn      = document.getElementById('paradigmBtn');
-            const icon     = document.getElementById('paradigmIcon');
-            const label    = document.getElementById('paradigmLabel');
-            const arrow    = document.getElementById('paradigmArrow');
-            const dropdown = document.getElementById('paradigmDropdown');
-            const wrapper  = document.getElementById('paradigmWrapper');
-            if (!btn) return;
+        // Close dropdown on outside click
+        document.addEventListener('click', e => {
+            const box = document.getElementById('condResults');
+            const inp = document.getElementById('condSearch');
+            if (box && !box.contains(e.target) && e.target !== inp) {
+                box.style.display = 'none';
+            }
+        });
+    });
 
-            let isOpen   = false;
-            let activeId = localStorage.getItem(STORAGE_KEY) || 'liver';
+    async function fetchCondResults(q) {
+        const box = document.getElementById('condResults');
+        try {
+            const res  = await fetch(`/api/conditions/search?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            renderCondResults(data, q);
+        } catch (_) {
+            box.style.display = 'none';
+        }
+    }
 
-            function buildOptions() {
-                dropdown.innerHTML = PARADIGMS.map(p => `
-                    <div class="paradigm-option ${p.id === activeId ? 'active' : ''}"
-                         role="option" aria-selected="${p.id === activeId}"
-                         data-id="${p.id}" style="--option-color:${p.color}" tabindex="0">
-                        <span class="paradigm-option-icon">${p.icon}</span>
-                        <div class="paradigm-option-text">
-                            <div class="paradigm-option-name">${p.name}</div>
-                            <div class="paradigm-option-desc">${p.desc}</div>
-                        </div>
-                        <svg class="paradigm-option-check" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </div>`).join('');
-                dropdown.querySelectorAll('.paradigm-option').forEach(el => {
-                    el.addEventListener('click', () => select(el.dataset.id));
-                    el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); select(el.dataset.id); } });
+    function highlight(text, q) {
+        const idx = text.toLowerCase().indexOf(q.toLowerCase());
+        if (idx === -1) return text;
+        return text.slice(0, idx) +
+               '<em>' + text.slice(idx, idx + q.length) + '</em>' +
+               text.slice(idx + q.length);
+    }
+
+    function renderCondResults(results, q) {
+        const box = document.getElementById('condResults');
+        const inp = document.getElementById('condSearch');
+
+        let html = '';
+        const cohortResults = results.filter(r => r.cohort_count > 0);
+        const dictResults   = results.filter(r => r.cohort_count === 0);
+
+        if (cohortResults.length) {
+            html += `<div class="cond-section-header">In Your Cohort</div>`;
+            cohortResults.forEach(r => {
+                const tracked = r.study_tracked
+                    ? `<span class="cond-tracked-badge">Study</span>` : '';
+                const cls = r.study_tracked ? 'cond-result already-tracked' : 'cond-result';
+                const onclick = r.study_tracked ? '' : `onclick="selectCond(${JSON.stringify(r)})"`;
+                html += `<div class="${cls}" ${onclick}>
+                    <div class="cond-result-main">
+                        <div class="cond-result-name">${highlight(r.name, q)}</div>
+                        <div class="cond-result-meta">${r.category || ''}</div>
+                    </div>
+                    <div class="cond-result-right">
+                        <span class="cond-count-badge has-count">${r.cohort_count} pts</span>
+                        ${tracked}
+                    </div>
+                </div>`;
+            });
+        }
+
+        if (dictResults.length) {
+            html += `<div class="cond-section-header">Clinical Dictionary</div>`;
+            dictResults.forEach(r => {
+                const tracked = r.study_tracked
+                    ? `<span class="cond-tracked-badge">Study</span>` : '';
+                const cls = r.study_tracked ? 'cond-result already-tracked' : 'cond-result';
+                const onclick = r.study_tracked ? '' : `onclick="selectCond(${JSON.stringify(r)})"`;
+                const codeMeta = r.code ? `${r.system} ${r.code}` : r.system || '';
+                html += `<div class="${cls}" ${onclick}>
+                    <div class="cond-result-main">
+                        <div class="cond-result-name">${highlight(r.name, q)}</div>
+                        <div class="cond-result-meta">${[r.category, codeMeta].filter(Boolean).join(' · ')}</div>
+                    </div>
+                    <div class="cond-result-right">${tracked}</div>
+                </div>`;
+            });
+        }
+
+        // Custom free-text fallback
+        html += `<div class="cond-custom-row" onclick="selectCond({name:${JSON.stringify(inp.value.trim())},code:'',system:'custom',category:''})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add "<strong>${inp.value.trim()}</strong>" as custom condition
+        </div>`;
+
+        box.innerHTML = html;
+        box.style.display = 'block';
+    }
+
+    function selectCond(obj) {
+        _condSelection = obj;
+        document.getElementById('condResults').style.display = 'none';
+        document.getElementById('condSearch').value = obj.name;
+
+        const sel  = document.getElementById('condSelected');
+        const name = document.getElementById('condSelectedName');
+        const meta = document.getElementById('condSelectedMeta');
+        name.textContent = obj.name;
+        const parts = [obj.category, obj.code ? `${obj.system} ${obj.code}` : (obj.system !== 'custom' ? obj.system : '')].filter(Boolean);
+        meta.textContent = parts.join(' · ') || 'Custom condition';
+        sel.style.display = 'flex';
+
+        const btn = document.getElementById('condSubmitBtn');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+
+    function clearCondSelection() {
+        _condSelection = null;
+        const sel = document.getElementById('condSelected');
+        if (sel) sel.style.display = 'none';
+        const btn = document.getElementById('condSubmitBtn');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    }
+
+    async function submitCondition() {
+        if (!_condSelection) return;
+        const btn = document.getElementById('condSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Adding…';
+
+        try {
+            const res = await fetch('/api/study/conditions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(_condSelection),
+            });
+            const data = await res.json();
+            if (res.status === 409) {
+                showToast(`"${_condSelection.name}" is already being tracked`);
+            } else if (!res.ok) {
+                throw new Error(data.error || 'Failed');
+            } else {
+                showToast(`"${_condSelection.name}" added to study conditions`);
+                closeModal('condModal');
+                setTimeout(() => location.reload(), 1200);
+            }
+        } catch (err) {
+            showToast(`Error: ${err.message}`);
+        } finally {
+            btn.textContent = 'Add to Study';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    async function removeCondition(name) {
+        try {
+            await fetch(`/api/study/conditions/${encodeURIComponent(name)}`, { method: 'DELETE' });
+            showToast(`"${name}" removed from study conditions`);
+            setTimeout(() => location.reload(), 1000);
+        } catch (_) {
+            showToast('Could not remove condition');
+        }
+    }
+
+    /* ── Data source modal ───────────────────────────────────────────── */
+    let _selectedSrc = null;
+    function selectSrc(el) {
+        document.querySelectorAll('.src-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        _selectedSrc = el.dataset.src;
+    }
+    function submitSource() {
+        if (!_selectedSrc) { showToast('Please select a data source first.'); return; }
+        const names = { oura:'Oura Ring', synthea:'Synthea FHIR', open_wearables:'Open Wearables', ehr:'EHR Flowsheets' };
+        showToast(`${names[_selectedSrc] || _selectedSrc} integration queued — configure in Settings`);
+        _selectedSrc = null;
+        document.querySelectorAll('.src-option').forEach(o => o.classList.remove('selected'));
+        closeModal('srcModal');
+    }
+
+    /* ── Add Synthetic Patient ──────────────────────────────────────── */
+    const addBtn = document.getElementById('addPatientBtn');
+    let _toastTimer = null;
+
+    function showToast(msg) {
+        const toast = document.getElementById('notifyToast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        if (_toastTimer) clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+
+    if (addBtn) {
+        addBtn.addEventListener('click', async function () {
+            if (addBtn.disabled) return;
+            addBtn.disabled = true;
+            addBtn.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const resp = await fetch('/api/generate-patient', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                 });
-            }
-
-            function applyParadigm(id) {
-                const p = PARADIGMS.find(x => x.id === id) || PARADIGMS[0];
-                icon.textContent  = p.icon;
-                label.textContent = p.name;
-                btn.style.background = p.color;
-            }
-
-            function select(id) {
-                activeId = id;
-                localStorage.setItem(STORAGE_KEY, id);
-                applyParadigm(id);
-                buildOptions();
-                closeDropdown();
-            }
-
-            function openDropdown()  { isOpen=true;  dropdown.classList.add('open');    arrow.classList.add('open');    btn.setAttribute('aria-expanded','true');  }
-            function closeDropdown() { isOpen=false; dropdown.classList.remove('open'); arrow.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
-
-            btn.addEventListener('click', e => { e.stopPropagation(); isOpen ? closeDropdown() : openDropdown(); });
-            document.addEventListener('click', e => { if (isOpen && !wrapper.contains(e.target)) closeDropdown(); });
-            document.addEventListener('keydown', e => { if (e.key==='Escape' && isOpen) closeDropdown(); });
-
-            buildOptions();
-            applyParadigm(activeId);
-        })();
-
-        // ── Send Patient Notification ──────────────────────────────────────
-        function sendNotification(btn, patientId) {
-            if (btn.classList.contains('sent')) return;
-            btn.classList.add('sent');
-            btn.innerHTML = `
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Sent`;
-
-            // In production this would POST to /api/notify/<patientId>
-            showToast(`Notification sent to ${patientId} — wearable sync requested`);
-
-            // Reset button after 8 s so it can be resent
-            setTimeout(() => {
-                btn.classList.remove('sent');
-                btn.innerHTML = `
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Unknown error');
+                const p = data.patient;
+                showToast(`${p.id} added — ${p.risk_level} risk · ${p.conditions}`);
+                setTimeout(() => location.reload(), 1600);
+            } catch (err) {
+                showToast(`Could not generate patient: ${err.message}`);
+                addBtn.disabled = false;
+                addBtn.innerHTML = `
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 12 19.79 19.79 0 0 1 1.07 3.36 2 2 0 0 1 3.06 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91A16 16 0 0 0 13 14.82l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16v.92z"/>
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <line x1="19" y1="8" x2="19" y2="14"/>
+                        <line x1="22" y1="11" x2="16" y2="11"/>
                     </svg>
-                    Send Notification`;
-            }, 8000);
-        }
-
-        let _toastTimer = null;
-        function showToast(msg) {
-            const toast = document.getElementById('notifyToast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            if (_toastTimer) clearTimeout(_toastTimer);
-            _toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
-        }
-    </script>
-</body>
-</html>
+                    <span>Add Synthetic Patient</span>`;
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

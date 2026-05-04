@@ -1,390 +1,260 @@
 {% extends "base.html" %}
 
-{% block title %}Overview{% endblock %}
+{% block title %}Overview — {{ patient.id }}{% endblock %}
 
-{% block head %}
+{% block page_head %}
 <style>
-    /* ── View-mode toggle ────────────────────────────────────────────────── */
-    .view-toggle-bar {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 24px;
+    /* ── Two-column grid ─────────────────────────────────────────────── */
+    .pt-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        align-items: start;
     }
 
-    .view-btn {
-        padding: 8px 20px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.2s, border-color 0.2s;
-        border: 1px solid #e2e8f0;
-        background: #ffffff;
-        color: #475569;
-        font-family: inherit;
-    }
+    /* ── Left column ─────────────────────────────────────────────────── */
+    .left-col { display: flex; flex-direction: column; gap: 16px; }
 
-    .view-btn:hover {
-        background: #f1f5f9;
+    /* Identity card */
+    .identity-card {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        padding: 22px 20px;
     }
-
-    .view-btn.active {
-        background: #3b82f6;
-        color: #ffffff;
-        border-color: #3b82f6;
-    }
-
-    /* ── Chart Cards ─────────────────────────────────────────────────────── */
-    .chart-card {
-        background: #ffffff;
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        margin-bottom: 24px;
-    }
-
-    .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .chart-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    .chart-date-range {
-        font-size: 13px;
-        color: #64748b;
-    }
-
-    .chart-area {
-        height: 300px;
-        position: relative;
-    }
-
-    .separate-chart-area {
-        height: 150px;
-        position: relative;
-        margin-bottom: 48px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .separate-chart-area:last-child {
-        margin-bottom: 0;
-        border-bottom: none;
-    }
-
-    .chart-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #1e293b;
+    .id-avatar {
+        width: 48px; height: 48px; border-radius: 12px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.5px;
         margin-bottom: 12px;
     }
-
-    /* ── Legend ──────────────────────────────────────────────────────────── */
-    .legend {
-        display: flex;
-        justify-content: center;
-        gap: 32px;
-        margin-top: 20px;
+    .id-patient-id { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+    .id-demo { font-size: 13px; color: #64748b; margin-bottom: 10px; }
+    .id-risk-badge {
+        display: inline-flex; align-items: center;
+        padding: 3px 10px; border-radius: 9999px;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+        margin-bottom: 16px;
+    }
+    .id-risk-high   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .id-risk-medium { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .id-risk-low    { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .id-divider { height: 1px; background: #f1f5f9; margin: 12px 0; }
+    .id-row {
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-size: 12px; margin-bottom: 7px;
+    }
+    .id-row-label { color: #94a3b8; font-weight: 500; }
+    .id-row-value { color: #334155; font-weight: 500; text-align: right; max-width: 180px; word-break: break-word; }
+    .id-conditions {
+        display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+    }
+    .id-cond-tag {
+        padding: 2px 8px; border-radius: 5px;
+        background: #f1f5f9; font-size: 11px; color: #475569;
     }
 
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: #475569;
+    /* ── Vertical care timeline ──────────────────────────────────────── */
+    .care-timeline {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        padding: 20px;
     }
-
-    .legend-line {
-        width: 24px;
-        height: 3px;
-        border-radius: 2px;
-    }
-
-    .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-    }
-
-    /* ── Timeline Slider ─────────────────────────────────────────────────── */
-    .timeline-card {
-        background: #ffffff;
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .timeline-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #1e293b;
+    .tl-header {
+        font-size: 12px; font-weight: 600; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: 0.06em;
         margin-bottom: 16px;
     }
 
-    .timeline-container {
-        position: relative;
-        height: 60px;
-        background: #f1f5f9;
-        border-radius: 8px;
-        margin-bottom: 16px;
+    /* Each timeline row */
+    .tl-item { display: flex; gap: 12px; position: relative; }
+    .tl-item:not(:last-child) .tl-spine { height: 100%; }
+
+    .tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 18px; }
+    .tl-dot {
+        width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        background: #cbd5e1; border: 2px solid #fff;
+        outline: 2px solid #cbd5e1; z-index: 1;
     }
+    .tl-dot-accent { background: #3b82f6; outline-color: #3b82f6; }
+    .tl-dot-warn   { background: #f59e0b; outline-color: #f59e0b; }
+    .tl-spine { flex: 1; width: 2px; background: #f1f5f9; margin: 3px 0; min-height: 16px; }
 
-    .timeline-track {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        right: 20px;
-        height: 20px;
+    .tl-body { flex: 1; padding-bottom: 16px; }
+    .tl-item:last-child .tl-body { padding-bottom: 0; }
+
+    /* Clinical history toggle (top timeline item) */
+    .ch-toggle-btn {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; padding: 10px 12px;
+        background: #eff6ff; border: 1px solid #bfdbfe;
+        border-radius: 8px; cursor: pointer; text-align: left;
+        font-family: inherit; font-size: 13px; font-weight: 600; color: #1d4ed8;
+        transition: background 0.15s;
     }
+    .ch-toggle-btn:hover { background: #dbeafe; }
+    .ch-toggle-btn svg { flex-shrink: 0; transition: transform 0.2s; }
+    .ch-toggle-btn.open svg { transform: rotate(180deg); }
 
-    .timeline-line {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #cbd5e1;
-        transform: translateY(-50%);
+    /* Popout panel */
+    .ch-popout {
+        margin-top: 10px; padding: 14px;
+        background: #f8fafc; border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        display: none;
     }
+    .ch-popout.open { display: block; }
 
-    .timeline-selection {
-        position: absolute;
-        top: 0;
-        height: 100%;
-        background: rgba(59, 130, 246, 0.15);
-        border: 2px solid #3b82f6;
-        border-radius: 4px;
-        cursor: move;
+    .ch-pop-section { margin-bottom: 12px; }
+    .ch-pop-section:last-child { margin-bottom: 0; }
+    .ch-pop-label {
+        font-size: 10px; font-weight: 700; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px;
     }
-
-    .timeline-handle {
-        position: absolute;
-        top: -5px;
-        width: 12px;
-        height: 30px;
-        background: #3b82f6;
-        border-radius: 4px;
-        cursor: ew-resize;
+    .ch-pop-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ch-pop-tag {
+        padding: 2px 8px; border-radius: 9999px;
+        font-size: 11px; font-weight: 500;
+        background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
     }
-
-    .timeline-handle.left  { left:  -6px; }
-    .timeline-handle.right { right: -6px; }
-
-    .timeline-labels {
-        display: flex;
-        justify-content: space-between;
-        padding: 0 20px;
-        margin-top: 8px;
-    }
-
-    .timeline-label {
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    .timeline-instructions {
-        display: flex;
-        justify-content: center;
-        gap: 32px;
-        margin-top: 16px;
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    .timeline-instructions span {
-        color: #3b82f6;
-        font-weight: 500;
-    }
-
-    /* ── SVG Chart ───────────────────────────────────────────────────────── */
-    .chart-svg {
-        width: 100%;
-        height: 100%;
-    }
-
-    .axis-label {
-        font-size: 11px;
-        fill: #64748b;
-    }
-
-    .grid-line {
-        stroke: #e2e8f0;
-        stroke-width: 1;
-    }
-
-    .data-line {
-        fill: none;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-    }
-
-    .thin-line {
-        fill: none;
-        stroke-width: 1.5;
-    }
-
-    .data-dot { cursor: pointer; }
-    .data-dot:hover { r: 6; }
-
-    /* ── Metric colors ───────────────────────────────────────────────────── */
-    .hrv-color      { stroke: #3b82f6; fill: #3b82f6; }
-    .activity-color { stroke: #f59e0b; fill: #f59e0b; }
-    .sleep-color    { stroke: #06b6d4; fill: #06b6d4; }
-
-    /* ── Utility ─────────────────────────────────────────────────────────── */
-    .hidden { display: none; }
-
-    /* ── Clinical History card ───────────────────────────────────────────── */
-    .clinical-history-card {
-        background: #ffffff;
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        margin-bottom: 24px;
-        border-left: 4px solid var(--accent-color, #f59e0b);
-    }
-
-    .ch-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 16px;
-    }
-
-    .ch-title {
-        font-size: 15px;
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    .ch-meta {
-        font-size: 12px;
-        color: #94a3b8;
-    }
-
-    .ch-demographics {
-        font-size: 13px;
-        color: #475569;
-        margin-bottom: 14px;
-    }
-
-    .ch-demographics strong {
-        color: #1e293b;
-    }
-
-    .ch-section-label {
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #94a3b8;
-        margin-bottom: 8px;
-    }
-
-    .ch-conditions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 16px;
-    }
-
-    .ch-condition-tag {
-        padding: 3px 10px;
-        border-radius: 9999px;
-        background: #fef3c7;
-        color: #92400e;
-        font-size: 12px;
-        font-weight: 500;
-        border: 1px solid #fde68a;
-    }
+    .ch-pop-tag.liver { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
 
     .ch-vitals-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
-        margin-bottom: 16px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
     }
+    .ch-vital-cell {
+        background: #fff; border-radius: 6px; padding: 7px 9px;
+        border: 1px solid #e2e8f0;
+    }
+    .ch-vital-lbl { font-size: 10px; color: #64748b; margin-bottom: 2px; }
+    .ch-vital-val { font-size: 14px; font-weight: 700; color: #1e293b; }
+    .ch-vital-unit { font-size: 10px; color: #94a3b8; font-weight: 400; }
 
-    .ch-vital {
-        background: #f8fafc;
-        border-radius: 8px;
+    .ch-trends { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ch-trend-chip {
+        display: flex; align-items: center; gap: 4px;
+        font-size: 11px; color: #475569;
+        background: #fff; border: 1px solid #e2e8f0;
+        border-radius: 6px; padding: 3px 8px;
+    }
+    .ch-trend-up   { color: #ef4444; font-weight: 700; }
+    .ch-trend-down { color: #22c55e; font-weight: 700; }
+    .ch-trend-flat { color: #94a3b8; font-weight: 700; }
+
+    /* Regular timeline events */
+    .tl-event-date { font-size: 11px; color: #94a3b8; margin-bottom: 1px; }
+    .tl-event-label { font-size: 12px; font-weight: 500; color: #475569; }
+
+    /* ── Right column ─────────────────────────────────────────────────── */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* View-mode toggle */
+    .view-toggle-bar {
+        display: flex; align-items: center; gap: 6px;
+        background: #f1f5f9; border-radius: 9999px; padding: 3px;
+        width: fit-content;
+    }
+    .view-btn {
+        padding: 6px 18px; border-radius: 9999px;
+        font-size: 13px; font-weight: 500; cursor: pointer;
+        border: none; background: transparent; color: #64748b;
+        font-family: inherit; transition: background 0.15s, color 0.15s;
+    }
+    .view-btn:hover:not(.active) { background: rgba(0,0,0,0.04); color: #334155; }
+    .view-btn.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* Chart cards */
+    .chart-card {
+        background: #fff; border-radius: 12px; padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .chart-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 20px;
+    }
+    .chart-title { font-size: 15px; font-weight: 600; color: #1e293b; }
+    .chart-date-range { font-size: 12px; color: #64748b; }
+    .chart-area { height: 280px; position: relative; }
+
+    .separate-chart-area {
+        height: 140px; position: relative;
+        margin-bottom: 36px; padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .separate-chart-area:last-child { margin-bottom: 0; border-bottom: none; }
+    .chart-label { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+
+    /* Sleep detail layout */
+    .sleep-section { margin-bottom: 32px; }
+    .sleep-section:last-child { margin-bottom: 0; }
+    .sleep-section-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .sleep-section-title { font-size: 13px; font-weight: 600; color: #1e293b; }
+    .sleep-section-note { font-size: 11px; color: #94a3b8; }
+    .sleep-legend { display: flex; gap: 12px; align-items: center; }
+    .sleep-legend-item {
+        display: flex; align-items: center; gap: 5px;
+        font-size: 11px; color: #475569;
+    }
+    .sleep-legend-swatch {
+        width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+    }
+    .sleep-chart-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+        margin-bottom: 32px;
+    }
+    .sleep-chart-grid .separate-chart-area { margin-bottom: 0; border-bottom: none; }
+
+    /* Sleep episode summary */
+    .sleep-episode-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px; margin-top: 12px;
+    }
+    .sleep-episode-item {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
         padding: 10px 12px;
     }
-
-    .ch-vital-label {
-        font-size: 11px;
-        color: #64748b;
-        margin-bottom: 3px;
+    .se-date { font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 2px; }
+    .se-window { font-size: 11px; color: #475569; margin-bottom: 5px; }
+    .se-metrics { display: flex; flex-wrap: wrap; gap: 4px; }
+    .se-metric-chip {
+        font-size: 10px; font-weight: 500; padding: 1px 7px;
+        border-radius: 9999px; background: #f1f5f9; color: #475569;
     }
+    .se-metric-chip.good { background: #dcfce7; color: #166534; }
+    .se-metric-chip.warn { background: #fef3c7; color: #92400e; }
+    .se-metric-chip.bad  { background: #fee2e2; color: #991b1b; }
 
-    .ch-vital-value {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
+    .legend {
+        display: flex; justify-content: center; gap: 24px; margin-top: 16px;
     }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; }
+    .legend-line { width: 20px; height: 3px; border-radius: 2px; }
 
-    .ch-vital-unit {
-        font-size: 11px;
-        color: #94a3b8;
-        font-weight: 400;
-    }
+    /* SVG chart internals */
+    .chart-svg { width: 100%; height: 100%; }
+    .axis-label { font-size: 11px; fill: #64748b; }
+    .grid-line   { stroke: #e2e8f0; stroke-width: 1; }
+    .data-line   { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .data-dot    { cursor: pointer; }
+    .data-dot:hover { r: 6; }
 
-    .ch-trends {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
+    .hidden { display: none; }
 
-    .ch-trend-item {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    .ch-trend-arrow {
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .ch-trend-up   { color: #ef4444; }
-    .ch-trend-down { color: #22c55e; }
-    .ch-trend-flat { color: #94a3b8; }
-
-    /* Per-source condition tag colours */
-    .ch-condition-tag.liver { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
-
-    .ch-condition-tag.synth { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-
-    .ch-study-note {
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px solid #f1f5f9;
-        font-size: 11px;
-        color: #94a3b8;
-        font-style: italic;
+    @media (max-width: 1000px) {
+        .pt-grid { grid-template-columns: 1fr; }
+        .left-col { flex-direction: row; flex-wrap: wrap; }
+        .identity-card { flex: 1; min-width: 240px; }
+        .care-timeline  { flex: 1; min-width: 240px; }
     }
 </style>
 {% endblock %}
 
 
 {% block content %}
-
-    {% if clinical_history %}
-    <!-- ── Clinical History ────────────────────────────────────────────────── -->
-    {# Determine tag colour class from data source label #}
+{% if clinical_history %}
     {% if 'Oura' in clinical_history.data_source_label or 'EHR' in clinical_history.data_source_label %}
         {% set tag_cls = 'liver' %}
         {% set trend_label = 'Since Enrollment' %}
@@ -392,434 +262,597 @@
         {% set tag_cls = 'synth' %}
         {% set trend_label = '12-Month Trend' %}
     {% endif %}
+{% endif %}
 
-    <div class="clinical-history-card">
-        <div class="ch-header">
-            <span class="ch-title">Clinical History</span>
-            <span class="ch-meta">
-                {{ clinical_history.data_source_label }}
-                {% if clinical_history.last_encounter %} · Last encounter {{ clinical_history.last_encounter }}{% endif %}
-                {% if clinical_history.data_points %} · {{ clinical_history.data_points }} records{% endif %}
-            </span>
-        </div>
+<div class="pt-grid">
 
-        <div class="ch-demographics">
-            {% if clinical_history.age or clinical_history.sex %}
-                <strong>
+    <!-- ════════════════════════════════════════════
+         LEFT COLUMN
+         ════════════════════════════════════════════ -->
+    <div class="left-col">
+
+        <!-- ── Identity card ───────────────────── -->
+        <div class="identity-card">
+            <div class="id-avatar">
+                {{ patient.id[:2] if patient.id else 'PT' }}
+            </div>
+            <div class="id-patient-id">{{ patient.id }}</div>
+            <div class="id-demo">
+                {% if clinical_history %}
                     {% if clinical_history.age %}{{ clinical_history.age }} yrs{% endif %}
-                    {% if clinical_history.sex %} · {{ clinical_history.sex }}{% endif %}
-                </strong>
-            {% endif %}
-            {% if clinical_history.enrollment_date %}
-                &nbsp;· Enrolled {{ clinical_history.enrollment_date }}
-            {% endif %}
-        </div>
+                    {% if clinical_history.age and clinical_history.sex %} · {% endif %}
+                    {% if clinical_history.sex %}{{ clinical_history.sex }}{% endif %}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
 
-        {% if clinical_history.conditions %}
-            <div class="ch-section-label">Active Conditions</div>
-            <div class="ch-conditions">
-                {% for c in clinical_history.conditions %}
-                    <span class="ch-condition-tag {{ tag_cls }}">{{ c }}</span>
+            {% set risk = patient.risk_level | default('') %}
+            {% if risk == 'high' %}
+                <span class="id-risk-badge id-risk-high">High Risk</span>
+            {% elif risk == 'medium' %}
+                <span class="id-risk-badge id-risk-medium">Medium Risk</span>
+            {% elif risk == 'low' %}
+                <span class="id-risk-badge id-risk-low">Low Risk</span>
+            {% endif %}
+
+            <div class="id-divider"></div>
+
+            {% if clinical_history and clinical_history.enrollment_date %}
+            <div class="id-row">
+                <span class="id-row-label">Enrolled</span>
+                <span class="id-row-value">{{ clinical_history.enrollment_date }}</span>
+            </div>
+            {% endif %}
+            {% if clinical_history and clinical_history.data_source_label %}
+            <div class="id-row">
+                <span class="id-row-label">Source</span>
+                <span class="id-row-value">{{ clinical_history.data_source_label }}</span>
+            </div>
+            {% endif %}
+            {% if patient.last_sync %}
+            <div class="id-row">
+                <span class="id-row-label">Last sync</span>
+                <span class="id-row-value">{{ patient.last_sync }}</span>
+            </div>
+            {% endif %}
+            {% if clinical_history and clinical_history.data_points %}
+            <div class="id-row">
+                <span class="id-row-label">Records</span>
+                <span class="id-row-value">{{ clinical_history.data_points }}</span>
+            </div>
+            {% endif %}
+
+            {% if patient.conditions and patient.conditions | lower != 'none' %}
+            <div class="id-divider"></div>
+            <div class="id-conditions">
+                {% for c in patient.conditions.split(',') %}
+                    {% set ct = c.strip() %}
+                    {% if ct %}<span class="id-cond-tag">{{ ct }}</span>{% endif %}
                 {% endfor %}
             </div>
-        {% endif %}
+            {% endif %}
+        </div>
 
-        {% if clinical_history.latest_vitals %}
-            <div class="ch-section-label">Latest Results</div>
-            <div class="ch-vitals-grid">
-                {% for label, v in clinical_history.latest_vitals.items() %}
-                <div class="ch-vital">
-                    <div class="ch-vital-label">{{ label }}</div>
-                    <div class="ch-vital-value">
-                        {{ v.value }}<span class="ch-vital-unit">{% if v.unit %} {{ v.unit }}{% endif %}</span>
+        <!-- ── Care timeline ────────────────────── -->
+        <div class="care-timeline">
+            <div class="tl-header">Care Timeline</div>
+
+            <!-- Item 1: Clinical history popout (top of timeline) -->
+            <div class="tl-item">
+                <div class="tl-left">
+                    <div class="tl-dot tl-dot-accent"></div>
+                    <div class="tl-spine"></div>
+                </div>
+                <div class="tl-body">
+                    <button class="ch-toggle-btn" id="chToggleBtn" onclick="toggleCH()">
+                        <span>Clinical History</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="ch-popout" id="chPopout">
+                        {% if clinical_history %}
+
+                        {% if clinical_history.conditions %}
+                        <div class="ch-pop-section">
+                            <div class="ch-pop-label">Active Conditions</div>
+                            <div class="ch-pop-tags">
+                                {% for c in clinical_history.conditions %}
+                                <span class="ch-pop-tag {{ tag_cls }}">{{ c }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if clinical_history.latest_vitals %}
+                        <div class="ch-pop-section">
+                            <div class="ch-pop-label">Latest Results</div>
+                            <div class="ch-vitals-grid">
+                                {% for label, v in clinical_history.latest_vitals.items() %}
+                                <div class="ch-vital-cell">
+                                    <div class="ch-vital-lbl">{{ label }}</div>
+                                    <div class="ch-vital-val">
+                                        {{ v.value }}<span class="ch-vital-unit">{% if v.unit %} {{ v.unit }}{% endif %}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if clinical_history.trends %}
+                        <div class="ch-pop-section">
+                            <div class="ch-pop-label">{{ trend_label }}</div>
+                            <div class="ch-trends">
+                                {% for label, delta in clinical_history.trends.items() %}
+                                <div class="ch-trend-chip">
+                                    {% if delta > 1 %}
+                                        <span class="ch-trend-up">↑</span>
+                                    {% elif delta < -1 %}
+                                        <span class="ch-trend-down">↓</span>
+                                    {% else %}
+                                        <span class="ch-trend-flat">→</span>
+                                    {% endif %}
+                                    {{ label }}
+                                    <span style="color:{% if delta > 1 %}#ef4444{% elif delta < -1 %}#22c55e{% else %}#94a3b8{% endif %}">
+                                        {% if delta > 0 %}+{% endif %}{{ delta }}
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% else %}
+                        <p style="font-size:12px;color:#94a3b8">No clinical history available.</p>
+                        {% endif %}
                     </div>
                 </div>
-                {% endfor %}
             </div>
-        {% endif %}
 
-        {% if clinical_history.trends %}
-            <div class="ch-section-label">{{ trend_label }}</div>
-            <div class="ch-trends">
-                {% for label, delta in clinical_history.trends.items() %}
-                <div class="ch-trend-item">
-                    {% if delta > 1 %}
-                        <span class="ch-trend-arrow ch-trend-up">↑</span>
-                    {% elif delta < -1 %}
-                        <span class="ch-trend-arrow ch-trend-down">↓</span>
-                    {% else %}
-                        <span class="ch-trend-arrow ch-trend-flat">→</span>
-                    {% endif %}
-                    {{ label }}
-                    <span style="color: {% if delta > 1 %}#ef4444{% elif delta < -1 %}#22c55e{% else %}#94a3b8{% endif %}">
-                        {% if delta > 0 %}+{% endif %}{{ delta }}
-                    </span>
+            <!-- Item 2: Last encounter -->
+            {% if clinical_history and clinical_history.last_encounter %}
+            <div class="tl-item">
+                <div class="tl-left">
+                    <div class="tl-dot tl-dot-warn"></div>
+                    <div class="tl-spine"></div>
                 </div>
-                {% endfor %}
+                <div class="tl-body">
+                    <div class="tl-event-date">{{ clinical_history.last_encounter }}</div>
+                    <div class="tl-event-label">Last clinical encounter</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:1px;">{{ clinical_history.data_source_label }}</div>
+                </div>
             </div>
-        {% endif %}
+            {% endif %}
 
-        {% if clinical_history.study_note %}
-            <div class="ch-study-note">{{ clinical_history.study_note }}</div>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    <!-- View-mode toggle: Overview (combined) vs Detailed View (separate) -->
-    <div class="view-toggle-bar">
-        <button class="view-btn active" id="combinedBtn" onclick="showCombinedView()">Overview</button>
-        <button class="view-btn" id="separateBtn" onclick="showSeparateView()">Detailed View</button>
-    </div>
-
-    <!-- ── Overview Chart ──────────────────────────────────────────────────── -->
-    <div class="chart-card" id="combinedView">
-        <div class="chart-header">
-            <span class="chart-title">Overview — Key Biometrics</span>
-            <span class="chart-date-range" id="dateRangeLabel">14-Day Window</span>
-        </div>
-        <div class="chart-area">
-            <svg class="chart-svg" id="combinedChart"></svg>
-        </div>
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-line" style="background: #ef4444;"></div>
-                Heart Rate
+            <!-- Item 3: Last wearable sync -->
+            {% if patient.last_sync %}
+            <div class="tl-item">
+                <div class="tl-left">
+                    <div class="tl-dot"></div>
+                    <div class="tl-spine"></div>
+                </div>
+                <div class="tl-body">
+                    <div class="tl-event-date">{{ patient.last_sync }}</div>
+                    <div class="tl-event-label">Wearable data sync</div>
+                </div>
             </div>
-            <div class="legend-item">
-                <div class="legend-line" style="background: #3b82f6;"></div>
-                HRV
-            </div>
-            <div class="legend-item">
-                <div class="legend-line" style="background: #10b981;"></div>
-                Sleep Duration
-            </div>
-        </div>
-    </div>
+            {% endif %}
 
-    <!-- ── Detailed View Charts ────────────────────────────────────────────── -->
-    <div class="chart-card hidden" id="separateView">
-        <div class="separate-chart-area">
-            <div class="chart-label">Heart Rate (Lowest During Sleep)</div>
-            <svg class="chart-svg" id="heartRateChart"></svg>
-        </div>
-        <div class="separate-chart-area">
-            <div class="chart-label">Respiratory Rate</div>
-            <svg class="chart-svg" id="respiratoryChart"></svg>
-        </div>
-        <div class="separate-chart-area">
-            <div class="chart-label">Heart Rate Variability (HRV)</div>
-            <svg class="chart-svg" id="hrvChart"></svg>
-        </div>
-        <div class="separate-chart-area">
-            <div class="chart-label">Sleep Duration (Hours)</div>
-            <svg class="chart-svg" id="sleepDurationChart"></svg>
-        </div>
-        <div class="separate-chart-area">
-            <div class="chart-label">Daily Steps</div>
-            <svg class="chart-svg" id="stepsChart"></svg>
-        </div>
-        <div class="separate-chart-area">
-            <div class="chart-label">Temperature Deviation (°C)</div>
-            <svg class="chart-svg" id="tempChart"></svg>
-        </div>
-    </div>
+            <!-- Item 4: Current monitoring -->
+            <div class="tl-item">
+                <div class="tl-left">
+                    <div class="tl-dot"></div>
+                    <div class="tl-spine"></div>
+                </div>
+                <div class="tl-body">
+                    <div class="tl-event-date">Active</div>
+                    <div class="tl-event-label">
+                        Risk assessment: <strong>{{ patient.risk_level | default('—') | capitalize }}</strong>
+                    </div>
+                </div>
+            </div>
 
-    <!-- ── Timeline Slider ─────────────────────────────────────────────────── -->
-    <div class="timeline-card">
-        <div class="timeline-title">14-Day Timeline Window</div>
-        <div class="timeline-container" id="timelineContainer">
-            <div class="timeline-track">
-                <div class="timeline-line"></div>
-                <svg class="chart-svg" id="timelineMini"
-                     style="position:absolute;top:-10px;left:0;right:0;height:40px;"></svg>
-                <div class="timeline-selection" id="timelineSelection">
-                    <div class="timeline-handle left"  id="leftHandle"></div>
-                    <div class="timeline-handle right" id="rightHandle"></div>
+            <!-- Item 5: Enrollment (bottom) -->
+            {% if clinical_history and clinical_history.enrollment_date %}
+            <div class="tl-item">
+                <div class="tl-left">
+                    <div class="tl-dot"></div>
+                </div>
+                <div class="tl-body">
+                    <div class="tl-event-date">{{ clinical_history.enrollment_date }}</div>
+                    <div class="tl-event-label">Enrolled in study</div>
+                </div>
+            </div>
+            {% endif %}
+        </div><!-- /.care-timeline -->
+
+    </div><!-- /.left-col -->
+
+
+    <!-- ════════════════════════════════════════════
+         RIGHT COLUMN
+         ════════════════════════════════════════════ -->
+    <div class="right-col">
+
+        <!-- View toggle -->
+        <div class="view-toggle-bar">
+            <button class="view-btn active" id="combinedBtn" onclick="showCombinedView()">Overview</button>
+            <button class="view-btn" id="separateBtn" onclick="showSeparateView()">Sleep Detail</button>
+        </div>
+
+        <!-- ── Overview Chart ─────────────────── -->
+        <div class="chart-card" id="combinedView">
+            <div class="chart-header">
+                <span class="chart-title">Key Biometrics — 14-Day Window</span>
+                <span class="chart-date-range" id="dateRangeLabel">
+                    {{ patient.dates[0] }} – {{ patient.dates[-1] }}
+                </span>
+            </div>
+            <div class="chart-area">
+                <svg class="chart-svg" id="combinedChart"></svg>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#ef4444"></div> Heart Rate
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#3b82f6"></div> HRV
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#10b981"></div> Sleep Duration
                 </div>
             </div>
         </div>
-        <div class="timeline-labels">
-            <span class="timeline-label" id="startLabel"></span>
-            <span class="timeline-label" id="midLabel"></span>
-            <span class="timeline-label" id="endLabel"></span>
-        </div>
-        <div class="timeline-instructions">
-            <span>• Drag left handle</span> to expand/shrink window from left side
-            <span>• Drag right handle</span> to expand/shrink window from right side
-            <span>• Drag middle</span> to move window
-        </div>
-    </div>
 
+        <!-- ── Sleep Detail ───────────────────── -->
+        <div class="chart-card hidden" id="separateView">
+            <div class="chart-header" style="margin-bottom:24px;">
+                <span class="chart-title">Sleep Detail — Wearable Data</span>
+                <span style="font-size:11px;color:#94a3b8;">Oura Ring V2 · OMH Standard · 14-Day Window</span>
+            </div>
+
+            <!-- Sleep Architecture -->
+            <div class="sleep-section">
+                <div class="sleep-section-header">
+                    <span class="sleep-section-title">Sleep Architecture</span>
+                    <div class="sleep-legend">
+                        <span class="sleep-legend-item">
+                            <span class="sleep-legend-swatch" style="background:#7c3aed"></span> REM
+                        </span>
+                        <span class="sleep-legend-item">
+                            <span class="sleep-legend-swatch" style="background:#1d4ed8"></span> Deep
+                        </span>
+                        <span class="sleep-legend-item">
+                            <span class="sleep-legend-swatch" style="background:#93c5fd"></span> Light
+                        </span>
+                    </div>
+                </div>
+                <div style="height:190px;position:relative;">
+                    <svg class="chart-svg" id="sleepArchChart"></svg>
+                </div>
+            </div>
+
+            <!-- 2-column grid: TIB/TST + Efficiency -->
+            <div class="sleep-chart-grid">
+                <div>
+                    <div class="sleep-section-header">
+                        <span class="sleep-section-title">Time in Bed vs Total Sleep Time</span>
+                        <div class="sleep-legend">
+                            <span class="sleep-legend-item">
+                                <span class="sleep-legend-swatch" style="background:#e2e8f0"></span> TIB
+                            </span>
+                            <span class="sleep-legend-item">
+                                <span class="sleep-legend-swatch" style="background:#3b82f6"></span> TST
+                            </span>
+                        </div>
+                    </div>
+                    <div class="separate-chart-area" style="height:150px;">
+                        <svg class="chart-svg" id="tibChart"></svg>
+                    </div>
+                </div>
+                <div>
+                    <div class="sleep-section-header">
+                        <span class="sleep-section-title">Sleep Efficiency (%)</span>
+                        <span class="sleep-section-note">Normal ≥ 85%</span>
+                    </div>
+                    <div class="separate-chart-area" style="height:150px;">
+                        <svg class="chart-svg" id="efficiencyChart"></svg>
+                    </div>
+                </div>
+                <div>
+                    <div class="sleep-section-header">
+                        <span class="sleep-section-title">Sleep Latency (min)</span>
+                        <span class="sleep-section-note">Normal ≤ 20 min</span>
+                    </div>
+                    <div class="separate-chart-area" style="height:150px;">
+                        <svg class="chart-svg" id="latencyChart"></svg>
+                    </div>
+                </div>
+                <div>
+                    <div class="sleep-section-header">
+                        <span class="sleep-section-title">WASO — Wake After Sleep Onset (min)</span>
+                        <span class="sleep-section-note">Normal ≤ 30 min</span>
+                    </div>
+                    <div class="separate-chart-area" style="height:150px;">
+                        <svg class="chart-svg" id="wasoChart"></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SpO2 full-width -->
+            <div class="sleep-section">
+                <div class="sleep-section-header">
+                    <span class="sleep-section-title">SpO₂ — Oxygen Saturation (OMH)</span>
+                    <span class="sleep-section-note">Normal ≥ 95%</span>
+                </div>
+                <div class="separate-chart-area" style="height:160px;">
+                    <svg class="chart-svg" id="spo2Chart"></svg>
+                </div>
+            </div>
+
+            <!-- Sleep Episode Summary -->
+            <div class="sleep-section">
+                <div class="sleep-section-title" style="margin-bottom:4px;">Recent Sleep Episodes</div>
+                <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Last 7 nights · Time in bed, total sleep time, efficiency</div>
+                <div class="sleep-episode-grid" id="sleepEpisodeGrid"></div>
+            </div>
+
+        </div>
+
+    </div><!-- /.right-col -->
+
+</div><!-- /.pt-grid -->
 {% endblock %}
 
 
 {% block scripts %}
 <script>
-    // Patient data injected from Flask route
-    const patientData = {
-        heartRate:     {{ patient.heart_rate_data    | tojson }},
-        respiratory:   {{ patient.respiratory_data   | tojson }},
-        hrv:           {{ patient.hrv_data           | tojson }},
-        sleepDuration: {{ patient.sleep_duration_data | tojson }},
-        steps:         {{ patient.steps_data         | tojson }},
-        temperature:   {{ patient.temperature_data   | tojson }},
-        dates:         {{ patient.dates              | tojson }}
+const patientData = {
+    heartRate:     {{ patient.heart_rate_data        | tojson }},
+    respiratory:   {{ patient.respiratory_data       | tojson }},
+    hrv:           {{ patient.hrv_data               | tojson }},
+    sleepDuration: {{ patient.sleep_duration_data    | tojson }},
+    steps:         {{ patient.steps_data             | tojson }},
+    temperature:   {{ patient.temperature_data       | tojson }},
+    dates:         {{ patient.dates                  | tojson }},
+    remData:       {{ patient.rem_data               | tojson }},
+    deepData:      {{ patient.deep_data              | tojson }},
+    lightData:     {{ patient.light_data             | tojson }},
+    awakeData:     {{ patient.awake_data             | tojson }},
+    timeInBedData: {{ patient.time_in_bed_data       | tojson }},
+    latencyData:   {{ patient.sleep_latency_data     | tojson }},
+    wasoData:      {{ patient.waso_data              | tojson }},
+    efficiencyData:{{ patient.sleep_efficiency_data  | tojson }},
+    spo2Data:      {{ patient.spo2_data              | tojson }},
+    sleepStartData:{{ patient.sleep_start_data       | tojson }},
+    sleepEndData:  {{ patient.sleep_end_data         | tojson }},
+};
+
+/* ── Clinical history toggle ──────────────────────────────────────── */
+function toggleCH() {
+    const btn    = document.getElementById('chToggleBtn');
+    const popout = document.getElementById('chPopout');
+    const isOpen = popout.classList.contains('open');
+    btn.classList.toggle('open', !isOpen);
+    popout.classList.toggle('open', !isOpen);
+}
+
+/* ── View toggle ──────────────────────────────────────────────────── */
+function showCombinedView() {
+    document.getElementById('combinedView').classList.remove('hidden');
+    document.getElementById('separateView').classList.add('hidden');
+    document.getElementById('combinedBtn').classList.add('active');
+    document.getElementById('separateBtn').classList.remove('active');
+}
+function showSeparateView() {
+    document.getElementById('combinedView').classList.add('hidden');
+    document.getElementById('separateView').classList.remove('hidden');
+    document.getElementById('combinedBtn').classList.remove('active');
+    document.getElementById('separateBtn').classList.add('active');
+    drawSleepDetailCharts();
+}
+
+/* ── Charts ───────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function () {
+    drawCombinedChart();
+});
+
+function drawCombinedChart() {
+    const svg    = document.getElementById('combinedChart');
+    if (!svg) return;
+    const rect   = svg.getBoundingClientRect();
+    const width  = rect.width  || 700;
+    const height = rect.height || 280;
+    const pad    = { top: 20, right: 55, bottom: 38, left: 55 };
+
+    const dates = patientData.dates;
+    const n     = dates.length;
+    const xS    = i => pad.left + (i / Math.max(1, n - 1)) * (width - pad.left - pad.right);
+    const yHR   = v => pad.top + (1 - (v - 40) / 50)  * (height - pad.top - pad.bottom);
+    const yHrv  = v => pad.top + (1 - v / 100)         * (height - pad.top - pad.bottom);
+    const ySleep = v => pad.top + (1 - v / 12)         * (height - pad.top - pad.bottom);
+
+    let html = '';
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (i / 4) * (height - pad.top - pad.bottom);
+        html += `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"/>`;
+        html += `<text class="axis-label" x="${pad.left - 8}" y="${y + 4}" text-anchor="end">${100 - i * 25}</text>`;
+        html += `<text class="axis-label" x="${width - pad.right + 8}" y="${y + 4}" text-anchor="start">${(12 - i * 3).toFixed(0)}h</text>`;
+    }
+    const step = Math.max(1, Math.floor(n / 5));
+    for (let i = 0; i < n; i += step) {
+        html += `<text class="axis-label" x="${xS(i)}" y="${height - 8}" text-anchor="middle">${dates[i]}</text>`;
+    }
+
+    const lineFor = (data, yFn, color) => {
+        let d = `M ${xS(0)} ${yFn(data[0])}`;
+        for (let i = 1; i < data.length; i++) d += ` L ${xS(i)} ${yFn(data[i])}`;
+        return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>`;
     };
 
-    // Timeline state — default to full 14-day window
-    let timelineState = {
-        startPercent: 0,
-        endPercent: 100,
-        isDragging: null
-    };
+    html += lineFor(patientData.heartRate,     yHR,   '#ef4444');
+    html += lineFor(patientData.hrv,           yHrv,  '#3b82f6');
+    html += lineFor(patientData.sleepDuration, ySleep,'#10b981');
+    svg.innerHTML = html;
+}
 
-    document.addEventListener('DOMContentLoaded', function () {
-        initTimeline();
-        updateCharts();
-        updateTimelineLabels();
+/* ── Sleep detail charts ──────────────────────────────────────────── */
+function drawSleepDetailCharts() {
+    drawSleepArchChart();
+    drawTibChart();
+    drawRefDotChart('efficiencyChart', patientData.efficiencyData, '#10b981', 100,  '%',   85, '85%', 60,  true);
+    drawRefDotChart('latencyChart',    patientData.latencyData,    '#f59e0b',  60,  'min', 20, '20m', 0,   false);
+    drawRefDotChart('wasoChart',       patientData.wasoData,       '#ef4444',  90,  'min', 30, '30m', 0,   false);
+    drawRefDotChart('spo2Chart',       patientData.spo2Data,       '#3b82f6', 100,  '%',   95, '95%', 88,  true);
+    renderSleepEpisodes();
+}
+
+function drawSleepArchChart() {
+    const svg = document.getElementById('sleepArchChart');
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const W = rect.width || 700;
+    const H = rect.height || 190;
+    const pad = { top: 16, right: 20, bottom: 28, left: 42 };
+    const n = patientData.dates.length;
+    const colW = (W - pad.left - pad.right) / n;
+    const barW = colW * 0.68;
+    const maxVal = 10;
+    const innerH = H - pad.top - pad.bottom;
+    const yS = v => pad.top + (1 - v / maxVal) * innerH;
+    const xC = i => pad.left + i * colW + colW / 2;
+
+    let html = '';
+    [0, 2.5, 5, 7.5, 10].forEach(v => {
+        const y = yS(v).toFixed(1);
+        html += `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}"/>`;
+        html += `<text class="axis-label" x="${pad.left - 5}" y="${(+y + 4).toFixed(1)}" text-anchor="end">${v}h</text>`;
     });
-
-    function updateTimelineLabels() {
-        document.getElementById('startLabel').textContent = patientData.dates[0];
-        document.getElementById('midLabel').textContent   = patientData.dates[Math.floor(patientData.dates.length / 2)];
-        document.getElementById('endLabel').textContent   = patientData.dates[patientData.dates.length - 1];
+    for (let i = 0; i < n; i += 2) {
+        html += `<text class="axis-label" x="${xC(i).toFixed(1)}" y="${H - 5}" text-anchor="middle">${patientData.dates[i]}</text>`;
     }
-
-    function showCombinedView() {
-        document.getElementById('combinedView').classList.remove('hidden');
-        document.getElementById('separateView').classList.add('hidden');
-        document.getElementById('combinedBtn').classList.add('active');
-        document.getElementById('separateBtn').classList.remove('active');
+    for (let i = 0; i < n; i++) {
+        const light = patientData.lightData[i] || 0;
+        const deep  = patientData.deepData[i]  || 0;
+        const rem   = patientData.remData[i]   || 0;
+        const x = (xC(i) - barW / 2).toFixed(1);
+        let yBase = H - pad.bottom;
+        const drawBar = (val, color) => {
+            const bh = (val / maxVal) * innerH;
+            yBase -= bh;
+            html += `<rect x="${x}" y="${yBase.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" fill="${color}" rx="1.5"/>`;
+        };
+        drawBar(light, '#93c5fd');
+        drawBar(deep,  '#1d4ed8');
+        drawBar(rem,   '#7c3aed');
+        html += `<rect x="${x}" y="${pad.top}" width="${barW.toFixed(1)}" height="${innerH.toFixed(1)}" fill="transparent"><title>${patientData.dates[i]}&#10;Light: ${light}h  Deep: ${deep}h  REM: ${rem}h</title></rect>`;
     }
+    svg.innerHTML = html;
+}
 
-    function showSeparateView() {
-        document.getElementById('combinedView').classList.add('hidden');
-        document.getElementById('separateView').classList.remove('hidden');
-        document.getElementById('combinedBtn').classList.remove('active');
-        document.getElementById('separateBtn').classList.add('active');
-        drawSeparateCharts();
+function drawTibChart() {
+    const svg = document.getElementById('tibChart');
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const W = rect.width || 350;
+    const H = rect.height || 150;
+    const pad = { top: 16, right: 20, bottom: 26, left: 42 };
+    const n = patientData.dates.length;
+    const colW = (W - pad.left - pad.right) / n;
+    const barW = colW * 0.36;
+    const maxVal = 12;
+    const innerH = H - pad.top - pad.bottom;
+    const yS = v => pad.top + (1 - v / maxVal) * innerH;
+    const xC = i => pad.left + i * colW + colW / 2;
+
+    let html = '';
+    [0, 3, 6, 9, 12].forEach(v => {
+        const y = yS(v).toFixed(1);
+        html += `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}"/>`;
+        html += `<text class="axis-label" x="${pad.left - 5}" y="${(+y + 4).toFixed(1)}" text-anchor="end">${v}h</text>`;
+    });
+    for (let i = 0; i < n; i += 2) {
+        html += `<text class="axis-label" x="${xC(i).toFixed(1)}" y="${H - 5}" text-anchor="middle">${patientData.dates[i]}</text>`;
     }
-
-    function getVisibleDataRange() {
-        const totalPoints = patientData.dates.length;
-        const startIdx = Math.floor(totalPoints * timelineState.startPercent / 100);
-        const endIdx   = Math.ceil(totalPoints  * timelineState.endPercent   / 100);
-        return { startIdx, endIdx };
+    for (let i = 0; i < n; i++) {
+        const tib = patientData.timeInBedData[i] || 0;
+        const tst = patientData.sleepDuration[i] || 0;
+        const tibH = (tib / maxVal) * innerH;
+        const tstH = (tst / maxVal) * innerH;
+        html += `<rect x="${(xC(i) - barW - 1.5).toFixed(1)}" y="${(H - pad.bottom - tibH).toFixed(1)}" width="${barW.toFixed(1)}" height="${tibH.toFixed(1)}" fill="#e2e8f0" rx="1.5"><title>${patientData.dates[i]}: TIB ${tib}h</title></rect>`;
+        html += `<rect x="${(xC(i) + 1.5).toFixed(1)}" y="${(H - pad.bottom - tstH).toFixed(1)}" width="${barW.toFixed(1)}" height="${tstH.toFixed(1)}" fill="#3b82f6" rx="1.5"><title>${patientData.dates[i]}: TST ${tst}h</title></rect>`;
     }
+    svg.innerHTML = html;
+}
 
-    function updateCharts() {
-        drawCombinedChart();
-        drawSeparateCharts();
-        drawTimelineMini();
-        updateDateRangeLabel();
+function drawRefDotChart(svgId, data, color, maxVal, unit, refLine, refLabel, minVal, higherIsBetter) {
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const W = rect.width || 350;
+    const H = rect.height || 150;
+    const pad = { top: 16, right: 38, bottom: 26, left: 46 };
+    const range = maxVal - minVal;
+    const n = data.length;
+    const xS = i => pad.left + (i / Math.max(1, n - 1)) * (W - pad.left - pad.right);
+    const yS = v => pad.top  + (1 - (v - minVal) / range) * (H - pad.top - pad.bottom);
+
+    let html = '';
+    for (let i = 0; i <= 4; i++) {
+        const y  = pad.top + (i / 4) * (H - pad.top - pad.bottom);
+        const lv = (maxVal - i * range / 4);
+        const lf = Math.abs(lv) >= 10 ? lv.toFixed(0) : lv.toFixed(1);
+        html += `<line class="grid-line" x1="${pad.left}" y1="${y.toFixed(1)}" x2="${W - pad.right}" y2="${y.toFixed(1)}"/>`;
+        html += `<text class="axis-label" x="${pad.left - 6}" y="${(y + 4).toFixed(1)}" text-anchor="end">${lf}</text>`;
     }
-
-    function updateDateRangeLabel() {
-        const range     = getVisibleDataRange();
-        const startDate = patientData.dates[range.startIdx] || patientData.dates[0];
-        const endDate   = patientData.dates[range.endIdx - 1] || patientData.dates[patientData.dates.length - 1];
-        const daysShown = range.endIdx - range.startIdx;
-        document.getElementById('dateRangeLabel').textContent =
-            `${startDate} – ${endDate} (${daysShown} days)`;
+    if (refLine !== null) {
+        const ry = yS(refLine).toFixed(1);
+        const rc = higherIsBetter ? '#22c55e' : '#ef4444';
+        html += `<line x1="${pad.left}" y1="${ry}" x2="${W - pad.right}" y2="${ry}" stroke="${rc}" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.65"/>`;
+        html += `<text x="${W - pad.right + 3}" y="${(+ry + 4).toFixed(1)}" font-size="9" fill="${rc}" font-family="Inter,sans-serif">${refLabel}</text>`;
     }
-
-    function drawCombinedChart() {
-        const svg     = document.getElementById('combinedChart');
-        const rect    = svg.getBoundingClientRect();
-        const width   = rect.width  || 800;
-        const height  = rect.height || 300;
-        const padding = { top: 20, right: 60, bottom: 40, left: 60 };
-
-        const range              = getVisibleDataRange();
-        const visibleDates       = patientData.dates.slice(range.startIdx, range.endIdx);
-        const visibleHeartRate   = patientData.heartRate.slice(range.startIdx, range.endIdx);
-        const visibleHrv         = patientData.hrv.slice(range.startIdx, range.endIdx);
-        const visibleSleepDuration = patientData.sleepDuration.slice(range.startIdx, range.endIdx);
-
-        const xScale     = (i) => padding.left + (i / Math.max(1, visibleDates.length - 1)) * (width  - padding.left - padding.right);
-        const yScaleHR   = (v) => padding.top  + (1 - (v - 40) / 50) * (height - padding.top  - padding.bottom);
-        const yScaleHrv  = (v) => padding.top  + (1 - v / 100)        * (height - padding.top  - padding.bottom);
-        const yScaleSleep = (v) => padding.top + (1 - v / 12)         * (height - padding.top  - padding.bottom);
-
-        let html = '';
-
-        // Grid lines + axis labels
-        for (let i = 0; i <= 4; i++) {
-            const y = padding.top + (i / 4) * (height - padding.top - padding.bottom);
-            html += `<line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"/>`;
-            html += `<text class="axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${8000 - i * 2000}</text>`;
-            html += `<text class="axis-label" x="${width - padding.right + 10}" y="${y + 4}" text-anchor="start">${100 - i * 25}</text>`;
-        }
-
-        // X-axis labels
-        const step = Math.max(1, Math.floor(visibleDates.length / 4));
-        for (let i = 0; i < visibleDates.length; i += step) {
-            html += `<text class="axis-label" x="${xScale(i)}" y="${height - 10}" text-anchor="middle">${visibleDates[i]}</text>`;
-        }
-
-        // Heart Rate line (red)
-        let hrPath = `M ${xScale(0)} ${yScaleHR(visibleHeartRate[0])}`;
-        for (let i = 1; i < visibleHeartRate.length; i++) {
-            hrPath += ` L ${xScale(i)} ${yScaleHR(visibleHeartRate[i])}`;
-        }
-        html += `<path d="${hrPath}" fill="none" stroke="#ef4444" stroke-width="2"/>`;
-
-        // HRV line (blue)
-        let hrvPath = `M ${xScale(0)} ${yScaleHrv(visibleHrv[0])}`;
-        for (let i = 1; i < visibleHrv.length; i++) {
-            hrvPath += ` L ${xScale(i)} ${yScaleHrv(visibleHrv[i])}`;
-        }
-        html += `<path d="${hrvPath}" fill="none" stroke="#3b82f6" stroke-width="2"/>`;
-
-        // Sleep Duration line (green)
-        let sleepPath = `M ${xScale(0)} ${yScaleSleep(visibleSleepDuration[0])}`;
-        for (let i = 1; i < visibleSleepDuration.length; i++) {
-            sleepPath += ` L ${xScale(i)} ${yScaleSleep(visibleSleepDuration[i])}`;
-        }
-        html += `<path d="${sleepPath}" fill="none" stroke="#10b981" stroke-width="2"/>`;
-
-        svg.innerHTML = html;
+    const step = Math.max(1, Math.floor(n / 5));
+    for (let i = 0; i < n; i += step) {
+        html += `<text class="axis-label" x="${xS(i).toFixed(1)}" y="${H - 4}" text-anchor="middle">${patientData.dates[i]}</text>`;
     }
-
-    function drawSeparateCharts() {
-        drawDotChart('heartRateChart',    patientData.heartRate,    '#ef4444', 100,   'bpm');
-        drawDotChart('respiratoryChart',  patientData.respiratory,  '#8b5cf6',  25,   'br/min');
-        drawDotChart('hrvChart',          patientData.hrv,          '#3b82f6', 100,   'ms');
-        drawDotChart('sleepDurationChart', patientData.sleepDuration, '#10b981', 12,  'hrs');
-        drawDotChart('stepsChart',        patientData.steps,        '#f59e0b', 20000, 'steps');
-        drawDotChart('tempChart',         patientData.temperature,  '#06b6d4',     2, '°C', -2);
+    let d = `M ${xS(0).toFixed(1)} ${yS(data[0]).toFixed(1)}`;
+    for (let i = 1; i < n; i++) d += ` L ${xS(i).toFixed(1)} ${yS(data[i]).toFixed(1)}`;
+    html += `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.8"/>`;
+    for (let i = 0; i < n; i++) {
+        const v = data[i];
+        let dotColor = color;
+        if (refLine !== null) dotColor = (higherIsBetter ? v < refLine : v > refLine) ? '#ef4444' : color;
+        html += `<circle cx="${xS(i).toFixed(1)}" cy="${yS(v).toFixed(1)}" r="3" fill="${dotColor}" class="data-dot"><title>${patientData.dates[i]}: ${v} ${unit}</title></circle>`;
     }
+    svg.innerHTML = html;
+}
 
-    function drawDotChart(svgId, data, color, maxVal, unit = '', minVal = 0) {
-        const svg     = document.getElementById(svgId);
-        if (!svg) return;
-
-        const rect    = svg.getBoundingClientRect();
-        const width   = rect.width  || 800;
-        const height  = rect.height || 150;
-        const padding = { top: 20, right: 40, bottom: 30, left: 60 };
-
-        const range       = getVisibleDataRange();
-        const visibleData  = data.slice(range.startIdx, range.endIdx);
-        const visibleDates = patientData.dates.slice(range.startIdx, range.endIdx);
-
-        const dataRange = maxVal - minVal;
-        const xScale    = (i) => padding.left + (i / Math.max(1, visibleData.length - 1)) * (width  - padding.left - padding.right);
-        const yScale    = (v) => padding.top  + (1 - (v - minVal) / dataRange)             * (height - padding.top  - padding.bottom);
-
-        let html = '';
-
-        // Grid lines + axis labels
-        for (let i = 0; i <= 4; i++) {
-            const y        = padding.top + (i / 4) * (height - padding.top - padding.bottom);
-            const labelVal = maxVal - i * dataRange / 4;
-            html += `<line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"/>`;
-            html += `<text class="axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${labelVal.toFixed(1)}</text>`;
-        }
-
-        // X-axis labels
-        const step = Math.max(1, Math.floor(visibleDates.length / 5));
-        for (let i = 0; i < visibleDates.length; i += step) {
-            html += `<text class="axis-label" x="${xScale(i)}" y="${height - 5}" text-anchor="middle">${visibleDates[i]}</text>`;
-        }
-
-        // Data dots
-        for (let i = 0; i < visibleData.length; i++) {
-            html += `<circle class="data-dot" cx="${xScale(i)}" cy="${yScale(visibleData[i])}" r="5" fill="${color}"/>`;
-        }
-
-        svg.innerHTML = html;
+function renderSleepEpisodes() {
+    const el = document.getElementById('sleepEpisodeGrid');
+    if (!el) return;
+    const n = patientData.dates.length;
+    const start = Math.max(0, n - 7);
+    let html = '';
+    for (let i = start; i < n; i++) {
+        const eff = patientData.efficiencyData[i];
+        const effClass = eff >= 85 ? 'good' : eff >= 75 ? 'warn' : 'bad';
+        const tst = patientData.sleepDuration[i];
+        const tib = patientData.timeInBedData[i];
+        html += `<div class="sleep-episode-item">
+            <div class="se-date">${patientData.dates[i]}</div>
+            <div class="se-window">${patientData.sleepStartData[i]} – ${patientData.sleepEndData[i]}</div>
+            <div class="se-metrics">
+                <span class="se-metric-chip">TST ${tst}h</span>
+                <span class="se-metric-chip">TIB ${tib}h</span>
+                <span class="se-metric-chip ${effClass}">Eff ${eff}%</span>
+            </div>
+        </div>`;
     }
-
-    function drawTimelineMini() {
-        const svg     = document.getElementById('timelineMini');
-        const rect    = svg.getBoundingClientRect();
-        const width   = rect.width || 600;
-        const padding = { left: 0, right: 0 };
-
-        const xScale     = (i) => padding.left + (i / (patientData.dates.length - 1)) * (width - padding.left - padding.right);
-        const yScaleMini = (v) => 35 - ((v - 40) / 50) * 25;
-
-        let path = `M ${xScale(0)} ${yScaleMini(patientData.heartRate[0])}`;
-        for (let i = 1; i < patientData.heartRate.length; i++) {
-            path += ` L ${xScale(i)} ${yScaleMini(patientData.heartRate[i])}`;
-        }
-
-        svg.innerHTML = `<path d="${path}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`;
-    }
-
-    // ── Timeline drag interaction ─────────────────────────────────────────────
-
-    function initTimeline() {
-        const selection  = document.getElementById('timelineSelection');
-        const leftHandle = document.getElementById('leftHandle');
-        const rightHandle = document.getElementById('rightHandle');
-
-        updateSelectionPosition();
-
-        leftHandle.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            timelineState.isDragging = 'left';
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup',   onDragEnd);
-        });
-
-        rightHandle.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            timelineState.isDragging = 'right';
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup',   onDragEnd);
-        });
-
-        selection.addEventListener('mousedown', (e) => {
-            if (e.target === leftHandle || e.target === rightHandle) return;
-            timelineState.isDragging      = 'middle';
-            timelineState.dragStartX      = e.clientX;
-            timelineState.dragStartLeft   = timelineState.startPercent;
-            timelineState.dragStartRight  = timelineState.endPercent;
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup',   onDragEnd);
-        });
-    }
-
-    function onDrag(e) {
-        const container  = document.getElementById('timelineContainer');
-        const rect       = container.getBoundingClientRect();
-        const trackWidth = rect.width - 40;
-        const mouseX     = e.clientX - rect.left - 20;
-        const percent    = Math.max(0, Math.min(100, (mouseX / trackWidth) * 100));
-
-        if (timelineState.isDragging === 'left') {
-            timelineState.startPercent = Math.min(percent, timelineState.endPercent - 10);
-        } else if (timelineState.isDragging === 'right') {
-            timelineState.endPercent = Math.max(percent, timelineState.startPercent + 10);
-        } else if (timelineState.isDragging === 'middle') {
-            const deltaPercent = ((e.clientX - timelineState.dragStartX) / trackWidth) * 100;
-            const width        = timelineState.dragStartRight - timelineState.dragStartLeft;
-            let newStart       = timelineState.dragStartLeft  + deltaPercent;
-            let newEnd         = timelineState.dragStartRight + deltaPercent;
-
-            if (newStart < 0)   { newStart = 0;         newEnd = width; }
-            if (newEnd   > 100) { newEnd   = 100; newStart = 100 - width; }
-
-            timelineState.startPercent = newStart;
-            timelineState.endPercent   = newEnd;
-        }
-
-        updateSelectionPosition();
-        updateCharts();
-    }
-
-    function onDragEnd() {
-        timelineState.isDragging = null;
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('mouseup',   onDragEnd);
-    }
-
-    function updateSelectionPosition() {
-        const selection  = document.getElementById('timelineSelection');
-        selection.style.left  = timelineState.startPercent + '%';
-        selection.style.width = (timelineState.endPercent - timelineState.startPercent) + '%';
-    }
+    el.innerHTML = html;
+}
 </script>
 {% endblock %}
