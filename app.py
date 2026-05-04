@@ -16,9 +16,11 @@ import uuid
 app = Flask(__name__)
 
 # Ordered color palette assigned to features by their declaration index.
-STUDY_CONFIG_PATH     = 'demo_data/study_config.json'
-CONDITIONS_DICT_PATH  = 'data/conditions_dict.json'
+STUDY_CONFIG_PATH             = 'demo_data/study_config.json'
+CONDITIONS_DICT_PATH          = 'data/conditions_dict.json'
 STANDARD_WEARABLE_DATASET_DIR = 'demo_data/demo_omh_ieee'
+NOTEBOOKS_DIR                 = 'notebooks'
+JUPYTER_BASE_URL              = os.environ.get('JUPYTER_BASE_URL', 'http://localhost:8888')
 
 FEATURE_COLORS = [
     '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
@@ -1518,6 +1520,157 @@ def ai_assistant(patient_id):
         model_name='XGBoost Classifier (placeholder)',
         error=None,
     )
+
+
+@app.route('/api/notebooks')
+def list_notebooks():
+    """List all .ipynb files in the notebooks directory."""
+    os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
+    notebooks = []
+    for fname in sorted(os.listdir(NOTEBOOKS_DIR)):
+        if not fname.endswith('.ipynb'):
+            continue
+        fpath = os.path.join(NOTEBOOKS_DIR, fname)
+        stat  = os.stat(fpath)
+        notebooks.append({
+            'name':        fname,
+            'created':     datetime.fromtimestamp(stat.st_ctime).strftime('%b %d, %Y'),
+            'modified':    datetime.fromtimestamp(stat.st_mtime).strftime('%b %d, %Y %H:%M'),
+            'size_kb':     round(stat.st_size / 1024, 1),
+            'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{fname}',
+            'path':        f'{NOTEBOOKS_DIR}/{fname}',
+        })
+    return jsonify({'notebooks': notebooks, 'jupyter_base': JUPYTER_BASE_URL})
+
+
+@app.route('/api/notebooks/new', methods=['POST'])
+def create_notebook():
+    """Create a starter .ipynb pre-loaded with cohort sleep data."""
+    body = request.get_json(silent=True) or {}
+    name = re.sub(r'[^\w\- ]', '_', (body.get('name') or '').strip())
+    if not name:
+        name = f"cohort_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    if not name.endswith('.ipynb'):
+        name += '.ipynb'
+
+    os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
+    fpath = os.path.join(NOTEBOOKS_DIR, name)
+    if os.path.exists(fpath):
+        return jsonify({'error': f'Notebook "{name}" already exists'}), 409
+
+    patients       = load_patient_data()
+    cohort_stats   = _compute_cohort_stats(patients)
+    sleep_summaries = _compute_sleep_summaries(patients)
+
+    cohort_payload = {
+        'patients': [
+            {'id': p['id'], 'risk_level': p.get('risk_level', ''),
+             'conditions': p.get('conditions', ''), 'data_source': p.get('data_source', 'oura')}
+            for p in patients
+        ],
+        'sleep_summaries': sleep_summaries,
+        'cohort_stats': {'total': cohort_stats['total'], 'by_risk': cohort_stats['by_risk']},
+    }
+
+    nb = _build_notebook(json.dumps(cohort_payload, indent=2), len(patients), cohort_stats)
+    with open(fpath, 'w', encoding='utf-8') as f:
+        json.dump(nb, f, indent=2)
+
+    return jsonify({
+        'name':        name,
+        'path':        fpath,
+        'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{name}',
+    })
+
+
+def _build_notebook(cohort_json: str, n: int, stats: dict) -> dict:
+    """Return a Jupyter notebook dict pre-loaded with cohort data."""
+    br   = stats.get('by_risk', {})
+    now  = datetime.now().strftime('%Y-%m-%d %H:%M')
+    return {
+        'nbformat': 4, 'nbformat_minor': 5,
+        'metadata': {
+            'kernelspec': {'display_name': 'Python 3', 'language': 'python', 'name': 'python3'},
+            'language_info': {'name': 'python', 'version': '3.12.0'},
+        },
+        'cells': [
+            {'cell_type': 'markdown', 'id': 'intro', 'metadata': {}, 'source': [
+                f'# JupyterHealth — Cohort Analysis\n',
+                f'\n',
+                f'**Study:** Hepatic Encephalopathy Sleep Biomarkers  \n',
+                f'**Cohort:** {n} participants | High: {br.get("high",0)} · Medium: {br.get("medium",0)} · Low: {br.get("low",0)}  \n',
+                f'**Generated:** {now}\n',
+                f'\n',
+                f'`cohort_data` contains:\n',
+                f'- `patients` — ID, risk level, conditions, data source\n',
+                f'- `sleep_summaries` — 14-day avg sleep metrics (REM, Deep, Efficiency, WASO, SpO₂, …)\n',
+                f'- `cohort_stats` — risk distribution\n',
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'imports', 'metadata': {}, 'outputs': [], 'source': [
+                'import pandas as pd\n',
+                'import numpy as np\n',
+                'import matplotlib.pyplot as plt\n',
+                'import matplotlib.patches as mpatches\n',
+                'from matplotlib import rcParams\n',
+                '\n',
+                "rcParams['figure.figsize'] = (12, 4)\n",
+                "plt.style.use('seaborn-v0_8-whitegrid')\n",
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'load-data', 'metadata': {}, 'outputs': [], 'source': [
+                f'# ── Cohort data from JupyterHealth workbench ──────────────────────────\n',
+                f'import json\n',
+                f'cohort_data  = json.loads(r\'\'\'{cohort_json}\'\'\')\n',
+                f'patients_df  = pd.DataFrame(cohort_data["patients"])\n',
+                f'sleep_df     = pd.DataFrame(cohort_data["sleep_summaries"])\n',
+                f'\n',
+                f'print(f"Cohort: {{len(patients_df)}} participants")\n',
+                f'sleep_df.head()\n',
+            ]},
+            {'cell_type': 'markdown', 'id': 'analysis-md', 'metadata': {}, 'source': [
+                '## Sleep Biomarkers by Risk Level\n',
+                '\n',
+                'Compare REM %, Sleep Efficiency, and WASO across high / medium / low risk groups.\n',
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'sleep-by-risk', 'metadata': {}, 'outputs': [], 'source': [
+                'merged   = sleep_df.merge(patients_df[["id","risk_level"]], on="id", how="left")\n',
+                'merged   = merged[merged["risk_level"].isin(["high","medium","low"])]\n',
+                'metrics  = ["avg_rem_pct","avg_deep_pct","avg_efficiency","avg_waso","avg_spo2"]\n',
+                'labels   = ["REM %","Deep %","Efficiency %","WASO (min)","SpO₂ %"]\n',
+                'colors   = {"high":"#ef4444","medium":"#f59e0b","low":"#22c55e"}\n',
+                '\n',
+                'fig, axes = plt.subplots(1, len(metrics), figsize=(16, 4))\n',
+                'for ax, metric, label in zip(axes, metrics, labels):\n',
+                '    for risk in ["high","medium","low"]:\n',
+                '        vals = merged[merged["risk_level"]==risk][metric]\n',
+                '        ax.bar(risk, vals.mean(), color=colors[risk], alpha=0.85)\n',
+                '        ax.errorbar(risk, vals.mean(), yerr=vals.std(), fmt="none", color="#475569", capsize=4)\n',
+                '    ax.set_title(label, fontsize=11, fontweight="bold"); ax.set_xlabel("")\n',
+                'handles = [mpatches.Patch(color=c,label=r.capitalize()) for r,c in colors.items()]\n',
+                'axes[0].legend(handles=handles, fontsize=9)\n',
+                'fig.suptitle("Sleep Biomarkers by Risk Level", fontsize=13, fontweight="bold", y=1.02)\n',
+                'plt.tight_layout(); plt.show()\n',
+            ]},
+            {'cell_type': 'code', 'execution_count': None, 'id': 'correlation', 'metadata': {}, 'outputs': [], 'source': [
+                'cols   = ["avg_tst","avg_rem_pct","avg_deep_pct","avg_efficiency","avg_latency","avg_waso","avg_spo2"]\n',
+                'labels = ["TST","REM%","Deep%","Efficiency","Latency","WASO","SpO₂"]\n',
+                'corr   = sleep_df[cols].corr()\n',
+                '\n',
+                'fig, ax = plt.subplots(figsize=(7, 6))\n',
+                'im = ax.imshow(corr, cmap="RdBu_r", vmin=-1, vmax=1)\n',
+                'plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)\n',
+                'ax.set_xticks(range(len(cols))); ax.set_yticks(range(len(cols)))\n',
+                'ax.set_xticklabels(labels, rotation=45, ha="right")\n',
+                'ax.set_yticklabels(labels)\n',
+                'for i in range(len(cols)):\n',
+                '    for j in range(len(cols)):\n',
+                '        v = corr.iloc[i,j]\n',
+                '        ax.text(j,i,f"{v:.2f}",ha="center",va="center",fontsize=8,\n',
+                '                color="white" if abs(v)>0.5 else "black")\n',
+                'ax.set_title("Sleep Metric Correlation Matrix", fontsize=12, fontweight="bold")\n',
+                'plt.tight_layout(); plt.show()\n',
+            ]},
+        ],
+    }
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ A browser-based platform that enables clinical researchers to research specific 
 
 ---
 
-## [Live Demo](https://jupyterhealth-clinical-workbench.onrender.com/patient/PT-1847)
+## [Live Demo](https://jupyterhealth-clinical-workbench.onrender.com/)
 
 ---
 

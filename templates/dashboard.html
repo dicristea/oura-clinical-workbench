@@ -412,6 +412,17 @@
     .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 10px; }
     .sort-active .sort-arrow { opacity: 1; color: #3b82f6; }
 
+    /* ── Notebooks panel ───────────────────────────────────────────── */
+    #jupyterNotice { display: flex !important; }  /* override inline none until JS runs */
+    #jupyterNotice a { color: #92400e; font-weight: 600; }
+    #jupyterNotice a:hover { text-decoration: underline; }
+    .nb-create-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 2px 8px; border-radius: 9999px;
+        background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+        font-size: 10px; font-weight: 600;
+    }
+
     @media (max-width: 1100px) {
         .body-cols { grid-template-columns: 1fr; }
         .stat-row  { grid-template-columns: repeat(2, 1fr); }
@@ -476,8 +487,9 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
 
     <!-- Dashboard tab navigation -->
     <div class="dash-tab-nav">
-        <button class="dash-tab active" id="tabOverview" onclick="switchTab('overview')">Cohort Overview</button>
-        <button class="dash-tab"        id="tabExplorer" onclick="switchTab('explorer')">Cohort Data Explorer</button>
+        <button class="dash-tab active" id="tabOverview"   onclick="switchTab('overview')">Cohort Overview</button>
+        <button class="dash-tab"        id="tabExplorer"   onclick="switchTab('explorer')">Cohort Data Explorer</button>
+        <button class="dash-tab"        id="tabNotebooks"  onclick="switchTab('notebooks')">Notebooks</button>
     </div>
 
     <!-- ── Cohort Overview panel ─────────────────────────────────────── -->
@@ -757,9 +769,91 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
 
     </div><!-- /#panelExplorer -->
 
+    <!-- ── Notebooks panel ──────────────────────────────────────────── -->
+    <div id="panelNotebooks" style="display:none;">
+
+        <div class="explorer-heading" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h2>Notebooks</h2>
+                <p>Analysis notebooks created from cohort data · opens in Jupyter Lab</p>
+            </div>
+            <button class="btn-add" id="newNbBtn" onclick="openNewNbModal()" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span>New Notebook</span>
+            </button>
+        </div>
+
+        <!-- Jupyter URL notice -->
+        <div id="jupyterNotice" style="display:none;margin-bottom:20px;padding:12px 16px;
+             background:#fffbeb;border:1px solid #fde68a;border-radius:10px;
+             font-size:13px;color:#92400e;display:flex;align-items:center;gap:10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span id="jupyterNoticeText"></span>
+        </div>
+
+        <!-- Empty state -->
+        <div id="nbEmptyState" style="display:none;padding:60px 20px;text-align:center;color:#94a3b8;font-size:14px;">
+            No notebooks yet. Click <strong>New Notebook</strong> to create one pre-loaded with cohort sleep data.
+        </div>
+
+        <!-- Notebooks table -->
+        <div id="nbTableWrap" class="cohort-sleep-card" style="display:none;">
+            <div class="cohort-sleep-toolbar">
+                <span class="cohort-sleep-title">Research Notebooks</span>
+                <span id="nbCount" style="font-size:12px;color:#94a3b8;"></span>
+            </div>
+            <table class="sleep-table" id="nbTable">
+                <thead>
+                    <tr>
+                        <th>Notebook</th>
+                        <th>Created</th>
+                        <th>Last Modified</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="nbTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Loading state -->
+        <div id="nbLoading" style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;">
+            Loading notebooks…
+        </div>
+
+    </div><!-- /#panelNotebooks -->
+
 </div><!-- /.page -->
 
 <div id="notifyToast"></div>
+
+<!-- ── New Notebook Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="newNbModal" onclick="handleOverlayClick(event,'newNbModal')">
+    <div class="modal-box">
+        <div class="modal-title">New Analysis Notebook</div>
+        <div class="modal-sub">Creates a Jupyter notebook pre-loaded with cohort sleep data, ready to open in Jupyter Lab.</div>
+        <input class="modal-input" id="nbNameInput" type="text"
+               placeholder="Notebook name (e.g. rem_sleep_analysis)"
+               maxlength="80" autocomplete="off">
+        <div style="font-size:12px;color:#94a3b8;margin-top:-10px;margin-bottom:14px;">
+            Leave blank for a timestamped name. The file will be saved to <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;">notebooks/</code>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn-cancel" onclick="closeModal('newNbModal')">Cancel</button>
+            <button class="modal-btn-submit" id="nbCreateBtn" onclick="createNotebook()">Create &amp; Open</button>
+        </div>
+    </div>
+</div>
 
 <!-- ── Track Condition Modal (autocomplete) ─────────────────────────── -->
 <div class="modal-overlay" id="condModal" onclick="handleOverlayClick(event,'condModal')">
@@ -847,17 +941,20 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
 (function () {
     'use strict';
 
-    let _explorerBuilt = false;
+    let _explorerBuilt  = false;
+    let _notebooksBuilt = false;
+
+    const PANELS = ['overview', 'explorer', 'notebooks'];
 
     window.switchTab = function (name) {
-        document.getElementById('panelOverview').style.display = name === 'overview' ? '' : 'none';
-        document.getElementById('panelExplorer').style.display = name === 'explorer'  ? '' : 'none';
-        document.getElementById('tabOverview').classList.toggle('active', name === 'overview');
-        document.getElementById('tabExplorer').classList.toggle('active', name === 'explorer');
-        if (name === 'explorer' && !_explorerBuilt) {
-            buildSleepExplorer();
-            _explorerBuilt = true;
-        }
+        PANELS.forEach(p => {
+            const panel = document.getElementById(`panel${p.charAt(0).toUpperCase() + p.slice(1)}`);
+            const tab   = document.getElementById(`tab${p.charAt(0).toUpperCase() + p.slice(1)}`);
+            if (panel) panel.style.display = p === name ? '' : 'none';
+            if (tab)   tab.classList.toggle('active', p === name);
+        });
+        if (name === 'explorer'  && !_explorerBuilt)  { buildSleepExplorer(); _explorerBuilt = true; }
+        if (name === 'notebooks' && !_notebooksBuilt) { loadNotebooks();      _notebooksBuilt = true; }
     };
 
     /* ── Cohort Sleep Explorer ───────────────────────────────────────────── */
@@ -952,6 +1049,163 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
         if (_sortKey === key) { _sortAsc = !_sortAsc; } else { _sortKey = key; _sortAsc = true; }
         renderTable();
     };
+})();
+
+/* ── Notebooks panel ─────────────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    let _jupyterBase = 'http://localhost:8888';
+
+    /* ── Load notebook list from server ─────────────────────────────────── */
+    async function loadNotebooks() {
+        showNbState('loading');
+        try {
+            const res  = await fetch('/api/notebooks');
+            const data = await res.json();
+            _jupyterBase = data.jupyter_base || _jupyterBase;
+            renderNotebooks(data.notebooks || []);
+        } catch (_) {
+            showNbState('empty');
+        }
+    }
+    window.loadNotebooks = loadNotebooks;
+
+    function showNbState(state) {
+        document.getElementById('nbLoading').style.display    = state === 'loading' ? '' : 'none';
+        document.getElementById('nbEmptyState').style.display = state === 'empty'   ? '' : 'none';
+        document.getElementById('nbTableWrap').style.display  = state === 'table'   ? '' : 'none';
+    }
+
+    function renderNotebooks(notebooks) {
+        const notice   = document.getElementById('jupyterNotice');
+        const noticeEl = document.getElementById('jupyterNoticeText');
+
+        if (notebooks.length === 0) {
+            notice.style.display = 'none';
+            showNbState('empty');
+            return;
+        }
+
+        // Show Jupyter URL hint
+        notice.style.display  = 'flex';
+        noticeEl.innerHTML = `Notebooks open in Jupyter Lab at <a href="${_jupyterBase}" target="_blank"
+            style="color:#92400e;font-weight:600;">${_jupyterBase}</a>.
+            Start Jupyter with <code style="background:#fef9c3;padding:1px 5px;border-radius:3px;">jupyter lab</code> if it isn't running.
+            Set <code style="background:#fef9c3;padding:1px 5px;border-radius:3px;">JUPYTER_BASE_URL</code> env var to change the URL.`;
+
+        document.getElementById('nbCount').textContent = `${notebooks.length} notebook${notebooks.length !== 1 ? 's' : ''}`;
+
+        const tbody = document.getElementById('nbTableBody');
+        tbody.innerHTML = notebooks.map(nb => `
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span style="font-weight:600;color:#1e293b;">${nb.name.replace('.ipynb','')}</span>
+                        <span style="font-size:11px;color:#94a3b8;">.ipynb</span>
+                    </div>
+                </td>
+                <td style="font-size:12px;">${nb.created}</td>
+                <td style="font-size:12px;">${nb.modified}</td>
+                <td style="font-size:12px;color:#94a3b8;">${nb.size_kb} KB</td>
+                <td>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <a href="${nb.jupyter_url}" target="_blank"
+                           style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+                                  background:#f59e0b;color:#fff;border-radius:7px;text-decoration:none;
+                                  font-size:12px;font-weight:600;white-space:nowrap;
+                                  transition:background 0.15s;"
+                           onmouseover="this.style.background='#d97706'"
+                           onmouseout="this.style.background='#f59e0b'">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                            Open in Jupyter
+                        </a>
+                        <button onclick="copyToClipboard('${nb.path}')"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;
+                                       background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;
+                                       border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;
+                                       font-family:inherit;transition:background 0.15s;"
+                                title="Copy file path">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Copy path
+                        </button>
+                    </div>
+                </td>
+            </tr>`).join('');
+        showNbState('table');
+    }
+
+    /* ── Create notebook modal ───────────────────────────────────────────── */
+    window.openNewNbModal = function () {
+        document.getElementById('nbNameInput').value = '';
+        document.getElementById('newNbModal').classList.add('open');
+        setTimeout(() => document.getElementById('nbNameInput').focus(), 60);
+    };
+
+    window.createNotebook = async function () {
+        const btn  = document.getElementById('nbCreateBtn');
+        const name = document.getElementById('nbNameInput').value.trim();
+        btn.disabled = true;
+        btn.textContent = 'Creating…';
+        try {
+            const res  = await fetch('/api/notebooks/new', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            const data = await res.json();
+            if (res.status === 409) {
+                showToastNb(`"${data.error}" — choose a different name`);
+            } else if (!res.ok) {
+                throw new Error(data.error || 'Unknown error');
+            } else {
+                closeModal('newNbModal');
+                showToastNb(`"${data.name}" created — opening in Jupyter…`);
+                setTimeout(() => window.open(data.jupyter_url, '_blank'), 600);
+                _notebooksBuilt = false;
+                loadNotebooks();
+            }
+        } catch (err) {
+            showToastNb(`Error: ${err.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Create & Open';
+        }
+    };
+
+    window.copyToClipboard = function (text) {
+        navigator.clipboard.writeText(text).then(() => showToastNb(`Copied: ${text}`));
+    };
+
+    function showToastNb(msg) {
+        const t = document.getElementById('notifyToast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 4500);
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.getElementById('newNbModal')?.classList.contains('open')) {
+            window.createNotebook();
+        }
+    });
 })();
 
 /* ── Main dashboard JS ───────────────────────────────────────────────────── */
@@ -1059,8 +1313,11 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
     }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function handleOverlayClick(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+    // Expose globally so inline onclick and other IIFEs can call them
+    window.closeModal         = closeModal;
+    window.handleOverlayClick = handleOverlayClick;
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') ['condModal','srcModal'].forEach(closeModal);
+        if (e.key === 'Escape') ['condModal','srcModal','newNbModal'].forEach(closeModal);
     });
 
     /* ── Condition autocomplete ──────────────────────────────────────── */
