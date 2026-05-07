@@ -561,6 +561,41 @@
     flex-shrink: 0;
 }
 
+/* ── Stats table ─────────────────────────────────────────────────────────── */
+.stats-section {
+    margin-top: 20px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 16px;
+    display: none;
+}
+.stats-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    margin-bottom: 10px;
+}
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.stats-table th {
+    text-align: left;
+    padding: 5px 8px;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 11px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.stats-table td {
+    padding: 6px 8px;
+    color: #334155;
+    border-bottom: 1px solid #f8fafc;
+}
+.stats-table tr:last-child td { border-bottom: none; }
+
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
     .explorer-layout { grid-template-columns: 1fr; }
@@ -827,6 +862,13 @@
                     </label>
                 {% endfor %}
             {% endfor %}
+            <div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#475569;user-select:none;">
+                    <input type="checkbox" id="rollingMeanToggle" onchange="toggleRollingMean(this)"
+                           style="accent-color:#5B21B6;width:14px;height:14px;">
+                    Show 7-day rolling mean
+                </label>
+            </div>
         </div>
 
     </aside><!-- /.sidebar-col -->
@@ -847,6 +889,17 @@
             </div>
 
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                <!-- CSV export -->
+                <button class="btn-add-to-nb" onclick="exportCSV()" type="button" title="Download visible signals as CSV">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Export CSV
+                </button>
                 <!-- Add to Notebook popover -->
                 <div class="nb-popover-wrap" id="nbPopoverWrap">
                     <button class="btn-add-to-nb" onclick="toggleNbPopover()" type="button"
@@ -941,6 +994,24 @@
         <!-- Floating tooltip (positioned absolutely inside .chart-wrap) -->
         <div id="chartTooltip" role="tooltip" aria-live="polite"></div>
 
+        <!-- Signal statistics summary -->
+        <div class="stats-section" id="statsSummary">
+            <div class="stats-title">Signal Summary — Current Window</div>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Signal</th>
+                        <th>Mean</th>
+                        <th>SD</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="statsBody"></tbody>
+            </table>
+        </div>
+
     </div><!-- /.chart-card -->
 
 </div><!-- /.explorer-layout -->
@@ -965,9 +1036,18 @@
 
     // ── State ────────────────────────────────────────────────────────────────
     let currentDays     = 30;
+    let showRollingMean = false;
     let visibleFeatures = new Set(
         CHART_DATA.features.filter(f => f.default_selected).map(f => f.name)
     );
+
+    // ── Rolling mean helper ──────────────────────────────────────────────────
+    function rollingMean(vals, w) {
+        return vals.map((_, i) => {
+            const sl = vals.slice(Math.max(0, i - w + 1), i + 1);
+            return sl.reduce((a, b) => a + b, 0) / sl.length;
+        });
+    }
 
     // ── Utility helpers ──────────────────────────────────────────────────────
 
@@ -1094,10 +1174,84 @@
             fill="transparent" style="cursor:crosshair;"
             data-n="${n}" data-xstep="${xStep.toFixed(4)}"/>`);
 
+        // ── Flagged night markers (amber dashed verticals) ───────────────────
+        const flaggedSet = new Set((CHART_DATA.flagged_dates || []).map(f => f.date));
+        const flaggedReasons = Object.fromEntries(
+            (CHART_DATA.flagged_dates || []).map(f => [f.date, f.reasons])
+        );
+        dates.forEach((d, i) => {
+            if (!flaggedSet.has(d)) return;
+            const x = xPos(i).toFixed(1);
+            const yBot = (PAD.top + innerH).toFixed(1);
+            parts.push(`<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${yBot}"
+                stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.75"
+                data-date="${d}"/>`);
+            // Small downward triangle at top of the marker
+            const tx = parseFloat(x);
+            parts.push(`<polygon points="${tx},${PAD.top + 2} ${tx - 5},${PAD.top - 7} ${tx + 5},${PAD.top - 7}"
+                fill="#f59e0b" opacity="0.85"/>`);
+        });
+
+        // ── 7-day rolling mean lines (on top of raw lines, same color, thicker) ──
+        if (showRollingMean && visible.length > 0) {
+            visible.forEach(feat => {
+                const vals = getSlice(feat.values);
+                const mn   = Math.min(...vals);
+                const mx   = Math.max(...vals);
+                const rng  = mx - mn || 1;
+                const rm   = rollingMean(vals, 7);
+                const pts  = rm.map((v, i) => `${xPos(i).toFixed(1)},${yPos((v - mn) / rng).toFixed(1)}`).join(' ');
+                parts.push(`<polyline points="${pts}" fill="none" stroke="${feat.color}"
+                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>`);
+            });
+        }
+
         parts.push(`</svg>`);
         container.innerHTML = parts.join('\n');
 
         setupHover();
+        updateStats();
+    }
+
+    // ── Stats summary table ──────────────────────────────────────────────────
+    function updateStats() {
+        const body    = document.getElementById('statsBody');
+        const section = document.getElementById('statsSummary');
+        if (!body || !section) return;
+
+        const visible = CHART_DATA.features.filter(f => visibleFeatures.has(f.name));
+        if (visible.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+
+        const fmt = (v, u) => {
+            const s = Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1);
+            return u ? `${s} ${u}` : s;
+        };
+
+        body.innerHTML = visible.map(feat => {
+            const vals = getSlice(feat.values).filter(v => v != null && !isNaN(v));
+            if (!vals.length) return '';
+            const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+            const sd   = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length);
+            const mn   = Math.min(...vals);
+            const mx   = Math.max(...vals);
+            const w    = Math.min(3, Math.floor(vals.length / 4));
+            const firstAvg = vals.slice(0, w).reduce((a, b) => a + b, 0) / w;
+            const lastAvg  = vals.slice(-w).reduce((a, b) => a + b, 0) / w;
+            const diff = lastAvg - firstAvg;
+            const pct  = firstAvg !== 0 ? Math.abs(diff / firstAvg * 100).toFixed(0) : '—';
+            const icon  = diff > 0.5 ? '↑' : diff < -0.5 ? '↓' : '→';
+            const color = diff > 0.5 ? '#10b981' : diff < -0.5 ? '#ef4444' : '#94a3b8';
+            const u = feat.unit || '';
+            return `<tr>
+                <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${feat.color};margin-right:6px;vertical-align:middle;"></span>${feat.display_name}</td>
+                <td>${fmt(mean, u)}</td>
+                <td>${fmt(sd, u)}</td>
+                <td>${fmt(mn, u)}</td>
+                <td>${fmt(mx, u)}</td>
+                <td style="color:${color};font-weight:600;">${icon} ${pct}%</td>
+            </tr>`;
+        }).join('');
     }
 
     // ── Hover handler ────────────────────────────────────────────────────────
@@ -1193,11 +1347,38 @@
         drawChart();
     }
 
+    // ── Rolling mean toggle ──────────────────────────────────────────────────
+    function toggleRollingMean(cb) {
+        showRollingMean = cb.checked;
+        drawChart();
+    }
+
+    // ── CSV export ───────────────────────────────────────────────────────────
+    function exportCSV() {
+        const dates   = getSlice(CHART_DATA.dates);
+        const visible = CHART_DATA.features.filter(f => visibleFeatures.has(f.name));
+        if (!visible.length) return;
+        const header = ['Date', ...visible.map(f => `${f.display_name}${f.unit ? ' (' + f.unit + ')' : ''}`)].join(',');
+        const rows   = dates.map((d, i) =>
+            [d, ...visible.map(f => { const v = getSlice(f.values)[i]; return v != null ? v : ''; })].join(',')
+        );
+        const csv  = [header, ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `${CHART_DATA.features[0] ? 'patient' : 'signals'}_explorer.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     // ── Expose to inline onchange/onclick handlers ───────────────────────────
-    window.toggleFeature = toggleFeature;
-    window.selectAll     = selectAll;
-    window.clearAll      = clearAll;
-    window.setWindow     = setWindow;
+    window.toggleFeature   = toggleFeature;
+    window.selectAll       = selectAll;
+    window.clearAll        = clearAll;
+    window.setWindow       = setWindow;
+    window.toggleRollingMean = toggleRollingMean;
+    window.exportCSV       = exportCSV;
 
     // Redraw when cohort selection changes
     document.addEventListener('cohortChanged', drawChart);

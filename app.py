@@ -1691,6 +1691,20 @@ def cohort_data_explorer(patient_id):
             }
         cohort_bands[cohort_id] = feat_bands
 
+    # Flagged nights for anomaly markers on the explorer chart
+    from datetime import datetime as _dt
+    view = _compute_patient_view_data(patient_id)
+    auto_conf = view.get('auto_confounders', {}) if view else {}
+    flagged_display_dates = []
+    for iso, reasons in auto_conf.items():
+        try:
+            flagged_display_dates.append({
+                'date':    _dt.strptime(iso, '%Y-%m-%d').strftime('%b %d'),
+                'reasons': reasons,
+            })
+        except ValueError:
+            pass
+
     return render_template(
         'cohort_data_explorer.html',
         patient=patient,
@@ -1698,7 +1712,12 @@ def cohort_data_explorer(patient_id):
         feature_groups=feature_groups,
         features_by_name=features_by_name,
         source_label=source_label,
-        chart_data={'dates': dates, 'features': features_list, 'cohort_bands': cohort_bands},
+        chart_data={
+            'dates':        dates,
+            'features':     features_list,
+            'cohort_bands': cohort_bands,
+            'flagged_dates': flagged_display_dates,
+        },
         total_days=N_DAYS,
         data_source=ds_key,
     )
