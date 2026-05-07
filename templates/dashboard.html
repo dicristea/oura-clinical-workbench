@@ -350,6 +350,24 @@
     }
     #notifyToast.show { opacity: 1; transform: translateY(0); }
 
+    /* ── Study stat strip ──────────────────────────────────────────── */
+    .study-stat-strip {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        padding: 10px 18px; background: #eff6ff; border: 1px solid #bfdbfe;
+        border-radius: 10px; margin-bottom: 22px;
+        font-size: 13px; color: #1e293b;
+    }
+    .study-stat-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .study-stat-item strong { font-weight: 700; color: #1d4ed8; }
+    .study-stat-muted { color: #64748b; font-size: 12px; }
+    .study-stat-pipe { color: #bfdbfe; padding: 0 4px; user-select: none; }
+
+    /* Trend arrows in roster */
+    .trend-up   { color: #16a34a; font-weight: 700; }
+    .trend-down { color: #dc2626; font-weight: 700; }
+    .trend-flat { color: #94a3b8; font-weight: 400; }
+    .trend-cell { white-space: nowrap; font-size: 12px; }
+
     /* ── Dashboard tab nav ──────────────────────────────────────────── */
     .dash-tab-nav {
         display: flex; gap: 2px; margin-bottom: 28px;
@@ -427,6 +445,8 @@
         .body-cols { grid-template-columns: 1fr; }
         .stat-row  { grid-template-columns: repeat(2, 1fr); }
         .sleep-kpi-row { grid-template-columns: repeat(2, 1fr); }
+        .explorer-two-col { grid-template-columns: 1fr; }
+        .explorer-left { position: static; }
     }
     @media (max-width: 640px) {
         .page { padding: 20px 16px; }
@@ -434,6 +454,120 @@
         .stat-row { grid-template-columns: 1fr 1fr; }
         .btn-add span { display: none; }
     }
+
+    /* ── Two-column Cohort Explorer ────────────────────────────────── */
+    .explorer-two-col { display: grid; grid-template-columns: 270px 1fr; gap: 20px; align-items: start; }
+    .explorer-left    { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 12px; }
+    .explorer-panel   { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 16px; }
+    .explorer-panel-title {
+        font-size: 11px; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 0.06em; color: #64748b; margin-bottom: 10px;
+    }
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .filter-chip {
+        padding: 4px 11px; border-radius: 9999px; border: 1.5px solid #e2e8f0;
+        background: #fff; color: #475569; font-size: 12px; font-weight: 500;
+        cursor: pointer; font-family: inherit;
+        transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .filter-chip:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .filter-chip.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+    .sel-controls { display: flex; gap: 6px; margin-bottom: 8px; }
+    .btn-sm {
+        padding: 5px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #475569; font-size: 12px; font-weight: 500;
+        cursor: pointer; font-family: inherit;
+    }
+    .btn-sm:hover { background: #f1f5f9; }
+    .sel-count { font-size: 12px; color: #64748b; font-weight: 500; }
+
+    .pt-select-list { display: flex; flex-direction: column; max-height: 400px; overflow-y: auto; }
+    .pt-select-item  {
+        display: flex; align-items: center; gap: 8px;
+        padding: 7px 12px; cursor: pointer;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .pt-select-item:last-child { border-bottom: none; }
+    .pt-select-item:hover { background: #f8fafc; }
+    .pt-select-item input[type=checkbox] { flex-shrink: 0; accent-color: #3b82f6; width: 14px; height: 14px; cursor: pointer; }
+    .pt-select-label { display: flex; flex-direction: column; gap: 1px; cursor: pointer; flex: 1; min-width: 0; }
+    .pt-select-id    { font-size: 13px; font-weight: 500; color: #1e293b; }
+    .pt-select-meta  { font-size: 11px; color: #94a3b8; }
+
+    /* Right column */
+    .explorer-right { display: flex; flex-direction: column; gap: 16px; }
+    .exp-tab-row  { display: flex; gap: 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 0; }
+    .exp-tab {
+        padding: 9px 18px; border: none; background: none; font-size: 13px; font-weight: 500;
+        color: #64748b; cursor: pointer; font-family: inherit;
+        border-bottom: 2px solid transparent; margin-bottom: -1px;
+        transition: color 0.12s, border-color 0.12s;
+    }
+    .exp-tab:hover  { color: #1e293b; }
+    .exp-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 600; }
+
+    /* Notebook builder */
+    .nb-builder-section { margin-bottom: 18px; }
+    .nb-builder-label   { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; display: block; }
+    .nb-analysis-select {
+        width: 100%; padding: 8px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        font-size: 13px; font-family: inherit; color: #1e293b; background: #fff; cursor: pointer;
+    }
+    .nb-dr-btns { display: flex; gap: 6px; }
+    .nb-dr-btn  {
+        flex: 1; padding: 6px 0; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #475569; font-size: 12px; font-weight: 500;
+        cursor: pointer; font-family: inherit; text-align: center;
+        transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .nb-dr-btn.active { background: #5b21b6; color: #fff; border-color: #5b21b6; }
+    .nb-metric-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .nb-metric-chip {
+        display: flex; align-items: center; gap: 5px; padding: 4px 11px;
+        border: 1.5px solid #e2e8f0; border-radius: 9999px; background: #fff;
+        font-size: 12px; color: #475569; cursor: pointer; user-select: none;
+        transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .nb-metric-chip.active { background: #ede9fe; border-color: #7c3aed; color: #5b21b6; font-weight: 600; }
+
+    .code-preview-wrap { position: relative; }
+    .code-preview {
+        background: #0f172a; color: #94a3b8;
+        font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+        font-size: 11.5px; line-height: 1.65; padding: 16px;
+        border-radius: 10px; max-height: 300px; overflow-y: auto;
+        white-space: pre; margin: 0; tab-size: 4;
+    }
+    .btn-copy {
+        position: absolute; top: 8px; right: 8px; padding: 4px 10px;
+        background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+        border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit;
+    }
+    .btn-copy:hover { color: #e2e8f0; }
+
+    .nb-action-row    { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .btn-nb-create    {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 9px 18px; border: none; border-radius: 10px;
+        background: #5b21b6; color: #fff; font-size: 13px; font-weight: 600;
+        cursor: pointer; font-family: inherit; transition: background 0.15s;
+    }
+    .btn-nb-create:hover:not(:disabled) { background: #4c1d95; }
+    .btn-nb-create:disabled { opacity: 0.5; cursor: not-allowed; }
+    .nb-or            { font-size: 12px; color: #94a3b8; }
+    .nb-existing-wrap { display: flex; gap: 6px; align-items: center; flex: 1; min-width: 200px; }
+    .nb-existing-sel  {
+        flex: 1; padding: 8px 10px; border: 1.5px solid #e2e8f0;
+        border-radius: 8px; font-size: 12px; font-family: inherit; color: #1e293b;
+    }
+    .btn-nb-inject {
+        padding: 8px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #475569; font-size: 12px; font-weight: 500;
+        cursor: pointer; font-family: inherit;
+    }
+    .btn-nb-inject:hover { background: #f1f5f9; }
+    .nb-hint { font-size: 11px; color: #94a3b8; margin-top: 6px; }
 </style>
 {% endblock %}
 
@@ -490,6 +624,36 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
         <button class="dash-tab active" id="tabOverview"   onclick="switchTab('overview')">Cohort Overview</button>
         <button class="dash-tab"        id="tabExplorer"   onclick="switchTab('explorer')">Cohort Data Explorer</button>
         <button class="dash-tab"        id="tabNotebooks"  onclick="switchTab('notebooks')">Notebooks</button>
+    </div>
+
+    <!-- ── Study context strip ───────────────────────────────────────── -->
+    <div class="study-stat-strip" aria-label="Study overview">
+        <span class="study-stat-item">
+            <strong>{{ enrollment.enrolled }}</strong> enrolled
+            <span class="study-stat-muted">/ {{ enrollment.target }} target</span>
+        </span>
+        <span class="study-stat-pipe">|</span>
+        <span class="study-stat-item">
+            <strong>{{ enrollment.days_of_data }}</strong> days of wearable data
+        </span>
+        <span class="study-stat-pipe">|</span>
+        <span class="study-stat-item">
+            <strong>{{ enrollment.years_of_data }} years</strong> longitudinal
+        </span>
+        <span class="study-stat-pipe">|</span>
+        <span class="study-stat-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 style="flex-shrink:0;" aria-hidden="true">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            {{ enrollment.institutions }}
+        </span>
+        <span class="study-stat-pipe">|</span>
+        <span class="study-stat-item study-stat-muted">
+            Hepatic Encephalopathy Sleep Biomarkers Study
+        </span>
     </div>
 
     <!-- ── Cohort Overview panel ─────────────────────────────────────── -->
@@ -664,6 +828,7 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
                     <tr>
                         <th>Participant</th>
                         <th>Risk</th>
+                        <th title="Week-over-week change in sleep efficiency">Sleep Trend</th>
                         <th>Conditions</th>
                         <th>Source</th>
                         <th>Last Record</th>
@@ -686,6 +851,20 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
                             <span class="rbadge rbadge-{{ rl if rl in ['high','medium','low'] else 'unknown' }}">
                                 {{ rl | capitalize if rl else '—' }}
                             </span>
+                        </td>
+                        <td class="trend-cell">
+                            {% set ss = sleep_summary_map.get(patient.id, {}) %}
+                            {% set delta = ss.get('efficiency_trend', 0) %}
+                            {% set tdir  = ss.get('trend_dir', 'flat') %}
+                            {% if tdir == 'up' %}
+                                <span class="trend-up">↑</span>
+                                <span class="trend-up"> +{{ delta }}%</span>
+                            {% elif tdir == 'down' %}
+                                <span class="trend-down">↓</span>
+                                <span class="trend-down"> {{ delta }}%</span>
+                            {% else %}
+                                <span class="trend-flat">→ {{ "%+.1f"|format(delta) }}%</span>
+                            {% endif %}
                         </td>
                         <td>
                             <div class="cond-tags">
@@ -731,41 +910,149 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
     <!-- ── Cohort Data Explorer panel ───────────────────────────────── -->
     <div id="panelExplorer" style="display:none;">
 
-        <div class="explorer-heading">
+        <div class="explorer-heading" style="margin-bottom:16px;">
             <h2>Cohort Data Explorer</h2>
-            <p>Sleep metrics across all enrolled participants · Oura Ring V2 · OMH Standard</p>
+            <p>Select patients, preview metrics, and push analyses to Jupyter notebooks</p>
         </div>
 
-        <!-- KPI summary row -->
-        <div class="sleep-kpi-row" id="sleepKpiRow">
-            <!-- filled by JS -->
-        </div>
+        <div class="explorer-two-col">
 
-        <!-- Patient sleep metrics table -->
-        <div class="cohort-sleep-card">
-            <div class="cohort-sleep-toolbar">
-                <span class="cohort-sleep-title">Participant Sleep Metrics — 14-Day Average</span>
-                <span style="font-size:12px;color:#94a3b8;">Click column headers to sort</span>
+            <!-- ── Left: Patient Selector ───────────────────────────── -->
+            <div class="explorer-left">
+
+                <div class="explorer-panel">
+                    <div class="explorer-panel-title">Filter by Risk</div>
+                    <div class="filter-chips" id="riskFilterChips">
+                        <button class="filter-chip active" onclick="setRiskFilter('all',this)">All</button>
+                        <button class="filter-chip" onclick="setRiskFilter('high',this)">High</button>
+                        <button class="filter-chip" onclick="setRiskFilter('medium',this)">Medium</button>
+                        <button class="filter-chip" onclick="setRiskFilter('low',this)">Low</button>
+                    </div>
+                    <div class="sel-controls">
+                        <button class="btn-sm" onclick="selectAllPatients()">Select All</button>
+                        <button class="btn-sm" onclick="selectNonePatients()">None</button>
+                    </div>
+                    <div class="sel-count" id="selCount">0 selected</div>
+                </div>
+
+                <div class="explorer-panel" style="padding:0;overflow:hidden;">
+                    <div class="pt-select-list" id="ptSelectList">
+                        <!-- filled by JS -->
+                    </div>
+                </div>
+
             </div>
-            <table class="sleep-table" id="sleepTable">
-                <thead>
-                    <tr>
-                        <th onclick="sortSleepTable('id')">Participant <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('risk')">Risk <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_tst')">Avg TST (h) <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_rem_pct')">REM % <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_deep_pct')">Deep % <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_efficiency')">Efficiency % <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_latency')">Latency (min) <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_waso')">WASO (min) <span class="sort-arrow">↕</span></th>
-                        <th onclick="sortSleepTable('avg_spo2')">SpO₂ % <span class="sort-arrow">↕</span></th>
-                    </tr>
-                </thead>
-                <tbody id="sleepTableBody">
-                    <!-- filled by JS -->
-                </tbody>
-            </table>
-        </div>
+
+            <!-- ── Right: Data Preview + Notebook Builder ───────────── -->
+            <div class="explorer-right">
+
+                <!-- Cohort KPI strip -->
+                <div class="sleep-kpi-row" id="sleepKpiRow"></div>
+
+                <!-- Tab bar -->
+                <div class="explorer-panel" style="padding:0;">
+                    <div class="exp-tab-row">
+                        <button class="exp-tab active" id="expTabPreview"
+                                onclick="switchExplorerTab('preview')">Data Preview</button>
+                        <button class="exp-tab" id="expTabBuilder"
+                                onclick="switchExplorerTab('builder')">Notebook Builder</button>
+                    </div>
+
+                    <!-- Data Preview tab -->
+                    <div id="expPreviewPanel" style="padding:0;">
+                        <div class="cohort-sleep-toolbar">
+                            <span class="cohort-sleep-title" id="previewTitle">All Participants — 14-Day Average</span>
+                            <span style="font-size:12px;color:#94a3b8;">Click headers to sort</span>
+                        </div>
+                        <table class="sleep-table" id="sleepTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortSleepTable('id')">Participant <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('risk')">Risk <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_tst')">TST (h) <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_rem_pct')">REM % <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_deep_pct')">Deep % <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_efficiency')">Efficiency <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_latency')">Latency <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_waso')">WASO <span class="sort-arrow">↕</span></th>
+                                    <th onclick="sortSleepTable('avg_spo2')">SpO₂ <span class="sort-arrow">↕</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="sleepTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Notebook Builder tab -->
+                    <div id="expBuilderPanel" style="display:none;padding:20px;">
+
+                        <div class="nb-builder-section">
+                            <label class="nb-builder-label" for="analysisSelect">Analysis Type</label>
+                            <select class="nb-analysis-select" id="analysisSelect"
+                                    onchange="updateCodePreview()">
+                                <option value="sleep_comparison">Sleep Metric Comparison — bar chart per patient</option>
+                                <option value="time_series_overlay">Time Series Overlay — overlay patients on timeline</option>
+                                <option value="cohort_stats">Cohort Statistics — box plots &amp; distributions</option>
+                                <option value="risk_correlation">Risk Correlation — metric vs risk level scatter</option>
+                                <option value="confounder_analysis">Confounder Analysis — flagged vs unflagged nights</option>
+                            </select>
+                        </div>
+
+                        <div class="nb-builder-section">
+                            <span class="nb-builder-label">Date Range</span>
+                            <div class="nb-dr-btns" id="drBtns">
+                                <button class="nb-dr-btn" onclick="setDateRange(7,this)">7d</button>
+                                <button class="nb-dr-btn active" onclick="setDateRange(14,this)">14d</button>
+                                <button class="nb-dr-btn" onclick="setDateRange(30,this)">30d</button>
+                                <button class="nb-dr-btn" onclick="setDateRange(90,this)">90d</button>
+                            </div>
+                        </div>
+
+                        <div class="nb-builder-section">
+                            <span class="nb-builder-label">Metrics</span>
+                            <div class="nb-metric-grid" id="metricGrid">
+                                <!-- filled by JS -->
+                            </div>
+                        </div>
+
+                        <div class="nb-builder-section">
+                            <span class="nb-builder-label">Generated Python Code
+                                <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:6px;">
+                                    paste into any notebook cell
+                                </span>
+                            </span>
+                            <div class="code-preview-wrap">
+                                <pre class="code-preview" id="codePreview"></pre>
+                                <button class="btn-copy" onclick="copyCode()">Copy</button>
+                            </div>
+                        </div>
+
+                        <div class="nb-action-row">
+                            <button class="btn-nb-create" id="btnNbCreate" onclick="createFromBuilder()">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Create New Notebook
+                            </button>
+                            <span class="nb-or">or</span>
+                            <div class="nb-existing-wrap">
+                                <select class="nb-existing-sel" id="existingNbSel">
+                                    <option value="">Add to existing notebook…</option>
+                                    {% for nb in notebooks %}
+                                    <option value="{{ nb }}">{{ nb }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn-nb-inject" onclick="injectToNotebook()">Add Cell</button>
+                            </div>
+                        </div>
+                        <div class="nb-hint" id="nbBuilderHint"></div>
+
+                    </div><!-- /#expBuilderPanel -->
+                </div><!-- /.explorer-panel right tabs -->
+
+            </div><!-- /.explorer-right -->
+
+        </div><!-- /.explorer-two-col -->
 
     </div><!-- /#panelExplorer -->
 
@@ -957,16 +1244,113 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
         if (name === 'notebooks' && !_notebooksBuilt) { loadNotebooks();      _notebooksBuilt = true; }
     };
 
-    /* ── Cohort Sleep Explorer ───────────────────────────────────────────── */
-    let _sortKey = 'id';
-    let _sortAsc = true;
-    let _data    = window.__sleepSummaries || [];
+    /* ── Cohort Explorer (two-column) ──────────────────────────────────── */
+    const _allData = window.__sleepSummaries || [];
+
+    let _sortKey    = 'id';
+    let _sortAsc    = true;
+    let _riskFilter = 'all';
+    let _selected   = new Set();      // patient IDs selected in left column
+    let _dateRange  = 14;
+    let _activeMetrics = new Set(['avg_rem_pct', 'avg_efficiency', 'avg_tst']);
+    let _explorerTabActive = 'preview';
+
+    const METRIC_DEFS = [
+        { key: 'avg_rem_pct',   label: 'REM %',          unit: '%'  },
+        { key: 'avg_deep_pct',  label: 'Deep %',          unit: '%'  },
+        { key: 'avg_tst',       label: 'TST (h)',          unit: 'h'  },
+        { key: 'avg_efficiency',label: 'Efficiency',       unit: '%'  },
+        { key: 'avg_latency',   label: 'Latency',          unit: 'min'},
+        { key: 'avg_waso',      label: 'WASO',             unit: 'min'},
+        { key: 'avg_spo2',      label: 'SpO₂',            unit: '%'  },
+    ];
 
     function buildSleepExplorer() {
+        renderPatientList();
         renderKpis();
         renderTable();
+        renderMetricGrid();
+        updateCodePreview();
     }
 
+    /* ── Patient selector (left column) ── */
+    function visibleData() {
+        if (_riskFilter === 'all') return _allData;
+        return _allData.filter(r => r.risk === _riskFilter);
+    }
+
+    function renderPatientList() {
+        const list = document.getElementById('ptSelectList');
+        if (!list) return;
+        const rows = visibleData();
+        if (!rows.length) { list.innerHTML = '<div style="padding:16px;font-size:13px;color:#94a3b8;">No patients match this filter.</div>'; return; }
+        list.innerHTML = rows.map(r => {
+            const chk = _selected.has(r.id) ? 'checked' : '';
+            const riskColor = r.risk === 'high' ? '#dc2626' : r.risk === 'medium' ? '#d97706' : '#16a34a';
+            const eff = r.avg_efficiency != null ? `Eff ${r.avg_efficiency}%` : '';
+            const rem = r.avg_rem_pct   != null ? `REM ${r.avg_rem_pct}%`    : '';
+            return `<div class="pt-select-item" onclick="togglePatient('${r.id}',this)">
+                <input type="checkbox" ${chk} onclick="event.stopPropagation();togglePatient('${r.id}',this.closest('.pt-select-item'))">
+                <label class="pt-select-label">
+                    <span class="pt-select-id">${r.id}
+                        <span style="color:${riskColor};font-size:11px;margin-left:4px;">● ${r.risk||'—'}</span>
+                    </span>
+                    <span class="pt-select-meta">${eff}  ${rem}</span>
+                </label>
+            </div>`;
+        }).join('');
+        updateSelCount();
+    }
+
+    function togglePatient(id, el) {
+        if (_selected.has(id)) { _selected.delete(id); el.querySelector('input[type=checkbox]').checked = false; }
+        else                   { _selected.add(id);    el.querySelector('input[type=checkbox]').checked = true;  }
+        updateSelCount();
+        renderTable();
+        updateCodePreview();
+    }
+
+    function updateSelCount() {
+        const n   = _selected.size;
+        const el  = document.getElementById('selCount');
+        if (el) el.textContent = n ? `${n} patient${n>1?'s':''} selected` : 'None selected';
+        const title = document.getElementById('previewTitle');
+        if (title) title.textContent = n
+            ? `${n} Selected Patient${n>1?'s':''} — 14-Day Average`
+            : 'All Participants — 14-Day Average';
+    }
+
+    window.setRiskFilter = function(val, btn) {
+        _riskFilter = val;
+        document.querySelectorAll('#riskFilterChips .filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderPatientList();
+    };
+
+    window.selectAllPatients = function() {
+        visibleData().forEach(r => _selected.add(r.id));
+        renderPatientList();
+        renderTable();
+        updateCodePreview();
+    };
+
+    window.selectNonePatients = function() {
+        _selected.clear();
+        renderPatientList();
+        renderTable();
+        updateCodePreview();
+    };
+
+    /* ── Explorer tab switching ── */
+    window.switchExplorerTab = function(tab) {
+        _explorerTabActive = tab;
+        document.getElementById('expPreviewPanel').style.display = tab === 'preview' ? '' : 'none';
+        document.getElementById('expBuilderPanel').style.display = tab === 'builder' ? '' : 'none';
+        document.getElementById('expTabPreview').classList.toggle('active', tab === 'preview');
+        document.getElementById('expTabBuilder').classList.toggle('active', tab === 'builder');
+    };
+
+    /* ── KPI strip ── */
     function avg(arr, key) {
         if (!arr.length) return 0;
         return arr.reduce((s, r) => s + (r[key] || 0), 0) / arr.length;
@@ -974,80 +1358,358 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
 
     function renderKpis() {
         const el = document.getElementById('sleepKpiRow');
-        if (!el || !_data.length) return;
-        const avgEff  = avg(_data, 'avg_efficiency').toFixed(1);
-        const avgRem  = avg(_data, 'avg_rem_pct').toFixed(1);
-        const avgWaso = Math.round(avg(_data, 'avg_waso'));
-        const avgSpo2 = avg(_data, 'avg_spo2').toFixed(1);
+        if (!el) return;
+        const src = _allData;
+        if (!src.length) return;
+        const avgEff  = avg(src, 'avg_efficiency').toFixed(1);
+        const avgRem  = avg(src, 'avg_rem_pct').toFixed(1);
+        const avgWaso = Math.round(avg(src, 'avg_waso'));
+        const avgSpo2 = avg(src, 'avg_spo2').toFixed(1);
         const effClass  = +avgEff  >= 85 ? '' : +avgEff  >= 75 ? 'warn' : 'alert';
         const remClass  = +avgRem  >= 18 ? '' : +avgRem  >= 14 ? 'warn' : 'alert';
         const wasoClass = avgWaso  <= 20 ? '' : avgWaso  <= 35 ? 'warn' : 'alert';
         const spo2Class = +avgSpo2 >= 95 ? '' : +avgSpo2 >= 93 ? 'warn' : 'alert';
         el.innerHTML = `
             <div class="sleep-kpi-card ${effClass}">
-                <div class="sleep-kpi-label">Avg Sleep Efficiency</div>
+                <div class="sleep-kpi-label">Cohort Avg Efficiency</div>
                 <div class="sleep-kpi-value">${avgEff}<small style="font-size:16px;font-weight:400;">%</small></div>
                 <div class="sleep-kpi-sub">Normal ≥ 85%</div>
             </div>
             <div class="sleep-kpi-card ${remClass}">
-                <div class="sleep-kpi-label">Avg REM %</div>
+                <div class="sleep-kpi-label">Cohort Avg REM %</div>
                 <div class="sleep-kpi-value">${avgRem}<small style="font-size:16px;font-weight:400;">%</small></div>
                 <div class="sleep-kpi-sub">Normal 18–25%</div>
             </div>
             <div class="sleep-kpi-card ${wasoClass}">
-                <div class="sleep-kpi-label">Avg WASO</div>
+                <div class="sleep-kpi-label">Cohort Avg WASO</div>
                 <div class="sleep-kpi-value">${avgWaso}<small style="font-size:16px;font-weight:400;"> min</small></div>
                 <div class="sleep-kpi-sub">Normal ≤ 30 min</div>
             </div>
             <div class="sleep-kpi-card ${spo2Class}">
-                <div class="sleep-kpi-label">Avg SpO₂</div>
+                <div class="sleep-kpi-label">Cohort Avg SpO₂</div>
                 <div class="sleep-kpi-value">${avgSpo2}<small style="font-size:16px;font-weight:400;">%</small></div>
                 <div class="sleep-kpi-sub">Normal ≥ 95%</div>
             </div>`;
     }
 
+    /* ── Data table ── */
     function riskBadge(risk) {
         const map = { high: 'rbadge-high', medium: 'rbadge-medium', low: 'rbadge-low' };
-        return `<span class="rbadge ${map[risk] || 'rbadge-unknown'}">${risk ? risk.charAt(0).toUpperCase() + risk.slice(1) : '—'}</span>`;
+        return `<span class="rbadge ${map[risk] || 'rbadge-unknown'}">${risk ? risk.charAt(0).toUpperCase()+risk.slice(1) : '—'}</span>`;
     }
-    function mc(val, good, warn) {
-        const cls = +val >= good ? 'good' : +val >= warn ? 'warn' : 'bad';
-        return `<td class="sleep-metric-cell ${cls}">${val}</td>`;
-    }
-    function mcLow(val, good, warn) {
-        const cls = +val <= good ? 'good' : +val <= warn ? 'warn' : 'bad';
-        return `<td class="sleep-metric-cell ${cls}">${val}</td>`;
-    }
+    function mc(val, good, warn)    { const c = +val>=good?'good':+val>=warn?'warn':'bad'; return `<td class="sleep-metric-cell ${c}">${val}</td>`; }
+    function mcLow(val, good, warn) { const c = +val<=good?'good':+val<=warn?'warn':'bad'; return `<td class="sleep-metric-cell ${c}">${val}</td>`; }
 
     function renderTable() {
         const tbody = document.getElementById('sleepTableBody');
         if (!tbody) return;
-        const sorted = [..._data].sort((a, b) => {
+        const src = _selected.size ? _allData.filter(r => _selected.has(r.id)) : _allData;
+        const sorted = [...src].sort((a, b) => {
             const av = a[_sortKey], bv = b[_sortKey];
             if (typeof av === 'string') return _sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
             return _sortAsc ? av - bv : bv - av;
         });
         document.querySelectorAll('.sleep-table th').forEach(th => th.classList.remove('sort-active'));
         const keyMap = ['id','risk','avg_tst','avg_rem_pct','avg_deep_pct','avg_efficiency','avg_latency','avg_waso','avg_spo2'];
-        const headers = document.querySelectorAll('.sleep-table th');
-        keyMap.forEach((k, i) => { if (k === _sortKey && headers[i]) headers[i].classList.add('sort-active'); });
-        tbody.innerHTML = sorted.map(r => `
-            <tr onclick="window.location='/patient/${r.id}'">
-                <td><a class="pt-id-link" href="/patient/${r.id}" onclick="event.stopPropagation()">${r.id}</a></td>
+        document.querySelectorAll('.sleep-table th').forEach((th, i) => {
+            if (keyMap[i] === _sortKey) th.classList.add('sort-active');
+        });
+        tbody.innerHTML = sorted.map(r => {
+            const chkMark = _selected.has(r.id) ? '▪ ' : '';
+            return `<tr onclick="window.location='/patient/${r.id}'" style="${_selected.has(r.id)?'background:#f0f9ff;':''}">
+                <td><a class="pt-id-link" href="/patient/${r.id}" onclick="event.stopPropagation()">${chkMark}${r.id}</a></td>
                 <td>${riskBadge(r.risk)}</td>
                 <td class="sleep-metric-cell">${r.avg_tst}h</td>
-                ${mc(r.avg_rem_pct,  18, 14)}
-                ${mc(r.avg_deep_pct, 17, 13)}
+                ${mc(r.avg_rem_pct,    18, 14)}
+                ${mc(r.avg_deep_pct,   17, 13)}
                 ${mc(r.avg_efficiency, 85, 75)}
                 ${mcLow(r.avg_latency, 20, 35)}
                 ${mcLow(r.avg_waso,    20, 35)}
                 ${mc(r.avg_spo2, 95, 93)}
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
 
-    window.sortSleepTable = function (key) {
+    window.sortSleepTable = function(key) {
         if (_sortKey === key) { _sortAsc = !_sortAsc; } else { _sortKey = key; _sortAsc = true; }
         renderTable();
+    };
+
+    /* ── Notebook builder ── */
+    function renderMetricGrid() {
+        const grid = document.getElementById('metricGrid');
+        if (!grid) return;
+        grid.innerHTML = METRIC_DEFS.map(m => {
+            const active = _activeMetrics.has(m.key) ? 'active' : '';
+            return `<div class="nb-metric-chip ${active}" onclick="toggleMetric('${m.key}',this)">${m.label}</div>`;
+        }).join('');
+    }
+
+    window.toggleMetric = function(key, el) {
+        if (_activeMetrics.has(key)) _activeMetrics.delete(key);
+        else                         _activeMetrics.add(key);
+        el.classList.toggle('active');
+        updateCodePreview();
+    };
+
+    window.setDateRange = function(days, btn) {
+        _dateRange = days;
+        document.querySelectorAll('.nb-dr-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateCodePreview();
+    };
+
+    function getActivePatients() {
+        const src = _selected.size ? _allData.filter(r => _selected.has(r.id)) : _allData;
+        return src;
+    }
+
+    function updateCodePreview() {
+        const el = document.getElementById('codePreview');
+        if (!el) return;
+        const analysisEl = document.getElementById('analysisSelect');
+        const analysis   = analysisEl ? analysisEl.value : 'sleep_comparison';
+        const pts        = getActivePatients();
+        const metrics    = [..._activeMetrics].filter(k => METRIC_DEFS.find(m => m.key === k));
+        const metricLabels = Object.fromEntries(METRIC_DEFS.map(m => [m.key, m.label]));
+        const metricUnits  = Object.fromEntries(METRIC_DEFS.map(m => [m.key, m.unit]));
+        const ptIds = pts.map(p => p.id);
+        const ptData = pts.map(p => ({
+            id: p.id, risk: p.risk,
+            ...Object.fromEntries(metrics.map(k => [k, p[k]]))
+        }));
+        const dataJson = JSON.stringify(ptData, null, 2);
+        const nPts = pts.length;
+        let code = '';
+
+        if (analysis === 'sleep_comparison') {
+            const mList = '[' + metrics.map(k => `'${k}'`).join(', ') + ']';
+            const lblDict = '{' + metrics.map(k => `'${k}': '${metricLabels[k]}'`).join(', ') + '}';
+            code = `import pandas as pd
+import matplotlib.pyplot as plt
+import json
+
+# ── Selected patients (${nPts}) · ${_dateRange}-day avg ──────────────
+data = json.loads('''${dataJson}''')
+df = pd.DataFrame(data).set_index('id')
+
+metrics = ${mList}
+labels  = ${lblDict}
+risk_colors = {'high':'#ef4444','medium':'#f59e0b','low':'#10b981'}
+colors = [risk_colors.get(df.loc[pid,'risk'], '#3b82f6') for pid in df.index]
+
+fig, axes = plt.subplots(1, len(metrics), figsize=(4*len(metrics), 5))
+if len(metrics) == 1: axes = [axes]
+for ax, m in zip(axes, metrics):
+    ax.bar(df.index, df[m], color=colors, alpha=0.85, edgecolor='white', width=0.7)
+    ax.set_title(labels[m], fontsize=11, fontweight='bold')
+    ax.tick_params(axis='x', rotation=60, labelsize=8)
+    ax.set_ylabel(labels[m] + ' (${_dateRange}d avg)', fontsize=9)
+    ax.spines[['top','right']].set_visible(False)
+
+from matplotlib.patches import Patch
+legend = [Patch(color=c, label=r.title()) for r, c in risk_colors.items()]
+fig.legend(handles=legend, loc='upper right', fontsize=9)
+plt.suptitle('Sleep Comparison — ${_dateRange}-Day Avg · ${nPts} Patient${nPts!==1?'s':''}',
+             fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.show()`;
+
+        } else if (analysis === 'cohort_stats') {
+            const mList = '[' + metrics.map(k => `'${k}'`).join(', ') + ']';
+            code = `import pandas as pd
+import matplotlib.pyplot as plt
+import json
+
+data = json.loads('''${dataJson}''')
+df = pd.DataFrame(data)
+
+metrics = ${mList}
+labels  = ${JSON.stringify(Object.fromEntries(metrics.map(k => [k, metricLabels[k]])))}
+
+fig, axes = plt.subplots(1, len(metrics), figsize=(3.5*len(metrics), 5))
+if len(metrics) == 1: axes = [axes]
+for ax, m in zip(axes, metrics):
+    groups = [df[df['risk']==r][m].dropna().tolist() for r in ['high','medium','low']]
+    bp = ax.boxplot(groups, labels=['High','Medium','Low'], patch_artist=True)
+    for patch, color in zip(bp['boxes'], ['#fecaca','#fef3c7','#dcfce7']):
+        patch.set_facecolor(color)
+    ax.set_title(labels[m], fontsize=11, fontweight='bold')
+    ax.set_ylabel(labels[m], fontsize=9)
+    ax.spines[['top','right']].set_visible(False)
+
+plt.suptitle('Cohort Distribution by Risk — ${nPts} Patients', fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.show()`;
+
+        } else if (analysis === 'risk_correlation') {
+            const m0 = metrics[0] || 'avg_rem_pct';
+            const m1 = metrics[1] || 'avg_efficiency';
+            code = `import pandas as pd
+import matplotlib.pyplot as plt
+import json
+
+data = json.loads('''${dataJson}''')
+df = pd.DataFrame(data)
+
+x_metric = '${m0}'
+y_metric = '${m1}'
+labels   = ${JSON.stringify(Object.fromEntries(metrics.map(k => [k, metricLabels[k]])))}
+
+risk_colors = {'high':'#ef4444','medium':'#f59e0b','low':'#10b981'}
+df['color'] = df['risk'].map(risk_colors).fillna('#94a3b8')
+
+fig, ax = plt.subplots(figsize=(8, 5))
+for risk, grp in df.groupby('risk'):
+    ax.scatter(grp[x_metric], grp[y_metric],
+               color=risk_colors.get(risk,'#94a3b8'), label=risk.title(),
+               s=90, alpha=0.85, edgecolors='white', linewidth=0.5)
+
+for _, row in df.iterrows():
+    ax.annotate(row['id'], (row[x_metric], row[y_metric]),
+                fontsize=7, ha='center', va='bottom', color='#475569')
+
+ax.set_xlabel(labels.get(x_metric, x_metric), fontsize=11)
+ax.set_ylabel(labels.get(y_metric, y_metric), fontsize=11)
+ax.set_title('Risk Correlation — ${nPts} Patients', fontsize=13, fontweight='bold')
+ax.legend(); ax.spines[['top','right']].set_visible(False)
+plt.tight_layout(); plt.show()`;
+
+        } else if (analysis === 'time_series_overlay') {
+            code = `import pandas as pd
+import matplotlib.pyplot as plt
+import requests
+
+# ── Load per-patient daily data from the workbench API ───────────────
+WORKBENCH = 'http://localhost:5000'
+patient_ids = ${JSON.stringify(ptIds)}
+metric = '${metrics[0] || 'avg_rem_pct'}'   # change to any metric column
+
+series = {}
+for pid in patient_ids:
+    # The workbench serves patient detail data via Flask templates (not JSON yet).
+    # For now, load from the sleep_summaries proxy below, or wire a real
+    # /api/patient/<id>/timeseries endpoint in Phase 2.
+    pass
+
+# ── Quick proxy using already-embedded 14-day averages ───────────────
+data = json.loads('''${dataJson}''') if False else []
+# TODO: replace with real time-series fetch once /api/patient/<id>/ts is wired.
+
+# Placeholder: generate synthetic time series for illustration
+import numpy as np, json
+data = json.loads('''${dataJson}''')
+df_avg = pd.DataFrame(data).set_index('id')
+rng = np.random.default_rng(42)
+days = pd.date_range(end='2024-12-31', periods=${_dateRange})
+
+fig, ax = plt.subplots(figsize=(12, 5))
+for pid in df_avg.index:
+    base = df_avg.loc[pid, '${metrics[0] || 'avg_rem_pct'}'] if '${metrics[0] || 'avg_rem_pct'}' in df_avg.columns else 20
+    ts = rng.normal(base, 2.5, ${_dateRange})
+    ax.plot(days, ts, alpha=0.7, linewidth=1.5, label=pid)
+
+ax.set_xlabel('Date'); ax.set_ylabel('${metricLabels[metrics[0]] || 'Metric'}')
+ax.set_title('Time Series Overlay — ${nPts} Patients · ${_dateRange} days', fontsize=13, fontweight='bold')
+ax.legend(fontsize=8, ncol=3); ax.spines[['top','right']].set_visible(False)
+plt.tight_layout(); plt.show()`;
+
+        } else if (analysis === 'confounder_analysis') {
+            code = `import pandas as pd
+import matplotlib.pyplot as plt
+import requests, json
+
+# ── Load confounder flags from workbench ──────────────────────────────
+WORKBENCH = 'http://localhost:5000'
+patient_ids = ${JSON.stringify(ptIds)}
+metric = '${metrics[0] || 'avg_rem_pct'}'
+
+# Fetch confounder flags for each patient
+confounder_records = []
+for pid in patient_ids:
+    try:
+        r = requests.get(f'{WORKBENCH}/api/confounders/{pid}', timeout=5)
+        flags = r.json()  # {YYYY-MM-DD: [flag_list]}
+        for date, flag_list in flags.items():
+            confounder_records.append({'id': pid, 'date': date, 'flagged': True,
+                                       'flags': ', '.join(flag_list)})
+    except Exception:
+        pass
+
+print(f'{len(confounder_records)} flagged nights across {len(patient_ids)} patients')
+if confounder_records:
+    df_flags = pd.DataFrame(confounder_records)
+    print(df_flags.head(10))
+    print('\\nFlag type distribution:')
+    from collections import Counter
+    all_flags = [f for row in df_flags['flags'].str.split(', ') for f in row if f]
+    print(pd.Series(Counter(all_flags)).sort_values(ascending=False))
+else:
+    print('No confounder flags found. Use the ⚑ button on the patient detail page to flag nights.')`;
+        }
+
+        el.textContent = code;
+    }
+
+    window.copyCode = function() {
+        const pre = document.getElementById('codePreview');
+        if (!pre) return;
+        navigator.clipboard.writeText(pre.textContent).then(() => {
+            const btn = document.querySelector('.btn-copy');
+            if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = orig, 1500); }
+        });
+    };
+
+    window.createFromBuilder = function() {
+        const btn  = document.getElementById('btnNbCreate');
+        const hint = document.getElementById('nbBuilderHint');
+        const pts  = getActivePatients();
+        if (!pts.length) { if (hint) hint.textContent = 'Select at least one patient to include.'; return; }
+        if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+        const analysisEl = document.getElementById('analysisSelect');
+        const analysis   = analysisEl ? analysisEl.value : 'sleep_comparison';
+        const body = {
+            patient_ids:   pts.map(p => p.id),
+            analysis_type: analysis,
+            metrics:       [..._activeMetrics],
+            date_range:    _dateRange,
+        };
+        fetch('/api/notebooks/new', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(body),
+        }).then(r => r.json()).then(data => {
+            if (data.error) throw new Error(data.error);
+            if (hint) hint.innerHTML = `Notebook created: <a href="${data.jupyter_url}" target="_blank">${data.name}</a> — open in Jupyter`;
+        }).catch(e => {
+            if (hint) hint.textContent = `Error: ${e.message}`;
+        }).finally(() => {
+            if (btn) { btn.disabled = false; btn.textContent = 'Create New Notebook'; }
+        });
+    };
+
+    window.injectToNotebook = function() {
+        const sel  = document.getElementById('existingNbSel');
+        const hint = document.getElementById('nbBuilderHint');
+        const nb   = sel ? sel.value : '';
+        if (!nb) { if (hint) hint.textContent = 'Select an existing notebook first.'; return; }
+        const pts  = getActivePatients();
+        if (!pts.length) { if (hint) hint.textContent = 'Select at least one patient first.'; return; }
+        const analysisEl = document.getElementById('analysisSelect');
+        fetch('/api/notebooks/inject-cell', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                notebook:      nb,
+                patient_ids:   pts.map(p => p.id),
+                analysis_type: analysisEl ? analysisEl.value : 'sleep_comparison',
+                metrics:       [..._activeMetrics],
+                date_range:    _dateRange,
+            }),
+        }).then(r => r.json()).then(data => {
+            if (data.error) throw new Error(data.error);
+            if (hint) hint.innerHTML = `Cell added to <a href="${data.jupyter_url}" target="_blank">${nb}</a>`;
+        }).catch(e => {
+            if (hint) hint.textContent = `Error: ${e.message}`;
+        });
     };
 })();
 
@@ -1316,6 +1978,7 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
     // Expose globally so inline onclick and other IIFEs can call them
     window.closeModal         = closeModal;
     window.handleOverlayClick = handleOverlayClick;
+    window.openCondModal      = openCondModal;
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') ['condModal','srcModal','newNbModal'].forEach(closeModal);
     });

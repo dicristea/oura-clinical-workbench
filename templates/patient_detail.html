@@ -170,11 +170,69 @@
     }
     .chart-header {
         display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
     }
     .chart-title { font-size: 15px; font-weight: 600; color: #1e293b; }
     .chart-date-range { font-size: 12px; color: #64748b; }
     .chart-area { height: 280px; position: relative; }
+
+    /* ── Individual biometric chart grid ───────────────────────────── */
+    .bio-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 18px;
+    }
+    .bio-grid-card {
+        background: #f8fafc; border-radius: 10px; padding: 14px 16px;
+        border: 1px solid #e2e8f0;
+    }
+    .bio-grid-card.full-width { grid-column: 1 / -1; }
+    .bio-grid-header {
+        display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .bio-grid-swatch {
+        width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+    }
+    .bio-grid-title { font-size: 12px; font-weight: 600; color: #334155; flex: 1; }
+    .bio-grid-unit  { font-size: 11px; color: #94a3b8; }
+    .bio-grid-area  { height: 120px; position: relative; }
+
+    /* ── Chart window buttons ───────────────────────────────────────── */
+    .chart-window-btns {
+        display: flex; gap: 4px; align-items: center;
+    }
+    .chart-win-btn {
+        padding: 4px 11px; border: 1.5px solid #e2e8f0; border-radius: 7px;
+        background: #fff; color: #64748b; font-size: 12px; font-weight: 500;
+        cursor: pointer; font-family: inherit;
+        transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .chart-win-btn:hover:not(.active) { background: #f8fafc; border-color: #cbd5e1; }
+    .chart-win-btn.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+
+    /* ── Hover crosshair tooltip ────────────────────────────────────── */
+    .bio-tooltip {
+        display: none; position: absolute; z-index: 50;
+        background: rgba(15, 23, 42, 0.93); color: #e2e8f0;
+        border-radius: 10px; padding: 10px 14px;
+        font-size: 12px; line-height: 1.6; pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        min-width: 160px; white-space: nowrap;
+    }
+    .bio-tooltip-date {
+        font-size: 10px; font-weight: 600; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        margin-bottom: 6px;
+    }
+    .bio-tooltip-row {
+        display: flex; align-items: center; gap: 7px; margin-bottom: 2px;
+    }
+    .bio-tooltip-swatch {
+        width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
+    }
+    .bio-tooltip-label { color: #94a3b8; }
+    .bio-tooltip-val   { font-weight: 700; color: #f8fafc; margin-left: auto; }
 
     .separate-chart-area {
         height: 140px; position: relative;
@@ -240,6 +298,60 @@
     .data-line   { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .data-dot    { cursor: pointer; }
     .data-dot:hover { r: 6; }
+
+    /* ── Confounder flagging ─────────────────────────────────────────── */
+    .se-flag-btn {
+        border: none; background: transparent; cursor: pointer; padding: 0 2px;
+        color: #cbd5e1; font-size: 13px; line-height: 1; flex-shrink: 0;
+        transition: color 0.15s;
+    }
+    .se-flag-btn:hover { color: #f59e0b; }
+    .se-flag-btn.flagged { color: #f59e0b; }
+    .se-date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+    .se-conf-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        font-size: 10px; font-weight: 600; color: #92400e;
+        background: #fef3c7; border: 1px solid #fde68a;
+        border-radius: 9999px; padding: 1px 6px; margin-bottom: 4px;
+    }
+
+    /* Confounder modal */
+    .conf-modal-overlay {
+        position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 600;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .conf-modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .conf-modal-box {
+        background: #fff; border-radius: 14px; padding: 26px;
+        width: 360px; max-width: calc(100vw - 32px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+        transform: translateY(8px); transition: transform 0.2s;
+    }
+    .conf-modal-overlay.open .conf-modal-box { transform: translateY(0); }
+    .conf-modal-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .conf-modal-sub   { font-size: 12px; color: #64748b; margin-bottom: 14px; }
+    .conf-check-list  { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    .conf-check-item  {
+        display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+        border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;
+        transition: background 0.12s, border-color 0.12s;
+    }
+    .conf-check-item:hover { background: #f8fafc; }
+    .conf-check-item input[type=checkbox] { width: 15px; height: 15px; accent-color: #f59e0b; cursor: pointer; flex-shrink: 0; }
+    .conf-check-item label { font-size: 13px; color: #334155; cursor: pointer; flex: 1; }
+    .conf-modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+    .conf-btn-cancel {
+        padding: 7px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #475569; font-size: 13px; font-weight: 500;
+        font-family: inherit; cursor: pointer;
+    }
+    .conf-btn-save {
+        padding: 7px 18px; border: none; border-radius: 8px;
+        background: #f59e0b; color: #fff; font-size: 13px; font-weight: 600;
+        font-family: inherit; cursor: pointer; transition: background 0.15s;
+    }
+    .conf-btn-save:hover { background: #d97706; }
 
     .hidden { display: none; }
 
@@ -487,25 +599,96 @@
         <!-- ── Overview Chart ─────────────────── -->
         <div class="chart-card" id="combinedView">
             <div class="chart-header">
-                <span class="chart-title">Key Biometrics — 14-Day Window</span>
-                <span class="chart-date-range" id="dateRangeLabel">
-                    {{ patient.dates[0] }} – {{ patient.dates[-1] }}
-                </span>
+                <div>
+                    <div class="chart-title">Key Biometrics</div>
+                    <div class="chart-date-range" id="dateRangeLabel"></div>
+                </div>
+                <div class="chart-window-btns" id="bioWindowBtns">
+                    <button class="chart-win-btn" onclick="setBioWindow(7,this)">7d</button>
+                    <button class="chart-win-btn active" onclick="setBioWindow(14,this)">14d</button>
+                    <button class="chart-win-btn" onclick="setBioWindow(0,this)">All</button>
+                </div>
             </div>
-            <div class="chart-area">
+            <div class="chart-area" id="bioChartArea">
                 <svg class="chart-svg" id="combinedChart"></svg>
+                <div class="bio-tooltip" id="bioTooltip"></div>
             </div>
             <div class="legend">
                 <div class="legend-item">
-                    <div class="legend-line" style="background:#ef4444"></div> Heart Rate
+                    <div class="legend-line" style="background:#ef4444"></div> Heart Rate (bpm)
                 </div>
                 <div class="legend-item">
-                    <div class="legend-line" style="background:#3b82f6"></div> HRV
+                    <div class="legend-line" style="background:#3b82f6"></div> HRV (ms)
                 </div>
                 <div class="legend-item">
-                    <div class="legend-line" style="background:#10b981"></div> Sleep Duration
+                    <div class="legend-line" style="background:#10b981"></div> Sleep Duration (h)
                 </div>
             </div>
+
+            <!-- ── Individual biometric charts ───────────────────── -->
+            <div class="bio-grid">
+
+                <div class="bio-grid-card">
+                    <div class="bio-grid-header">
+                        <span class="bio-grid-swatch" style="background:#ef4444"></span>
+                        <span class="bio-grid-title">Resting Heart Rate</span>
+                        <span class="bio-grid-unit">bpm</span>
+                    </div>
+                    <div class="bio-grid-area" id="bioArea_hr">
+                        <svg class="chart-svg" id="bioChart_hr"></svg>
+                        <div class="bio-tooltip" id="bioTip_hr"></div>
+                    </div>
+                </div>
+
+                <div class="bio-grid-card">
+                    <div class="bio-grid-header">
+                        <span class="bio-grid-swatch" style="background:#3b82f6"></span>
+                        <span class="bio-grid-title">HRV (rMSSD)</span>
+                        <span class="bio-grid-unit">ms</span>
+                    </div>
+                    <div class="bio-grid-area" id="bioArea_hrv">
+                        <svg class="chart-svg" id="bioChart_hrv"></svg>
+                        <div class="bio-tooltip" id="bioTip_hrv"></div>
+                    </div>
+                </div>
+
+                <div class="bio-grid-card">
+                    <div class="bio-grid-header">
+                        <span class="bio-grid-swatch" style="background:#10b981"></span>
+                        <span class="bio-grid-title">Sleep Duration</span>
+                        <span class="bio-grid-unit">hours</span>
+                    </div>
+                    <div class="bio-grid-area" id="bioArea_slp">
+                        <svg class="chart-svg" id="bioChart_slp"></svg>
+                        <div class="bio-tooltip" id="bioTip_slp"></div>
+                    </div>
+                </div>
+
+                <div class="bio-grid-card">
+                    <div class="bio-grid-header">
+                        <span class="bio-grid-swatch" style="background:#f59e0b"></span>
+                        <span class="bio-grid-title">Body Temp Deviation</span>
+                        <span class="bio-grid-unit">°C from baseline</span>
+                    </div>
+                    <div class="bio-grid-area" id="bioArea_tmp">
+                        <svg class="chart-svg" id="bioChart_tmp"></svg>
+                        <div class="bio-tooltip" id="bioTip_tmp"></div>
+                    </div>
+                </div>
+
+                <div class="bio-grid-card full-width">
+                    <div class="bio-grid-header">
+                        <span class="bio-grid-swatch" style="background:#8b5cf6"></span>
+                        <span class="bio-grid-title">Daily Step Count</span>
+                        <span class="bio-grid-unit">steps</span>
+                    </div>
+                    <div class="bio-grid-area" id="bioArea_stp">
+                        <svg class="chart-svg" id="bioChart_stp"></svg>
+                        <div class="bio-tooltip" id="bioTip_stp"></div>
+                    </div>
+                </div>
+
+            </div><!-- /.bio-grid -->
         </div>
 
         <!-- ── Sleep Detail ───────────────────── -->
@@ -606,11 +789,34 @@
     </div><!-- /.right-col -->
 
 </div><!-- /.pt-grid -->
+
+<!-- ── Confounder Flag Modal ──────────────────────────────────────── -->
+<div class="conf-modal-overlay" id="confModal" onclick="if(event.target===this)closeConfModal()">
+    <div class="conf-modal-box">
+        <div class="conf-modal-title">Flag Confounder</div>
+        <div class="conf-modal-sub" id="confModalSub">Select any factors that may have disrupted sleep on this night:</div>
+        <div class="conf-check-list" id="confCheckList"></div>
+        <div class="conf-modal-footer">
+            <button class="conf-btn-cancel" onclick="closeConfModal()">Cancel</button>
+            <button class="conf-btn-save"   onclick="saveConfounder()">Save Flag</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 
 {% block scripts %}
 <script>
+const PATIENT_ID = {{ patient.id | tojson }};
+const CONFOUNDER_TYPES = [
+    'Narcotics / Sedatives',
+    'Alcohol',
+    'Illness / Infection',
+    'Travel / Time Zone Change',
+    'Sleep Apnea Exacerbation',
+    'Other',
+];
+
 const patientData = {
     heartRate:     {{ patient.heart_rate_data        | tojson }},
     respiratory:   {{ patient.respiratory_data       | tojson }},
@@ -619,6 +825,7 @@ const patientData = {
     steps:         {{ patient.steps_data             | tojson }},
     temperature:   {{ patient.temperature_data       | tojson }},
     dates:         {{ patient.dates                  | tojson }},
+    isoDates:      {{ patient.iso_dates              | tojson }},
     remData:       {{ patient.rem_data               | tojson }},
     deepData:      {{ patient.deep_data              | tojson }},
     lightData:     {{ patient.light_data             | tojson }},
@@ -648,56 +855,350 @@ function showCombinedView() {
     document.getElementById('combinedBtn').classList.add('active');
     document.getElementById('separateBtn').classList.remove('active');
 }
+let _sleepDetailLoaded = false;
 function showSeparateView() {
     document.getElementById('combinedView').classList.add('hidden');
     document.getElementById('separateView').classList.remove('hidden');
     document.getElementById('combinedBtn').classList.remove('active');
     document.getElementById('separateBtn').classList.add('active');
+    if (!_sleepDetailLoaded) {
+        _sleepDetailLoaded = true;
+        _loadConfounders();  // also calls renderSleepEpisodes when done
+    }
     drawSleepDetailCharts();
 }
 
-/* ── Charts ───────────────────────────────────────────────────────── */
+/* ── Key Biometrics chart — windowed + hover tooltip ─────────────── */
+let _bioWindow = 14;  // 0 = all
+
 document.addEventListener('DOMContentLoaded', function () {
-    drawCombinedChart();
+    drawAllBioCharts();
 });
 
-function drawCombinedChart() {
-    const svg    = document.getElementById('combinedChart');
-    if (!svg) return;
-    const rect   = svg.getBoundingClientRect();
-    const width  = rect.width  || 700;
-    const height = rect.height || 280;
-    const pad    = { top: 20, right: 55, bottom: 38, left: 55 };
+window.setBioWindow = function(days, btn) {
+    _bioWindow = days;
+    document.querySelectorAll('.chart-win-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    drawAllBioCharts();
+};
 
-    const dates = patientData.dates;
-    const n     = dates.length;
-    const xS    = i => pad.left + (i / Math.max(1, n - 1)) * (width - pad.left - pad.right);
-    const yHR   = v => pad.top + (1 - (v - 40) / 50)  * (height - pad.top - pad.bottom);
-    const yHrv  = v => pad.top + (1 - v / 100)         * (height - pad.top - pad.bottom);
-    const ySleep = v => pad.top + (1 - v / 12)         * (height - pad.top - pad.bottom);
+function drawAllBioCharts() {
+    drawCombinedChart();
+    drawBioLineChart('bioChart_hr',  'bioTip_hr',  'bioArea_hr',  patientData.heartRate,     '#ef4444', 'bpm',   40,   95);
+    drawBioLineChart('bioChart_hrv', 'bioTip_hrv', 'bioArea_hrv', patientData.hrv,           '#3b82f6', 'ms',    0,    100,  50,  '50ms');
+    drawBioLineChart('bioChart_slp', 'bioTip_slp', 'bioArea_slp', patientData.sleepDuration, '#10b981', 'h',     0,    12,   7,   '7h');
+    drawBioLineChart('bioChart_tmp', 'bioTip_tmp', 'bioArea_tmp', patientData.temperature,   '#f59e0b', '°C',   -1.5,  1.5,  0,   'baseline');
+    drawBioLineChart('bioChart_stp', 'bioTip_stp', 'bioArea_stp', patientData.steps,         '#8b5cf6', 'steps', 0,  15000, 7500, '7,500');
+}
+
+function _fmtBio(val, unit) {
+    if (val == null) return '—';
+    if (unit === 'bpm')   return Math.round(val) + ' bpm';
+    if (unit === 'ms')    return Math.round(val) + ' ms';
+    if (unit === 'h')     return (typeof val === 'number' ? val.toFixed(1) : val) + 'h';
+    if (unit === '°C')    return (val >= 0 ? '+' : '') + val.toFixed(2) + '°C';
+    if (unit === 'steps') return Number(Math.round(val)).toLocaleString() + ' steps';
+    return val + ' ' + unit;
+}
+
+function drawBioLineChart(svgId, tipId, areaId, allData, color, unit, yMin, yMax, refVal, refLabel) {
+    const svg = document.getElementById(svgId);
+    if (!svg || !allData || !allData.length) return;
+
+    const totalDays = allData.length;
+    const startIdx  = (_bioWindow === 0 || _bioWindow >= totalDays) ? 0 : totalDays - _bioWindow;
+    const data  = allData.slice(startIdx);
+    const dates = patientData.dates.slice(startIdx);
+    const n     = data.length;
+
+    const rect   = svg.getBoundingClientRect();
+    const W      = rect.width  || 380;
+    const H      = rect.height || 120;
+    const pad    = { top: 14, right: 18, bottom: 26, left: 40 };
+    const innerW = W - pad.left - pad.right;
+    const innerH = H - pad.top  - pad.bottom;
+
+    const xS = i  => pad.left + (n > 1 ? (i / (n - 1)) * innerW : innerW / 2);
+    const yS = v  => pad.top  + (1 - (v - yMin) / (yMax - yMin)) * innerH;
 
     let html = '';
+
+    // Grid (3 horizontal lines)
+    for (let i = 0; i <= 3; i++) {
+        const y   = pad.top + (i / 3) * innerH;
+        const val = yMax - (i / 3) * (yMax - yMin);
+        html += `<line class="grid-line" x1="${pad.left}" y1="${y.toFixed(1)}" x2="${W - pad.right}" y2="${y.toFixed(1)}"/>`;
+        html += `<text class="axis-label" x="${pad.left - 5}" y="${(y + 3.5).toFixed(1)}" text-anchor="end">${_fmtBio(val, unit)}</text>`;
+    }
+
+    // X-axis labels
+    const xStep = Math.max(1, Math.floor(n / 4));
+    for (let i = 0; i < n; i += xStep) {
+        html += `<text class="axis-label" x="${xS(i).toFixed(1)}" y="${H - 5}" text-anchor="middle">${dates[i]}</text>`;
+    }
+
+    // Zero line (for temperature deviation)
+    if (yMin < 0 && yMax > 0) {
+        const zy = yS(0);
+        html += `<line x1="${pad.left}" y1="${zy.toFixed(1)}" x2="${W - pad.right}" y2="${zy.toFixed(1)}" stroke="#cbd5e1" stroke-width="1"/>`;
+    }
+
+    // Reference line
+    if (refVal !== undefined) {
+        const ry = yS(Math.max(yMin, Math.min(yMax, refVal)));
+        html += `<line x1="${pad.left}" y1="${ry.toFixed(1)}" x2="${W - pad.right}" y2="${ry.toFixed(1)}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3" opacity="0.7"/>`;
+        if (refLabel) {
+            html += `<text x="${(W - pad.right - 2).toFixed(1)}" y="${(ry - 3).toFixed(1)}" font-size="9" fill="#94a3b8" text-anchor="end">${refLabel}</text>`;
+        }
+    }
+
+    // Line
+    if (n) {
+        let d = `M ${xS(0).toFixed(1)} ${yS(data[0]).toFixed(1)}`;
+        for (let i = 1; i < n; i++) d += ` L ${xS(i).toFixed(1)} ${yS(data[i]).toFixed(1)}`;
+        html += `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+
+    // Dots
+    data.forEach((v, i) => {
+        html += `<circle class="bio-dot-s" data-i="${i}"
+                         cx="${xS(i).toFixed(1)}" cy="${yS(v).toFixed(1)}"
+                         r="3" fill="${color}" stroke="#fff" stroke-width="1.5" opacity="0.7"/>`;
+    });
+
+    // Crosshair + invisible hover capture strip
+    html += `<line id="bioXh_${svgId}" x1="0" y1="${pad.top}" x2="0" y2="${H - pad.bottom}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0" pointer-events="none"/>`;
+    html += `<rect id="bioHr_${svgId}" x="${pad.left}" y="${pad.top}" width="${innerW}" height="${innerH}" fill="transparent" cursor="crosshair"/>`;
+
+    svg.innerHTML = html;
+
+    // ── Hover ──────────────────────────────────────────────────────────
+    const hoverRect = document.getElementById(`bioHr_${svgId}`);
+    const crosshair = document.getElementById(`bioXh_${svgId}`);
+    const tooltip   = document.getElementById(tipId);
+    const area      = document.getElementById(areaId);
+    if (!hoverRect || !tooltip || !area) return;
+
+    function updateHover(clientX) {
+        const svgRect = svg.getBoundingClientRect();
+        const mouseX  = clientX - svgRect.left;
+        if (mouseX < pad.left || mouseX > W - pad.right) { hideHover(); return; }
+        const idx = Math.max(0, Math.min(n - 1, Math.round((mouseX - pad.left) / innerW * (n - 1))));
+
+        crosshair.setAttribute('x1', xS(idx).toFixed(1));
+        crosshair.setAttribute('x2', xS(idx).toFixed(1));
+        crosshair.setAttribute('opacity', '1');
+
+        svg.querySelectorAll('.bio-dot-s').forEach(dot => {
+            const di = parseInt(dot.dataset.i);
+            dot.setAttribute('r',       di === idx ? '5'   : '3');
+            dot.setAttribute('opacity', di === idx ? '1'   : '0.4');
+        });
+
+        tooltip.innerHTML = `
+            <div class="bio-tooltip-date">${dates[idx]}</div>
+            <div class="bio-tooltip-row">
+                <span class="bio-tooltip-swatch" style="background:${color}"></span>
+                <span class="bio-tooltip-val">${_fmtBio(data[idx], unit)}</span>
+            </div>`;
+        tooltip.style.display = 'block';
+
+        const areaRect = area.getBoundingClientRect();
+        const relX     = clientX - areaRect.left;
+        const tipW     = 130;
+        tooltip.style.left = (relX + 12 + tipW < areaRect.width ? relX + 12 : relX - tipW - 12) + 'px';
+        tooltip.style.top  = '6px';
+    }
+
+    function hideHover() {
+        crosshair.setAttribute('opacity', '0');
+        svg.querySelectorAll('.bio-dot-s').forEach(dot => {
+            dot.setAttribute('r', '3');
+            dot.setAttribute('opacity', '0.7');
+        });
+        tooltip.style.display = 'none';
+    }
+
+    hoverRect.addEventListener('mousemove', e => updateHover(e.clientX));
+    hoverRect.addEventListener('mouseleave', hideHover);
+    hoverRect.addEventListener('touchmove', e => { e.preventDefault(); updateHover(e.touches[0].clientX); }, { passive: false });
+    hoverRect.addEventListener('touchend', hideHover);
+}
+
+function drawCombinedChart() {
+    const svg = document.getElementById('combinedChart');
+    if (!svg) return;
+
+    // Slice to window
+    const allDates  = patientData.dates;
+    const totalDays = allDates.length;
+    const startIdx  = (_bioWindow === 0 || _bioWindow >= totalDays)
+        ? 0 : totalDays - _bioWindow;
+
+    const dates  = allDates.slice(startIdx);
+    const hrData = patientData.heartRate.slice(startIdx);
+    const hvData = patientData.hrv.slice(startIdx);
+    const sdData = patientData.sleepDuration.slice(startIdx);
+    const n      = dates.length;
+
+    // Update date range label
+    const lbl = document.getElementById('dateRangeLabel');
+    if (lbl) lbl.textContent = `${dates[0]} – ${dates[n - 1]}`;
+
+    const rect   = svg.getBoundingClientRect();
+    const W      = rect.width  || 700;
+    const H      = rect.height || 280;
+    const pad    = { top: 20, right: 55, bottom: 38, left: 55 };
+    const innerW = W - pad.left - pad.right;
+    const innerH = H - pad.top  - pad.bottom;
+
+    const xS    = i => pad.left + (n > 1 ? (i / (n - 1)) * innerW : innerW / 2);
+    const yHR   = v => pad.top  + (1 - (v - 40) / 50) * innerH;
+    const yHrv  = v => pad.top  + (1 - v / 100)        * innerH;
+    const ySleep = v => pad.top + (1 - v / 12)          * innerH;
+
+    let html = '';
+
+    // Grid lines + axis labels
     for (let i = 0; i <= 4; i++) {
-        const y = pad.top + (i / 4) * (height - pad.top - pad.bottom);
-        html += `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"/>`;
-        html += `<text class="axis-label" x="${pad.left - 8}" y="${y + 4}" text-anchor="end">${100 - i * 25}</text>`;
-        html += `<text class="axis-label" x="${width - pad.right + 8}" y="${y + 4}" text-anchor="start">${(12 - i * 3).toFixed(0)}h</text>`;
+        const y = pad.top + (i / 4) * innerH;
+        html += `<line class="grid-line" x1="${pad.left}" y1="${y.toFixed(1)}" x2="${W - pad.right}" y2="${y.toFixed(1)}"/>`;
+        html += `<text class="axis-label" x="${pad.left - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end">${100 - i * 25}</text>`;
+        html += `<text class="axis-label" x="${W - pad.right + 8}" y="${(y + 4).toFixed(1)}" text-anchor="start">${(12 - i * 3).toFixed(0)}h</text>`;
     }
     const step = Math.max(1, Math.floor(n / 5));
     for (let i = 0; i < n; i += step) {
-        html += `<text class="axis-label" x="${xS(i)}" y="${height - 8}" text-anchor="middle">${dates[i]}</text>`;
+        html += `<text class="axis-label" x="${xS(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${dates[i]}</text>`;
     }
 
+    // Lines
     const lineFor = (data, yFn, color) => {
-        let d = `M ${xS(0)} ${yFn(data[0])}`;
-        for (let i = 1; i < data.length; i++) d += ` L ${xS(i)} ${yFn(data[i])}`;
-        return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>`;
+        if (!data.length) return '';
+        let d = `M ${xS(0).toFixed(1)} ${yFn(data[0]).toFixed(1)}`;
+        for (let i = 1; i < data.length; i++) d += ` L ${xS(i).toFixed(1)} ${yFn(data[i]).toFixed(1)}`;
+        return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
     };
+    html += lineFor(hrData, yHR,    '#ef4444');
+    html += lineFor(hvData, yHrv,   '#3b82f6');
+    html += lineFor(sdData, ySleep, '#10b981');
 
-    html += lineFor(patientData.heartRate,     yHR,   '#ef4444');
-    html += lineFor(patientData.hrv,           yHrv,  '#3b82f6');
-    html += lineFor(patientData.sleepDuration, ySleep,'#10b981');
+    // Data dots (drawn small, highlighted by JS on hover)
+    const dotsFor = (data, yFn, color, series) => {
+        return data.map((v, i) =>
+            `<circle class="bio-dot" data-i="${i}" data-series="${series}"
+                     cx="${xS(i).toFixed(1)}" cy="${yFn(v).toFixed(1)}"
+                     r="3" fill="${color}" stroke="#fff" stroke-width="1.5" opacity="0.7"/>`
+        ).join('');
+    };
+    html += dotsFor(hrData, yHR,    '#ef4444', 'hr');
+    html += dotsFor(hvData, yHrv,   '#3b82f6', 'hrv');
+    html += dotsFor(sdData, ySleep, '#10b981', 'sleep');
+
+    // Crosshair (hidden initially)
+    html += `<line id="bioCrosshair" x1="0" y1="${pad.top}" x2="0" y2="${H - pad.bottom}"
+                   stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0" pointer-events="none"/>`;
+
+    // Transparent hover capture strip
+    html += `<rect id="bioHoverRect" x="${pad.left}" y="${pad.top}"
+                   width="${innerW}" height="${innerH}"
+                   fill="transparent" cursor="crosshair"/>`;
+
     svg.innerHTML = html;
+
+    // ── Hover interaction ───────────────────────────────────────────
+    const hoverRect = document.getElementById('bioHoverRect');
+    const crosshair = document.getElementById('bioCrosshair');
+    const tooltip   = document.getElementById('bioTooltip');
+    const area      = document.getElementById('bioChartArea');
+    if (!hoverRect || !tooltip || !area) return;
+
+    let _hoveredIdx = -1;
+
+    function updateHover(clientX, clientY) {
+        const svgRect = svg.getBoundingClientRect();
+        const mouseX  = clientX - svgRect.left;
+        const mouseY  = clientY - svgRect.top;
+
+        // Clamp to chart area
+        if (mouseX < pad.left || mouseX > W - pad.right) { hideHover(); return; }
+
+        // Find nearest day index
+        const frac = (mouseX - pad.left) / innerW;
+        const raw  = frac * (n - 1);
+        const idx  = Math.max(0, Math.min(n - 1, Math.round(raw)));
+
+        if (idx === _hoveredIdx) return;
+        _hoveredIdx = idx;
+
+        const cx = xS(idx);
+
+        // Move crosshair
+        crosshair.setAttribute('x1', cx.toFixed(1));
+        crosshair.setAttribute('x2', cx.toFixed(1));
+        crosshair.setAttribute('opacity', '1');
+
+        // Highlight dots at this index
+        document.querySelectorAll('.bio-dot').forEach(dot => {
+            const di = parseInt(dot.dataset.i);
+            dot.setAttribute('r',       di === idx ? '5.5' : '3');
+            dot.setAttribute('opacity', di === idx ? '1'   : '0.45');
+        });
+
+        // Build tooltip content
+        const hr  = hrData[idx]  != null ? `${hrData[idx]} bpm`  : '—';
+        const hrv = hvData[idx]  != null ? `${hvData[idx]} ms`   : '—';
+        const sl  = sdData[idx]  != null ? `${sdData[idx]}h`     : '—';
+
+        tooltip.innerHTML = `
+            <div class="bio-tooltip-date">${dates[idx]}</div>
+            <div class="bio-tooltip-row">
+                <span class="bio-tooltip-swatch" style="background:#ef4444"></span>
+                <span class="bio-tooltip-label">Heart Rate</span>
+                <span class="bio-tooltip-val">${hr}</span>
+            </div>
+            <div class="bio-tooltip-row">
+                <span class="bio-tooltip-swatch" style="background:#3b82f6"></span>
+                <span class="bio-tooltip-label">HRV</span>
+                <span class="bio-tooltip-val">${hrv}</span>
+            </div>
+            <div class="bio-tooltip-row">
+                <span class="bio-tooltip-swatch" style="background:#10b981"></span>
+                <span class="bio-tooltip-label">Sleep</span>
+                <span class="bio-tooltip-val">${sl}</span>
+            </div>`;
+        tooltip.style.display = 'block';
+
+        // Position tooltip: prefer left of cursor, flip if near right edge
+        const areaRect  = area.getBoundingClientRect();
+        const relX      = clientX - areaRect.left;
+        const relY      = clientY - areaRect.top;
+        const tipW      = 175;
+        const leftPos   = relX + 14;
+        const rightPos  = relX - tipW - 14;
+        tooltip.style.left = (leftPos + tipW < areaRect.width ? leftPos : rightPos) + 'px';
+        tooltip.style.top  = Math.max(0, relY - 20) + 'px';
+    }
+
+    function hideHover() {
+        _hoveredIdx = -1;
+        crosshair.setAttribute('opacity', '0');
+        document.querySelectorAll('.bio-dot').forEach(dot => {
+            dot.setAttribute('r', '3');
+            dot.setAttribute('opacity', '0.7');
+        });
+        tooltip.style.display = 'none';
+    }
+
+    hoverRect.addEventListener('mousemove', e => updateHover(e.clientX, e.clientY));
+    hoverRect.addEventListener('mouseleave', hideHover);
+
+    // Also handle touch
+    hoverRect.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const t = e.touches[0];
+        updateHover(t.clientX, t.clientY);
+    }, { passive: false });
+    hoverRect.addEventListener('touchend', hideHover);
 }
 
 /* ── Sleep detail charts ──────────────────────────────────────────── */
@@ -751,6 +1252,7 @@ function drawSleepArchChart() {
         drawBar(rem,   '#7c3aed');
         html += `<rect x="${x}" y="${pad.top}" width="${barW.toFixed(1)}" height="${innerH.toFixed(1)}" fill="transparent"><title>${patientData.dates[i]}&#10;Light: ${light}h  Deep: ${deep}h  REM: ${rem}h</title></rect>`;
     }
+    html += _flagMarkers(n, i => xC(i), H - 3);
     svg.innerHTML = html;
 }
 
@@ -786,6 +1288,7 @@ function drawTibChart() {
         html += `<rect x="${(xC(i) - barW - 1.5).toFixed(1)}" y="${(H - pad.bottom - tibH).toFixed(1)}" width="${barW.toFixed(1)}" height="${tibH.toFixed(1)}" fill="#e2e8f0" rx="1.5"><title>${patientData.dates[i]}: TIB ${tib}h</title></rect>`;
         html += `<rect x="${(xC(i) + 1.5).toFixed(1)}" y="${(H - pad.bottom - tstH).toFixed(1)}" width="${barW.toFixed(1)}" height="${tstH.toFixed(1)}" fill="#3b82f6" rx="1.5"><title>${patientData.dates[i]}: TST ${tst}h</title></rect>`;
     }
+    html += _flagMarkers(n, i => xC(i), H - 3);
     svg.innerHTML = html;
 }
 
@@ -828,7 +1331,76 @@ function drawRefDotChart(svgId, data, color, maxVal, unit, refLine, refLabel, mi
         if (refLine !== null) dotColor = (higherIsBetter ? v < refLine : v > refLine) ? '#ef4444' : color;
         html += `<circle cx="${xS(i).toFixed(1)}" cy="${yS(v).toFixed(1)}" r="3" fill="${dotColor}" class="data-dot"><title>${patientData.dates[i]}: ${v} ${unit}</title></circle>`;
     }
+    html += _flagMarkers(n, i => xS(i), H - 3);
     svg.innerHTML = html;
+}
+
+/* ── Flag markers helper ─────────────────────────────────────────── */
+// Appends small amber dots below the x-axis for nights with confounder flags.
+// xFn(i) → x center for day i; yBase → y coordinate of the marker row.
+function _flagMarkers(n, xFn, yBase) {
+    let out = '';
+    for (let i = 0; i < n; i++) {
+        const iso = patientData.isoDates ? patientData.isoDates[i] : null;
+        if (!iso) continue;
+        const flags = _confounders[iso] || [];
+        if (!flags.length) continue;
+        const cx = xFn(i).toFixed(1);
+        out += `<circle cx="${cx}" cy="${yBase.toFixed(1)}" r="3.5" fill="#f59e0b" opacity="0.85"><title>⚑ ${flags.join(', ')}</title></circle>`;
+    }
+    return out;
+}
+
+/* ── Confounder flagging ──────────────────────────────────────────── */
+// Keys are ISO dates (YYYY-MM-DD); display dates ("%b %d") are only for labels
+let _confounders = {};
+let _confDate    = null; // ISO date of the currently open modal
+
+async function _loadConfounders() {
+    try {
+        const res  = await fetch(`/api/confounders/${PATIENT_ID}`);
+        _confounders = await res.json();
+    } catch (_) { _confounders = {}; }
+    // Redraw charts so flag markers appear, then refresh the episode grid
+    drawSleepDetailCharts();
+}
+
+function openConfModal(isoDate, displayDate) {
+    _confDate = isoDate;
+    const current = _confounders[isoDate] || [];
+    document.getElementById('confModalSub').textContent =
+        `Select any factors that may have disrupted sleep on ${displayDate}:`;
+    const list = document.getElementById('confCheckList');
+    list.innerHTML = CONFOUNDER_TYPES.map(t => `
+        <div class="conf-check-item" onclick="this.querySelector('input').click();event.stopPropagation()">
+            <input type="checkbox" id="cf_${t.replace(/\s/g,'_')}"
+                   value="${t}" ${current.includes(t) ? 'checked' : ''}>
+            <label for="cf_${t.replace(/\s/g,'_')}">${t}</label>
+        </div>`).join('');
+    document.getElementById('confModal').classList.add('open');
+}
+
+function closeConfModal() {
+    document.getElementById('confModal').classList.remove('open');
+    _confDate = null;
+}
+
+async function saveConfounder() {
+    if (!_confDate) return;
+    const checked = Array.from(
+        document.querySelectorAll('#confCheckList input[type=checkbox]:checked')
+    ).map(cb => cb.value);
+    try {
+        await fetch(`/api/confounders/${PATIENT_ID}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({date: _confDate, confounders: checked}),
+        });
+        if (checked.length) _confounders[_confDate] = checked;
+        else delete _confounders[_confDate];
+    } catch (_) {}
+    closeConfModal();
+    renderSleepEpisodes();
 }
 
 function renderSleepEpisodes() {
@@ -838,12 +1410,26 @@ function renderSleepEpisodes() {
     const start = Math.max(0, n - 7);
     let html = '';
     for (let i = start; i < n; i++) {
-        const eff = patientData.efficiencyData[i];
+        const date     = patientData.dates[i];
+        const isoDate  = patientData.isoDates[i];
+        const eff      = patientData.efficiencyData[i];
         const effClass = eff >= 85 ? 'good' : eff >= 75 ? 'warn' : 'bad';
-        const tst = patientData.sleepDuration[i];
-        const tib = patientData.timeInBedData[i];
-        html += `<div class="sleep-episode-item">
-            <div class="se-date">${patientData.dates[i]}</div>
+        const tst      = patientData.sleepDuration[i];
+        const tib      = patientData.timeInBedData[i];
+        const flags    = _confounders[isoDate] || [];
+        const isFlagged = flags.length > 0;
+        const confBadge = isFlagged
+            ? `<div class="se-conf-badge">⚠ ${flags.join(', ')}</div>`
+            : '';
+        html += `<div class="sleep-episode-item${isFlagged ? ' flagged-night' : ''}"
+                      style="${isFlagged ? 'border-color:#fde68a;background:#fffbeb;' : ''}">
+            <div class="se-date-row">
+                <div class="se-date">${date}</div>
+                <button class="se-flag-btn${isFlagged ? ' flagged' : ''}"
+                        onclick="openConfModal('${isoDate}', '${date}')"
+                        title="Flag confounder for this night">⚑</button>
+            </div>
+            ${confBadge}
             <div class="se-window">${patientData.sleepStartData[i]} – ${patientData.sleepEndData[i]}</div>
             <div class="se-metrics">
                 <span class="se-metric-chip">TST ${tst}h</span>

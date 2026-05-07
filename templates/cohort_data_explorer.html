@@ -563,21 +563,43 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
-    .explorer-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebar-col {
-        position: static;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .sidebar-card {
-        flex: 1;
-        min-width: 200px;
-    }
+    .explorer-layout { grid-template-columns: 1fr; }
+    .sidebar-col { position: static; flex-direction: row; flex-wrap: wrap; }
+    .sidebar-card { flex: 1; min-width: 200px; }
 }
+
+/* ── Add-to-Notebook popover ─────────────────────────────────────────────── */
+.nb-popover-wrap { position: relative; display: inline-block; }
+.btn-add-to-nb {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    background: #fff; color: #475569; font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.12s, border-color 0.12s;
+}
+.btn-add-to-nb:hover { background: #f8fafc; border-color: #cbd5e1; }
+.nb-popover {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    width: 280px; background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 300;
+    padding: 14px 16px;
+}
+.nb-popover.open { display: block; }
+.nb-popover-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 10px; }
+.nb-pop-sel {
+    width: 100%; padding: 7px 9px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    font-size: 12px; font-family: inherit; color: #1e293b; margin-bottom: 8px;
+}
+.nb-pop-actions { display: flex; gap: 6px; }
+.btn-nb-pop {
+    flex: 1; padding: 7px 0; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-nb-pop.primary { background: #5b21b6; color: #fff; }
+.btn-nb-pop.primary:hover { background: #4c1d95; }
+.btn-nb-pop.secondary { background: #f1f5f9; color: #475569; border: 1.5px solid #e2e8f0; }
+.btn-nb-pop.secondary:hover { background: #e2e8f0; }
+.nb-pop-hint { font-size: 11px; color: #94a3b8; margin-top: 8px; min-height: 14px; }
 </style>
 {% endblock %}
 
@@ -824,18 +846,47 @@
                 </div>
             </div>
 
-            <span class="source-badge">
-                <!-- database icon -->
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                </svg>
-                {{ source_label }}
-            </span>
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                <!-- Add to Notebook popover -->
+                <div class="nb-popover-wrap" id="nbPopoverWrap">
+                    <button class="btn-add-to-nb" onclick="toggleNbPopover()" type="button"
+                            title="Add this chart to a Jupyter notebook">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="11" x2="12" y2="17"/>
+                            <line x1="9"  y1="14" x2="15" y2="14"/>
+                        </svg>
+                        Add to Notebook
+                    </button>
+                    <div class="nb-popover" id="nbPopover">
+                        <div class="nb-popover-title">Add chart to notebook</div>
+                        <select class="nb-pop-sel" id="nbPopSel">
+                            <option value="">New notebook…</option>
+                            <!-- populated by JS -->
+                        </select>
+                        <div class="nb-pop-actions">
+                            <button class="btn-nb-pop primary" onclick="addChartToNotebook()">Add Cell</button>
+                            <button class="btn-nb-pop secondary" onclick="closeNbPopover()">Cancel</button>
+                        </div>
+                        <div class="nb-pop-hint" id="nbPopHint"></div>
+                    </div>
+                </div>
+
+                <span class="source-badge">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                    {{ source_label }}
+                </span>
+            </div>
         </div>
 
         <!-- Cohort comparison chips -->
@@ -1116,6 +1167,12 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(drawChart, 80);
     });
+
+    // Expose state so the "Add to Notebook" popover can read active features + dates
+    window.__chartData = CHART_DATA;
+    Object.defineProperty(window, '__activeFeatures', {
+        get: () => CHART_DATA.features.filter(f => visibleFeatures.has(f.name)),
+    });
 })();
 
 // ── Data Sources Panel ────────────────────────────────────────────────────────
@@ -1332,6 +1389,96 @@
 
     // ── Init ──────────────────────────────────────────────────────────────────
     syncChipUI();
+})();
+
+/* ── Add-to-Notebook popover ─────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    const PATIENT_ID = {{ patient.id | tojson }};
+
+    // Populate the notebook dropdown on first open
+    let _nbLoaded = false;
+    async function loadNotebooks() {
+        if (_nbLoaded) return;
+        _nbLoaded = true;
+        try {
+            const res  = await fetch('/api/notebooks');
+            const data = await res.json();
+            const sel  = document.getElementById('nbPopSel');
+            if (!sel) return;
+            (data.notebooks || []).forEach(nb => {
+                const opt = document.createElement('option');
+                opt.value = nb.name;
+                opt.textContent = nb.name;
+                sel.appendChild(opt);
+            });
+        } catch (_) {}
+    }
+
+    window.toggleNbPopover = function() {
+        const pop = document.getElementById('nbPopover');
+        if (!pop) return;
+        const isOpen = pop.classList.contains('open');
+        if (!isOpen) {
+            pop.classList.add('open');
+            loadNotebooks();
+            document.getElementById('nbPopHint').textContent = '';
+            // close on outside click
+            setTimeout(() => document.addEventListener('click', closeOnOutside, {once: true}), 0);
+        } else {
+            pop.classList.remove('open');
+        }
+    };
+
+    function closeOnOutside(e) {
+        const wrap = document.getElementById('nbPopoverWrap');
+        if (wrap && !wrap.contains(e.target)) closeNbPopover();
+    }
+
+    window.closeNbPopover = function() {
+        const pop = document.getElementById('nbPopover');
+        if (pop) pop.classList.remove('open');
+    };
+
+    window.addChartToNotebook = function() {
+        const sel      = document.getElementById('nbPopSel');
+        const hint     = document.getElementById('nbPopHint');
+        const nbName   = sel ? sel.value : '';
+
+        // Collect active signals from the sidebar
+        const activeFeatures = window.__activeFeatures || [];
+        const chartData      = window.__chartData || {};
+
+        const selectedFeatures = activeFeatures.map(f => ({
+            key:   f.name,
+            label: f.display_name,
+            unit:  f.unit,
+            color: f.color,
+            values: f.values,
+        }));
+
+        const body = {
+            patient_id: PATIENT_ID,
+            notebook:   nbName || null,
+            features:   selectedFeatures,
+            dates:      chartData.dates || [],
+        };
+
+        if (hint) hint.textContent = 'Saving…';
+
+        fetch('/api/notebooks/inject-chart', {
+            method:  'POST',
+            headers: {'Content-Type': 'application/json'},
+            body:    JSON.stringify(body),
+        }).then(r => r.json()).then(data => {
+            if (data.error) throw new Error(data.error);
+            if (hint) hint.innerHTML = `Added to <a href="${data.jupyter_url}" target="_blank"
+                style="color:#5b21b6;font-weight:600;">${data.notebook}</a>`;
+        }).catch(e => {
+            if (hint) hint.textContent = `Error: ${e.message}`;
+        });
+    };
 })();
 </script>
 {% endblock %}

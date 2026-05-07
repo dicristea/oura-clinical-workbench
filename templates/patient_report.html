@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Report — {{ patient.id }}</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 13px; color: #1e293b; background: #f8fafc;
+        padding: 32px;
+    }
+
+    /* ── Print-action bar (hidden in print) ── */
+    .no-print {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        background: #1e293b; color: #fff;
+        padding: 12px 20px; border-radius: 10px;
+        margin-bottom: 28px;
+    }
+    .no-print h2 { font-size: 14px; font-weight: 600; flex: 1; }
+    .print-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 18px; border-radius: 8px; border: none;
+        background: #3b82f6; color: #fff; font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: background 0.15s; font-family: inherit;
+    }
+    .print-btn:hover { background: #2563eb; }
+    .docx-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 16px; border-radius: 8px; border: 1px solid #475569;
+        background: transparent; color: #cbd5e1; font-size: 13px; font-weight: 500;
+        cursor: pointer; text-decoration: none; transition: background 0.15s;
+        font-family: inherit;
+    }
+    .docx-btn:hover { background: rgba(255,255,255,0.08); }
+
+    /* ── Report card ── */
+    .report-card {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        padding: 36px 40px; max-width: 900px; margin: 0 auto;
+    }
+
+    /* ── Report header ── */
+    .report-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px;
+    }
+    .report-brand { display: flex; align-items: center; gap: 10px; }
+    .report-brand-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .report-brand-text { font-size: 16px; font-weight: 700; color: #1e293b; }
+    .report-brand-sub  { font-size: 11px; color: #64748b; margin-top: 1px; }
+    .report-meta { text-align: right; }
+    .report-meta-label { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+    .report-meta-value { font-size: 13px; color: #475569; margin-top: 2px; }
+
+    /* ── Patient banner ── */
+    .patient-banner {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+        padding: 16px 20px; margin-bottom: 24px;
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .patient-banner-id   { font-size: 22px; font-weight: 700; color: #1e293b; }
+    .patient-banner-meta { font-size: 12px; color: #64748b; margin-top: 3px; }
+    .risk-badge-rpt {
+        display: inline-flex; align-items: center;
+        padding: 4px 12px; border-radius: 9999px;
+        font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+    }
+    .risk-high   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .risk-medium { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .risk-low    { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+
+    /* ── Section headings ── */
+    .section { margin-bottom: 28px; }
+    .section-title {
+        font-size: 11px; font-weight: 700; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: 0.08em;
+        margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+        content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    }
+
+    /* ── Vitals grid ── */
+    .vitals-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .vital-cell {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+        padding: 10px 12px;
+    }
+    .vital-lbl { font-size: 10px; color: #64748b; margin-bottom: 3px; }
+    .vital-val { font-size: 18px; font-weight: 700; color: #1e293b; }
+    .vital-unit { font-size: 10px; color: #94a3b8; font-weight: 400; }
+
+    /* ── Sleep summary table ── */
+    .sleep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .sleep-table thead tr { background: #f8fafc; }
+    .sleep-table thead th {
+        padding: 8px 10px; text-align: left; font-size: 10px;
+        font-weight: 700; color: #94a3b8; text-transform: uppercase;
+        letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    .sleep-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+    .sleep-table tbody tr:last-child { border-bottom: none; }
+    .sleep-table td { padding: 8px 10px; color: #475569; vertical-align: middle; }
+    .sleep-table td.good { color: #16a34a; font-weight: 600; }
+    .sleep-table td.warn { color: #d97706; font-weight: 600; }
+    .sleep-table td.bad  { color: #dc2626; font-weight: 600; }
+    .sleep-table td.flagged-row { background: #fffbeb; }
+    .flag-chip {
+        display: inline-flex; align-items: center; gap: 2px;
+        font-size: 9px; font-weight: 600; padding: 1px 5px;
+        border-radius: 9999px; background: #fef3c7; color: #92400e;
+        border: 1px solid #fde68a; white-space: nowrap; margin-left: 4px;
+    }
+
+    /* ── Summary KPI row ── */
+    .kpi-row {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+        margin-bottom: 24px;
+    }
+    .kpi-card {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+        padding: 14px 16px;
+    }
+    .kpi-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .kpi-value { font-size: 22px; font-weight: 700; color: #1e293b; }
+    .kpi-value small { font-size: 12px; font-weight: 400; color: #64748b; }
+    .kpi-sub   { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .kpi-card.warn .kpi-value { color: #d97706; }
+    .kpi-card.bad  .kpi-value { color: #dc2626; }
+
+    /* ── Confounder section ── */
+    .conf-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .conf-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+    .conf-table td:first-child { font-weight: 600; color: #1e293b; width: 100px; }
+
+    /* ── Footer ── */
+    .report-footer {
+        margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0;
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 11px; color: #94a3b8;
+    }
+
+    /* ── Print styles ── */
+    @media print {
+        body { background: #fff; padding: 0; font-size: 11px; }
+        .no-print { display: none !important; }
+        .report-card { box-shadow: none; padding: 0; border-radius: 0; }
+        .kpi-card, .vital-cell { break-inside: avoid; }
+        .section { break-inside: avoid; }
+        .sleep-table thead { display: table-header-group; }
+    }
+</style>
+</head>
+<body>
+
+<!-- ── Print action bar (not printed) ── -->
+<div class="no-print">
+    <h2>{{ patient.id }} — Clinical Report &nbsp;·&nbsp; {{ report_date }}</h2>
+    <button class="print-btn" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Save as PDF
+    </button>
+    <a class="docx-btn" href="/patient/{{ patient.id }}/report.docx">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Download Word
+    </a>
+</div>
+
+<!-- ── Report card ── -->
+<div class="report-card">
+
+    <!-- Header -->
+    <div class="report-header">
+        <div class="report-brand">
+            <div class="report-brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+            </div>
+            <div>
+                <div class="report-brand-text">JupyterHealth Research Workbench</div>
+                <div class="report-brand-sub">Cornell Medicine · HE Sleep Biomarkers Study</div>
+            </div>
+        </div>
+        <div class="report-meta">
+            <div class="report-meta-label">Report Date</div>
+            <div class="report-meta-value">{{ report_date }}</div>
+            {% if clinical_history and clinical_history.data_source_label %}
+            <div class="report-meta-label" style="margin-top:6px;">Data Source</div>
+            <div class="report-meta-value">{{ clinical_history.data_source_label }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Patient banner -->
+    <div class="patient-banner">
+        <div>
+            <div class="patient-banner-id">{{ patient.id }}</div>
+            <div class="patient-banner-meta">
+                {% if clinical_history %}
+                    {% if clinical_history.age %}{{ clinical_history.age }} yrs{% endif %}
+                    {% if clinical_history.age and clinical_history.sex %} · {% endif %}
+                    {% if clinical_history.sex %}{{ clinical_history.sex }}{% endif %}
+                    {% if clinical_history.get('enrollment_date') %} · Enrolled {{ clinical_history.enrollment_date }}{% endif %}
+                {% endif %}
+                {% if patient.conditions and patient.conditions | lower != 'none' %}
+                 · {{ patient.conditions }}
+                {% endif %}
+            </div>
+        </div>
+        {% set rl = patient.risk_level | default('') %}
+        {% if rl %}
+        <span class="risk-badge-rpt risk-{{ rl }}">
+            {{ rl | capitalize }} Risk
+        </span>
+        {% endif %}
+    </div>
+
+    <!-- Clinical vitals -->
+    {% if clinical_history and clinical_history.latest_vitals %}
+    <div class="section">
+        <div class="section-title">Clinical Vitals</div>
+        <div class="vitals-grid">
+            {% for label, v in clinical_history.latest_vitals.items() %}
+            <div class="vital-cell">
+                <div class="vital-lbl">{{ label }}</div>
+                <div class="vital-val">
+                    {{ v.value }}<span class="vital-unit">{% if v.unit %} {{ v.unit }}{% endif %}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 14-day sleep summary KPIs -->
+    <div class="section">
+        <div class="section-title">14-Day Sleep Summary</div>
+        <div class="kpi-row">
+            <div class="kpi-card {% if avg_eff < 75 %}bad{% elif avg_eff < 85 %}warn{% endif %}">
+                <div class="kpi-label">Avg Efficiency</div>
+                <div class="kpi-value">{{ avg_eff }}<small>%</small></div>
+                <div class="kpi-sub">Normal ≥ 85%</div>
+            </div>
+            <div class="kpi-card {% if avg_rem < 14 %}bad{% elif avg_rem < 18 %}warn{% endif %}">
+                <div class="kpi-label">Avg REM %</div>
+                <div class="kpi-value">{{ avg_rem }}<small>%</small></div>
+                <div class="kpi-sub">Normal 18–25%</div>
+            </div>
+            <div class="kpi-card {% if avg_waso > 35 %}bad{% elif avg_waso > 20 %}warn{% endif %}">
+                <div class="kpi-label">Avg WASO</div>
+                <div class="kpi-value">{{ avg_waso }}<small> min</small></div>
+                <div class="kpi-sub">Normal ≤ 30 min</div>
+            </div>
+            <div class="kpi-card {% if avg_spo2 < 93 %}bad{% elif avg_spo2 < 95 %}warn{% endif %}">
+                <div class="kpi-label">Avg SpO₂</div>
+                <div class="kpi-value">{{ avg_spo2 }}<small>%</small></div>
+                <div class="kpi-sub">Normal ≥ 95%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Night-by-night sleep table -->
+    <div class="section">
+        <div class="section-title">Nightly Sleep Log — 14 Days</div>
+        <table class="sleep-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>TST (h)</th>
+                    <th>REM %</th>
+                    <th>Deep %</th>
+                    <th>Efficiency</th>
+                    <th>Latency (min)</th>
+                    <th>WASO (min)</th>
+                    <th>SpO₂ %</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in sleep_rows %}
+                <tr>
+                    <td{% if row.flagged %} class="flagged-row"{% endif %}><strong>{{ row.date }}</strong></td>
+                    <td>{{ row.tst }}</td>
+                    <td class="{% if row.rem_pct >= 18 %}good{% elif row.rem_pct >= 14 %}warn{% else %}bad{% endif %}">
+                        {{ row.rem_pct }}%
+                    </td>
+                    <td class="{% if row.deep_pct >= 17 %}good{% elif row.deep_pct >= 13 %}warn{% else %}bad{% endif %}">
+                        {{ row.deep_pct }}%
+                    </td>
+                    <td class="{% if row.efficiency >= 85 %}good{% elif row.efficiency >= 75 %}warn{% else %}bad{% endif %}">
+                        {{ row.efficiency }}%
+                    </td>
+                    <td class="{% if row.latency <= 20 %}good{% elif row.latency <= 35 %}warn{% else %}bad{% endif %}">
+                        {{ row.latency }}
+                    </td>
+                    <td class="{% if row.waso <= 20 %}good{% elif row.waso <= 35 %}warn{% else %}bad{% endif %}">
+                        {{ row.waso }}
+                    </td>
+                    <td class="{% if row.spo2 >= 95 %}good{% elif row.spo2 >= 93 %}warn{% else %}bad{% endif %}">
+                        {{ row.spo2 }}
+                    </td>
+                    <td>
+                        {% if row.flagged %}
+                            {% for c in row.confounder_labels %}
+                            <span class="flag-chip">⚑ {{ c }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Confounder flags (if any) -->
+    {% set flagged_nights = sleep_rows | selectattr('flagged') | list %}
+    {% if flagged_nights %}
+    <div class="section">
+        <div class="section-title">Confounder Flags</div>
+        <table class="conf-table">
+            {% for row in flagged_nights %}
+            <tr>
+                <td>{{ row.date }}</td>
+                <td>{{ row.confounder_labels | join(', ') }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <p style="font-size:11px;color:#94a3b8;margin-top:8px;">
+            ⚑ Flagged nights should be excluded from or down-weighted in model training.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Risk model summary -->
+    <div class="section">
+        <div class="section-title">Risk Model Summary</div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;">
+            <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:12px;">
+                <div>
+                    <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Algorithm</div>
+                    <div style="font-size:13px;font-weight:600;color:#1e293b;">XGBoost Classifier</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">AUC-ROC</div>
+                    <div style="font-size:13px;font-weight:700;color:#1d4ed8;">0.91</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Risk Classification</div>
+                    <div style="font-size:13px;font-weight:700;color:
+                        {% if patient.risk_level == 'high' %}#dc2626
+                        {% elif patient.risk_level == 'medium' %}#d97706
+                        {% else %}#16a34a{% endif %};">
+                        {{ patient.risk_level | capitalize if patient.risk_level else '—' }}
+                    </div>
+                </div>
+            </div>
+            <div style="font-size:11px;color:#64748b;">
+                Top predictive features: <strong>REM Sleep %</strong>, <strong>HRV Balance</strong>,
+                <strong>Deep Sleep %</strong>, <strong>Body Temp Deviation</strong>, <strong>Resting HR</strong>.
+                SHAP explainability pipeline in development (Phase 2).
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="report-footer">
+        <span>JupyterHealth Research Workbench · Hepatic Encephalopathy Sleep Biomarkers Study</span>
+        <span>Generated {{ report_date }} · For research use only — not for clinical diagnosis</span>
+    </div>
+
+</div><!-- /.report-card -->
+
+</body>
+</html>

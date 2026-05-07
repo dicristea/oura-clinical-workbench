@@ -12,15 +12,41 @@ import random
 import re
 import os
 import uuid
+import numpy as np
 
 app = Flask(__name__)
 
+
+class _NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
+
+app.json_encoder = _NumpyEncoder
+
 # Ordered color palette assigned to features by their declaration index.
 STUDY_CONFIG_PATH             = 'demo_data/study_config.json'
+DEMO_HE_PATIENT_ID            = 'PT-1042'   # Featured patient for demo/presentation
 CONDITIONS_DICT_PATH          = 'data/conditions_dict.json'
 STANDARD_WEARABLE_DATASET_DIR = 'demo_data/demo_omh_ieee'
 NOTEBOOKS_DIR                 = 'notebooks'
 JUPYTER_BASE_URL              = os.environ.get('JUPYTER_BASE_URL', 'http://localhost:8888')
+CONFOUNDERS_PATH              = 'demo_data/confounders.json'
+
+CONFOUNDER_TYPES = [
+    'Narcotics / Sedatives',
+    'Alcohol',
+    'Illness / Infection',
+    'Travel / Time Zone Change',
+    'Sleep Apnea Exacerbation',
+    'Other',
+]
 
 FEATURE_COLORS = [
     '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
@@ -252,6 +278,87 @@ def merge_standard_wearable_patients(patients: list[dict]) -> list[dict]:
     return patients
 
 
+def _make_demo_he_patient() -> dict:
+    """
+    Returns a hardcoded demo patient for the HE sleep biomarker study.
+    Used during presentations — tells a clear clinical story without real PHI.
+    """
+    return {
+        'id':                  DEMO_HE_PATIENT_ID,
+        'mrn':                 DEMO_HE_PATIENT_ID,
+        'name':                'Synthea Demo',
+        'inpatient':           14,
+        'outpatient':          14,
+        'last_sync':           '2 hours ago',
+        'last_visit':          'Dec 08, 2024 (In-Person)',
+        'model_status_level':  'alert',
+        'model_status_label':  'Sleep Risk Signal Detected',
+        'has_oura':            True,
+        'has_ehr':             True,
+        'has_synthea':         False,
+        'data_source':         'oura',
+        'status':              'active',
+        'hospital_start':      None,
+        'hospital_end':        None,
+        'participation_start': 'Nov 15, 2022',
+        'risk_level':          'high',
+        'conditions':          'Covert Hepatic Encephalopathy',
+        # Sparklines shown on dashboard (14-day window matching the biometrics story)
+        'sleep_score':    [72, 68, 75, 65, 70, 67, 71, 55, 73, 63, 61, 58, 60, 53],
+        'hrv_average':    [28, 24, 31, 19, 22, 26, 18, 25, 21, 17, 20, 23, 19, 16],
+        'activity_score': [72, 68, 71, 59, 64, 61, 58, 42, 56, 48, 41, 37, 29, 21],
+    }
+
+
+def _demo_he_overrides() -> dict:
+    """
+    Hand-crafted 14-day time series for PT-1042.
+
+    Clinical narrative:
+      Week 1 — borderline: REM 18-21 %, HRV low but stable, efficiency >80 %.
+      Dec 8  — anomalous night: SpO₂ dips to 91.8 %, temp deviation spikes to +0.93 °C,
+               sleep latency 48 min + WASO 68 min (all three auto-flagged by the system).
+      Week 2 — clear deterioration: REM drops to 11-12 %, step count halves,
+               efficiency falls below 70 % by Dec 14.
+
+    This lets the viewer point to auto-detected confounders in the Risk Analysis Lab
+    and a visually clear downward trend across every biometric chart.
+    """
+    sleep = [7.2, 6.8, 7.5, 6.1, 7.0, 6.4, 6.9, 5.8, 7.1, 6.2, 6.7, 5.9, 6.3, 5.7]
+    rem   = [1.5, 1.4, 1.4, 1.1, 1.2, 1.1, 1.1, 0.9, 1.0, 0.8, 0.9, 0.7, 0.8, 0.6]
+    deep  = [1.4, 1.2, 1.3, 1.0, 1.1, 1.0, 1.0, 0.8, 1.0, 0.9, 1.0, 0.8, 0.9, 0.8]
+    awake = [0.4, 0.3, 0.4, 0.4, 0.5, 0.5, 0.4, 0.8, 0.4, 0.6, 0.7, 0.7, 0.6, 0.8]
+    light = [round(sleep[i] - rem[i] - deep[i] - awake[i], 1) for i in range(14)]
+    lat   = [14, 18, 12, 22, 16, 28, 20, 48, 15, 31, 35, 42, 38, 52]
+    waso  = [22, 18, 25, 31, 28, 35, 30, 68, 25, 42, 48, 55, 52, 71]
+    tib   = [round(sleep[i] + awake[i] + lat[i]/60 + waso[i]/60, 1) for i in range(14)]
+    eff   = [round(sleep[i] / tib[i] * 100, 1) for i in range(14)]
+
+    return {
+        'heart_rate_data':     [58, 61, 59, 63, 60, 62, 64, 61, 65, 63, 62, 67, 64, 66],
+        'respiratory_data':    [15.2, 15.8, 14.9, 16.1, 15.5, 16.4, 15.7, 17.8, 15.3, 16.2, 16.8, 17.1, 16.9, 17.4],
+        'hrv_data':            [28, 24, 31, 19, 22, 26, 18, 25, 21, 17, 20, 23, 19, 16],
+        'sleep_duration_data': sleep,
+        'steps_data':          [7200, 6800, 7100, 5900, 6400, 6100, 5800, 4200, 5600, 4800, 4100, 3700, 2900, 2100],
+        'temperature_data':    [0.12, -0.08, 0.21, 0.05, 0.18, -0.14, 0.31, 0.93, -0.07, 0.24, 0.15, -0.12, 0.28, 0.19],
+        'rem_data':            rem,
+        'deep_data':           deep,
+        'light_data':          light,
+        'awake_data':          awake,
+        'time_in_bed_data':    tib,
+        'sleep_latency_data':  lat,
+        'waso_data':           waso,
+        'sleep_efficiency_data': eff,
+        'spo2_data':           [96.2, 95.8, 96.5, 95.4, 96.1, 95.9, 95.3, 91.8, 96.4, 95.7, 94.9, 95.5, 94.8, 95.1],
+        'sleep_start_data':    ['10:30 PM','10:45 PM','10:15 PM','11:00 PM','10:30 PM',
+                                '11:15 PM','10:45 PM','11:00 PM','10:30 PM','11:00 PM',
+                                '10:45 PM','11:30 PM','11:00 PM','11:15 PM'],
+        'sleep_end_data':      ['6:42 AM','6:27 AM','6:45 AM','6:24 AM','6:42 AM',
+                                '7:15 AM','6:51 AM','7:30 AM','6:42 AM','7:00 AM',
+                                '7:33 AM','7:42 AM','7:24 AM','7:51 AM'],
+    }
+
+
 def load_patient_data():
     """Load and process patient data from Excel file."""
     try:
@@ -349,11 +456,13 @@ def load_patient_data():
         
         # Append Synthea clinical patients, then merge matching OMH/IEEE wearable records.
         patients.extend(load_synthea_patients())
+        patients.insert(0, _make_demo_he_patient())
         return merge_standard_wearable_patients(patients)
     except Exception as e:
         print(f"Error loading data: {e}")
         # Still try to return adapter-backed patients even if Excel fails.
         patients = load_synthea_patients()
+        patients.insert(0, _make_demo_he_patient())
         return merge_standard_wearable_patients(patients)
 
 
@@ -451,39 +560,112 @@ def _compute_sleep_summaries(patients: list) -> list:
         if standard_ts is not None and not standard_ts.time_series.empty:
             ts = standard_ts.get_analysis_window(14)
             tst = ts['total_sleep_time_hours'] if 'total_sleep_time_hours' in ts else ts.get('sleep_duration_hours')
+
+            # Week-over-week efficiency trend
+            if 'sleep_efficiency_pct' in ts and len(ts) >= 8:
+                w1 = float(ts['sleep_efficiency_pct'].iloc[:7].mean())
+                w2 = float(ts['sleep_efficiency_pct'].iloc[7:].mean())
+                eff_delta = round(w2 - w1, 1)
+            elif 'sleep_efficiency_pct' in ts:
+                eff_delta = 0.0
+            else:
+                eff_delta = 0.0
+
             summaries.append({
-                'id':             p['id'],
-                'risk':           p.get('risk_level', ''),
-                'avg_tst':        round(float(tst.mean()), 1) if tst is not None else 0,
-                'avg_rem_pct':    round(float(ts['rem_sleep_pct'].mean()), 1) if 'rem_sleep_pct' in ts else 0,
-                'avg_deep_pct':   round(float(ts['deep_sleep_pct'].mean()), 1) if 'deep_sleep_pct' in ts else 0,
-                'avg_efficiency': round(float(ts['sleep_efficiency_pct'].mean()), 1) if 'sleep_efficiency_pct' in ts else 0,
-                'avg_latency':    int(round(float(ts['sleep_latency'].mean()))) if 'sleep_latency' in ts else 0,
-                'avg_waso':       int(round(float(ts['waso_minutes'].mean()))) if 'waso_minutes' in ts else 0,
-                'avg_spo2':       round(float(ts['spo2_pct'].mean()), 1) if 'spo2_pct' in ts else 0,
+                'id':               p['id'],
+                'risk':             p.get('risk_level', ''),
+                'avg_tst':          round(float(tst.mean()), 1) if tst is not None else 0,
+                'avg_rem_pct':      round(float(ts['rem_sleep_pct'].mean()), 1) if 'rem_sleep_pct' in ts else 0,
+                'avg_deep_pct':     round(float(ts['deep_sleep_pct'].mean()), 1) if 'deep_sleep_pct' in ts else 0,
+                'avg_efficiency':   round(float(ts['sleep_efficiency_pct'].mean()), 1) if 'sleep_efficiency_pct' in ts else 0,
+                'avg_latency':      int(round(float(ts['sleep_latency'].mean()))) if 'sleep_latency' in ts else 0,
+                'avg_waso':         int(round(float(ts['waso_minutes'].mean()))) if 'waso_minutes' in ts else 0,
+                'avg_spo2':         round(float(ts['spo2_pct'].mean()), 1) if 'spo2_pct' in ts else 0,
+                'efficiency_trend': eff_delta,
+                'trend_dir':        'up' if eff_delta > 1.5 else 'down' if eff_delta < -1.5 else 'flat',
             })
             continue
 
-        rng = random.Random(abs(hash(p['id'])) % (2 ** 31))
-        avg_tst = round(rng.uniform(5.2, 8.6), 1)
-        avg_rem = round(rng.uniform(12, 26), 1)
+        rng  = random.Random(abs(hash(p['id']))              % (2 ** 31))
+        rng2 = random.Random(abs(hash(p['id'] + '_wktrend')) % (2 ** 31))
+        avg_tst  = round(rng.uniform(5.2, 8.6), 1)
+        avg_rem  = round(rng.uniform(12, 26), 1)
         avg_deep = round(rng.uniform(10, 23), 1)
-        avg_eff = round(rng.uniform(72, 94), 1)
-        avg_lat = int(round(rng.uniform(7, 40)))
+        avg_eff  = round(rng.uniform(72, 94), 1)
+        avg_lat  = int(round(rng.uniform(7, 40)))
         avg_waso = int(round(rng.uniform(12, 58)))
         avg_spo2 = round(rng.uniform(93.2, 98.1), 1)
+        eff_delta = round(rng2.uniform(-9.5, 6.0), 1)
         summaries.append({
-            'id':           p['id'],
-            'risk':         p.get('risk_level', ''),
-            'avg_tst':      avg_tst,
-            'avg_rem_pct':  avg_rem,
-            'avg_deep_pct': avg_deep,
-            'avg_efficiency': avg_eff,
-            'avg_latency':  avg_lat,
-            'avg_waso':     avg_waso,
-            'avg_spo2':     avg_spo2,
+            'id':               p['id'],
+            'risk':             p.get('risk_level', ''),
+            'avg_tst':          avg_tst,
+            'avg_rem_pct':      avg_rem,
+            'avg_deep_pct':     avg_deep,
+            'avg_efficiency':   avg_eff,
+            'avg_latency':      avg_lat,
+            'avg_waso':         avg_waso,
+            'avg_spo2':         avg_spo2,
+            'efficiency_trend': eff_delta,
+            'trend_dir':        'up' if eff_delta > 1.5 else 'down' if eff_delta < -1.5 else 'flat',
         })
     return summaries
+
+
+def _load_confounders() -> dict:
+    if os.path.exists(CONFOUNDERS_PATH):
+        with open(CONFOUNDERS_PATH) as f:
+            return json.load(f)
+    return {}
+
+
+def _save_confounders(data: dict) -> None:
+    os.makedirs(os.path.dirname(CONFOUNDERS_PATH), exist_ok=True)
+    with open(CONFOUNDERS_PATH, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+def _auto_detect_confounders(patient: dict) -> dict:
+    """
+    Automatically detect nights with physiological patterns suggesting a confounder.
+    Thresholds are clinically grounded for the HE sleep biomarker study.
+    Returns {iso_date: [reason_strings]}.
+    """
+    flags: dict[str, list[str]] = {}
+    iso_dates   = patient.get('iso_dates', [])
+    spo2        = patient.get('spo2_data', [])
+    temperature = patient.get('temperature_data', [])
+    hrv         = patient.get('hrv_data', [])
+    latency     = patient.get('sleep_latency_data', [])
+    waso        = patient.get('waso_data', [])
+
+    valid_hrv  = [v for v in hrv if v is not None and v > 0]
+    hrv_median = sorted(valid_hrv)[len(valid_hrv) // 2] if valid_hrv else None
+
+    for i, iso in enumerate(iso_dates):
+        reasons: list[str] = []
+
+        if i < len(spo2) and spo2[i] is not None and spo2[i] < 93.0:
+            reasons.append('Low SpO₂ (possible apnea)')
+
+        if i < len(temperature) and temperature[i] is not None:
+            if temperature[i] > 0.8:
+                reasons.append('Elevated temp deviation (fever / alcohol)')
+            elif temperature[i] < -0.8:
+                reasons.append('Low temp deviation')
+
+        if hrv_median and i < len(hrv) and hrv[i] is not None and hrv[i] < hrv_median * 0.5:
+            reasons.append('Low HRV (acute stressor)')
+
+        lat_hi  = i < len(latency) and latency[i]  is not None and latency[i]  > 45
+        waso_hi = i < len(waso)    and waso[i]     is not None and waso[i]     > 60
+        if lat_hi and waso_hi:
+            reasons.append('Fragmented sleep (behavioural disruption)')
+
+        if reasons:
+            flags[iso] = reasons
+
+    return flags
 
 
 def _chat_respond(message: str, context: dict, history: list) -> tuple:
@@ -596,7 +778,7 @@ def _chat_respond(message: str, context: dict, history: list) -> tuple:
         return resp, ['How many patients are enrolled?', 'What is HbA1c?', 'Explain the study']
 
     if any(w in msg for w in ['study', 'research', 'about this', 'purpose', 'goal', 'what is this']):
-        resp = ("This workbench supports a **Cornell/Columbia clinical research study** — "
+        resp = ("This workbench supports a **Cornell Medicine clinical research study** — "
                 "can Oura Ring wearable biomarkers (sleep architecture, HRV, circadian rhythm) "
                 "detect covert hepatic encephalopathy earlier than current clinical methods? "
                 "~140 cirrhosis patients, 6+ years of data. Synthea FHIR provides a parallel "
@@ -613,10 +795,19 @@ def _chat_respond(message: str, context: dict, history: list) -> tuple:
 @app.route('/')
 def dashboard():
     patients = load_patient_data()
-    cohort_stats = _compute_cohort_stats(patients)
+    cohort_stats    = _compute_cohort_stats(patients)
     sleep_summaries = _compute_sleep_summaries(patients)
+    sleep_summary_map = {s['id']: s for s in sleep_summaries}
+    study_cfg = load_study_config()
+    enrollment = study_cfg.get('enrollment', {
+        'enrolled': 140, 'target': 150,
+        'days_of_data': '20,000+', 'years_of_data': 6,
+        'institutions': 'Cornell Medicine',
+    })
     return render_template('dashboard.html', patients=patients, cohort_stats=cohort_stats,
-                           sleep_summaries=sleep_summaries)
+                           sleep_summaries=sleep_summaries, sleep_summary_map=sleep_summary_map,
+                           enrollment=enrollment)
+
 
 
 @app.route('/api/patients')
@@ -711,6 +902,7 @@ def api_run_experiment():
     features             = body.get('features', [])
     hyperparameters      = body.get('hyperparameters', {})
     analysis_window_days = int(body.get('analysis_window_days', 30))
+    excluded_dates       = body.get('excluded_dates', [])
 
     if not patient_id:
         return jsonify({'error': 'patient_id is required.'}), 400
@@ -796,6 +988,7 @@ def api_run_experiment():
         'feature_importance':    result.feature_importance,
         'prediction_confidence': result.prediction_confidence,
         'trained_at':            result.trained_at.isoformat(),
+        'excluded_nights':       len(excluded_dates),
     })
 
 
@@ -972,161 +1165,141 @@ def api_chat():
         return jsonify({'response': 'Sorry, I encountered an error. Please try again.', 'suggestions': []}), 200
 
 
-@app.route('/patient/<patient_id>')
-def patient_detail(patient_id):
-    """Show detailed patient metrics view."""
-    patients = load_patient_data()
+def _compute_patient_view_data(patient_id: str, patients: list | None = None) -> dict | None:
+    """
+    Shared computation for patient_detail and patient_report.
+    Returns a dict with patient (with time-series attached), clinical_history,
+    sleep_rows, confounders, and summary averages. Returns None if not found.
+    """
+    if patients is None:
+        patients = load_patient_data()
     patient = next((p for p in patients if p['id'] == patient_id), None)
+    if patient is None:
+        return None
 
-    if not patient:
-        return "Patient not found", 404
-
-    # Generate 14 days (2 weeks) of detailed metric data
-    import random
-    random.seed(hash(patient_id))  # Consistent data for same patient
-
-    dates = []
-    heart_rate_data = []
-    respiratory_data = []
-    hrv_data = []
-    sleep_duration_data = []
-    steps_data = []
-    temperature_data = []
+    # Isolated per-patient RNG — never touches global random state
+    rng = random.Random(abs(hash(patient_id)) % (2 ** 31))
 
     base_date = datetime(2024, 12, 1)
-    for i in range(14):
-        date = base_date + timedelta(days=i)
-        dates.append(date.strftime("%b %d"))
-        heart_rate_data.append(random.randint(48, 72))
-        respiratory_data.append(round(random.uniform(12, 18), 1))
-        hrv_data.append(random.randint(20, 80))
-        sleep_duration_data.append(round(random.uniform(5, 9), 1))
-        steps_data.append(random.randint(2000, 15000))
-        temperature_data.append(round(random.uniform(-1.0, 1.0), 2))
+    # Store both display label and ISO key for each day
+    dates      = [(base_date + timedelta(days=i)).strftime("%b %d")  for i in range(14)]
+    iso_dates  = [(base_date + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(14)]
 
-    patient['dates'] = dates
-    patient['heart_rate_data'] = heart_rate_data
-    patient['respiratory_data'] = respiratory_data
-    patient['hrv_data'] = hrv_data
-    patient['sleep_duration_data'] = sleep_duration_data
-    patient['steps_data'] = steps_data
-    patient['temperature_data'] = temperature_data
+    heart_rate_data    = [rng.randint(48, 72)              for _ in range(14)]
+    respiratory_data   = [round(rng.uniform(12, 18), 1)    for _ in range(14)]
+    hrv_data           = [rng.randint(20, 80)              for _ in range(14)]
+    sleep_duration_data= [round(rng.uniform(5, 9), 1)      for _ in range(14)]
+    steps_data         = [rng.randint(2000, 15000)          for _ in range(14)]
+    temperature_data   = [round(rng.uniform(-1.0, 1.0), 2) for _ in range(14)]
 
-    # ── Sleep-specific metrics (14 days) ─────────────────────────────────
-    rem_data, deep_data, light_data, awake_data = [], [], [], []
-    time_in_bed_data, sleep_latency_data, waso_data = [], [], []
-    sleep_efficiency_data, spo2_data = [], []
-    sleep_start_data, sleep_end_data = [], []
+    rem_data, deep_data, light_data, awake_data      = [], [], [], []
+    time_in_bed_data, sleep_latency_data, waso_data  = [], [], []
+    sleep_efficiency_data, spo2_data                 = [], []
+    sleep_start_data, sleep_end_data                 = [], []
 
     for i in range(14):
-        total = sleep_duration_data[i]
-        rem   = round(max(0.5, random.uniform(0.15, 0.25) * total + random.uniform(-0.2, 0.2)), 1)
-        deep  = round(max(0.3, random.uniform(0.13, 0.22) * total + random.uniform(-0.15, 0.15)), 1)
-        awake = round(random.uniform(0.1, 0.6), 1)
-        light = round(max(0.4, total - rem - deep), 1)
-        lat   = random.randint(5, 38)
-        w     = random.randint(8, 55)
-        tib   = round(total + awake + lat / 60 + w / 60, 1)
-        eff   = round((total / tib * 100) if tib > 0 else 0, 1)
-        sp    = round(random.uniform(93.0, 98.5), 1)
-        start_hr  = random.randint(21, 23)
-        start_min = random.choice([0, 15, 30, 45])
+        total     = sleep_duration_data[i]
+        rem       = round(max(0.5, rng.uniform(0.15, 0.25) * total + rng.uniform(-0.2, 0.2)), 1)
+        deep      = round(max(0.3, rng.uniform(0.13, 0.22) * total + rng.uniform(-0.15, 0.15)), 1)
+        awake     = round(rng.uniform(0.1, 0.6), 1)
+        light     = round(max(0.4, total - rem - deep), 1)
+        lat       = rng.randint(5, 38)
+        w         = rng.randint(8, 55)
+        tib       = round(total + awake + lat / 60 + w / 60, 1)
+        eff       = round((total / tib * 100) if tib > 0 else 0, 1)
+        sp        = round(rng.uniform(93.0, 98.5), 1)
+        start_hr  = rng.randint(21, 23)
+        start_min = rng.choice([0, 15, 30, 45])
         end_total = start_hr * 60 + start_min + int(tib * 60)
         end_hr, end_min = (end_total // 60) % 24, end_total % 60
 
-        rem_data.append(rem)
-        deep_data.append(deep)
-        light_data.append(light)
-        awake_data.append(awake)
-        time_in_bed_data.append(tib)
-        sleep_latency_data.append(lat)
-        waso_data.append(w)
-        sleep_efficiency_data.append(eff)
+        rem_data.append(rem);   deep_data.append(deep)
+        light_data.append(light); awake_data.append(awake)
+        time_in_bed_data.append(tib);  sleep_latency_data.append(lat)
+        waso_data.append(w);    sleep_efficiency_data.append(eff)
         spo2_data.append(sp)
         sleep_start_data.append(f"{start_hr % 12 or 12}:{start_min:02d} {'PM' if start_hr >= 12 else 'AM'}")
         sleep_end_data.append(f"{end_hr % 12 or 12}:{end_min:02d} {'AM' if end_hr < 12 else 'PM'}")
 
-    patient['rem_data']              = rem_data
-    patient['deep_data']             = deep_data
-    patient['light_data']            = light_data
-    patient['awake_data']            = awake_data
-    patient['time_in_bed_data']      = time_in_bed_data
-    patient['sleep_latency_data']    = sleep_latency_data
-    patient['waso_data']             = waso_data
-    patient['sleep_efficiency_data'] = sleep_efficiency_data
-    patient['spo2_data']             = spo2_data
-    patient['sleep_start_data']      = sleep_start_data
-    patient['sleep_end_data']        = sleep_end_data
-
+    # Override with real OMH/IEEE data when available
     standard_wearable = get_standard_wearable_series(patient_id)
     if standard_wearable is not None and not standard_wearable.time_series.empty:
         ts = standard_wearable.get_analysis_window(14).copy()
         if not ts.empty:
-            patient['dates'] = [pd.Timestamp(d).strftime("%b %d") for d in ts.index]
+            dates     = [pd.Timestamp(d).strftime("%b %d")   for d in ts.index]
+            iso_dates = [pd.Timestamp(d).strftime("%Y-%m-%d") for d in ts.index]
 
-            def _values(col: str, default=None, digits: int | None = 1):
+            def _v(col: str, default=None, digits: int | None = 1):
                 if col not in ts:
-                    return [default for _ in range(len(ts))]
-                vals = []
-                for value in ts[col].tolist():
-                    if pd.isna(value):
-                        vals.append(default)
-                    elif digits is None:
-                        vals.append(int(round(float(value))))
-                    else:
-                        vals.append(round(float(value), digits))
-                return vals
+                    return [default] * len(ts)
+                return [
+                    (int(round(float(x))) if digits is None else round(float(x), digits))
+                    if not pd.isna(x) else default
+                    for x in ts[col].tolist()
+                ]
 
-            patient['heart_rate_data'] = _values('resting_hr', default=0, digits=None)
-            patient['respiratory_data'] = _values('respiratory_rate', default=0, digits=1)
-            patient['sleep_duration_data'] = _values('sleep_duration_hours', default=0, digits=1)
-            patient['steps_data'] = _values('step_count', default=0, digits=None)
-            patient['time_in_bed_data'] = _values('time_in_bed_hours', default=0, digits=1)
-            patient['sleep_latency_data'] = _values('sleep_latency', default=0, digits=None)
-            patient['waso_data'] = _values('waso_minutes', default=0, digits=None)
-            patient['sleep_efficiency_data'] = _values('sleep_efficiency_pct', default=0, digits=1)
-            patient['spo2_data'] = _values('spo2_pct', default=0, digits=1)
-            patient['rem_data'] = _values('rem_sleep_hours', default=0, digits=1)
-            patient['deep_data'] = _values('deep_sleep_hours', default=0, digits=1)
-            patient['light_data'] = _values('light_sleep_hours', default=0, digits=1)
-            patient['awake_data'] = _values('awake_hours', default=0, digits=1)
-            patient['sleep_start_data'] = (
-                ts['sleep_start_label'].fillna('').tolist()
-                if 'sleep_start_label' in ts else ['' for _ in range(len(ts))]
-            )
-            patient['sleep_end_data'] = (
-                ts['sleep_end_label'].fillna('').tolist()
-                if 'sleep_end_label' in ts else ['' for _ in range(len(ts))]
-            )
+            heart_rate_data     = _v('resting_hr',          default=0, digits=None)
+            respiratory_data    = _v('respiratory_rate',     default=0)
+            sleep_duration_data = _v('sleep_duration_hours', default=0)
+            steps_data          = _v('step_count',           default=0, digits=None)
+            time_in_bed_data    = _v('time_in_bed_hours',    default=0)
+            sleep_latency_data  = _v('sleep_latency',        default=0, digits=None)
+            waso_data           = _v('waso_minutes',         default=0, digits=None)
+            sleep_efficiency_data = _v('sleep_efficiency_pct', default=0)
+            spo2_data           = _v('spo2_pct',             default=0)
+            rem_data            = _v('rem_sleep_hours',      default=0)
+            deep_data           = _v('deep_sleep_hours',     default=0)
+            light_data          = _v('light_sleep_hours',    default=0)
+            awake_data          = _v('awake_hours',          default=0)
+            sleep_start_data    = (ts['sleep_start_label'].fillna('').tolist()
+                                   if 'sleep_start_label' in ts else ['']*len(ts))
+            sleep_end_data      = (ts['sleep_end_label'].fillna('').tolist()
+                                   if 'sleep_end_label' in ts else ['']*len(ts))
+
+    # Attach all series to patient dict (template reads from here)
+    patient.update({
+        'dates':                dates,
+        'iso_dates':            iso_dates,
+        'heart_rate_data':      heart_rate_data,
+        'respiratory_data':     respiratory_data,
+        'hrv_data':             hrv_data,
+        'sleep_duration_data':  sleep_duration_data,
+        'steps_data':           steps_data,
+        'temperature_data':     temperature_data,
+        'rem_data':             rem_data,
+        'deep_data':            deep_data,
+        'light_data':           light_data,
+        'awake_data':           awake_data,
+        'time_in_bed_data':     time_in_bed_data,
+        'sleep_latency_data':   sleep_latency_data,
+        'waso_data':            waso_data,
+        'sleep_efficiency_data': sleep_efficiency_data,
+        'spo2_data':            spo2_data,
+        'sleep_start_data':     sleep_start_data,
+        'sleep_end_data':       sleep_end_data,
+    })
+
+    # Demo patient: replace seeded/OMH data with hand-crafted HE clinical story
+    if patient_id == DEMO_HE_PATIENT_ID:
+        patient.update(_demo_he_overrides())
 
     # ── Clinical history ──────────────────────────────────────────────────
     clinical_history = None
-    ds_key = 'synthea' if patient_id.startswith('PT-3') else 'oura'
-    _ch_rng = random.Random(hash(patient_id))
+    ds_key   = 'synthea' if patient_id.startswith('PT-3') else 'oura'
+    _ch_rng  = random.Random(abs(hash(patient_id + '_ch')) % (2 ** 31))
 
-    # ── Oura / Liver Disease patients ─────────────────────────────────────
     if ds_key == 'oura':
         try:
-            age = _ch_rng.randint(45, 72)
-            sex = _ch_rng.choice(['Male', 'Female'])
-
-            # MELD-Na score (6–40; higher = worse prognosis)
+            age       = _ch_rng.randint(45, 72)
+            sex       = _ch_rng.choice(['Male', 'Female'])
             meld_6mo  = _ch_rng.randint(9, 26)
             meld_now  = meld_6mo + _ch_rng.randint(-1, 5)
-            meld_delta = round(meld_now - meld_6mo, 1)
-
-            # Liver labs
-            ammonia   = _ch_rng.randint(28, 110)   # normal < 35 μmol/L
-            bilirubin = round(_ch_rng.uniform(1.2, 9.0), 1)  # normal < 1.2 mg/dL
-            inr       = round(_ch_rng.uniform(1.2, 2.4), 1)  # normal 0.9–1.1
-            creatinine= round(_ch_rng.uniform(0.7, 2.3), 1)  # normal 0.6–1.2
-            sodium    = _ch_rng.randint(128, 140)             # hyponatremia < 135
-
-            # Wearable metrics from the 14-day window just generated
-            latest_hr  = heart_rate_data[-1]
-            latest_hrv = hrv_data[-1]
-
-            # Active conditions
+            meld_delta= round(meld_now - meld_6mo, 1)
+            ammonia   = _ch_rng.randint(28, 110)
+            bilirubin = round(_ch_rng.uniform(1.2, 9.0), 1)
+            inr       = round(_ch_rng.uniform(1.2, 2.4), 1)
+            creatinine= round(_ch_rng.uniform(0.7, 2.3), 1)
+            sodium    = _ch_rng.randint(128, 140)
             conditions = ['Cirrhosis (Child-Pugh B)' if meld_now >= 15 else 'Cirrhosis (Child-Pugh A)']
             if ammonia > 60 or patient.get('status') in ('follow-up', 'outreach'):
                 conditions.append('Covert Hepatic Encephalopathy')
@@ -1136,17 +1309,11 @@ def patient_detail(patient_id):
                 conditions.append('Hyponatremia')
             if patient.get('has_oura'):
                 conditions.append('Active Wearable Monitoring')
-
-            # Enrollment date: ~2 years ago seeded per patient
-            enroll_offset = _ch_rng.randint(300, 900)
-            enroll_dt = datetime(2024, 12, 31) - timedelta(days=enroll_offset)
-            enrollment_date = enroll_dt.strftime('%b %d, %Y')
-
+            enroll_dt = datetime(2024, 12, 31) - timedelta(days=_ch_rng.randint(300, 900))
             clinical_history = {
-                'age':   age,
-                'sex':   sex,
+                'age': age, 'sex': sex,
                 'conditions':      conditions,
-                'enrollment_date': enrollment_date,
+                'enrollment_date': enroll_dt.strftime('%b %d, %Y'),
                 'latest_vitals': {
                     'MELD-Na Score':  {'value': meld_now,   'unit': 'score'},
                     'Ammonia (NH₃)':  {'value': ammonia,    'unit': 'μmol/L'},
@@ -1154,8 +1321,8 @@ def patient_detail(patient_id):
                     'INR':            {'value': inr,        'unit': ''},
                     'Creatinine':     {'value': creatinine, 'unit': 'mg/dL'},
                     'Serum Sodium':   {'value': sodium,     'unit': 'mEq/L'},
-                    'Resting HR':     {'value': latest_hr,  'unit': 'bpm'},
-                    'HRV (rMSSD)':    {'value': latest_hrv, 'unit': 'ms'},
+                    'Resting HR':     {'value': heart_rate_data[-1], 'unit': 'bpm'},
+                    'HRV (rMSSD)':    {'value': hrv_data[-1],        'unit': 'ms'},
                 },
                 'trends': {
                     'MELD-Na': meld_delta,
@@ -1166,67 +1333,54 @@ def patient_detail(patient_id):
                     standard_wearable.metadata.get('data_source_label')
                     if standard_wearable is not None else 'Oura Ring V2 + EHR Flowsheets'
                 ),
-                'last_encounter':    'Dec 01, 2024',
+                'last_encounter': 'Dec 01, 2024',
             }
         except Exception as e:
-            print(f"[patient_detail] Oura clinical history error for {patient_id}: {e}")
+            print(f"[patient_view] Oura clinical history error for {patient_id}: {e}")
 
-    # ── Synthea / Metabolic patients ──────────────────────────────────────
     elif ds_key == 'synthea':
         try:
             from data.synthea_adapter import SyntheaAdapter
             adapter = SyntheaAdapter()
-            fpath = os.path.join('demo_data/demo_synthea', f"{patient_id}.json")
-            pts = (adapter.load_from_fhir(fpath, patient_id)
-                   if os.path.isfile(fpath)
-                   else adapter.load_demo_data(patient_id, patient.get('risk_level', 'medium')))
-
-            sf = pts.static_features
-            ts = pts.time_series
-
+            fpath   = os.path.join('demo_data/demo_synthea', f"{patient_id}.json")
+            pts     = (adapter.load_from_fhir(fpath, patient_id)
+                       if os.path.isfile(fpath)
+                       else adapter.load_demo_data(patient_id, patient.get('risk_level', 'medium')))
+            sf, ts  = pts.static_features, pts.time_series
             conditions = [
-                k.replace('_', ' ').title()
-                for k, v in sf.items() if isinstance(v, bool) and v
+                k.replace('_', ' ').title() for k, v in sf.items() if isinstance(v, bool) and v
             ]
-
             latest_vitals = {}
-            vital_labels = {
-                'glucose_mgdl':   ('Blood Glucose',   'mg/dL'),
-                'hba1c_pct':      ('HbA1c',           '%'),
-                'systolic_bp':    ('Systolic BP',      'mmHg'),
-                'diastolic_bp':   ('Diastolic BP',     'mmHg'),
-                'bmi':            ('BMI',              'kg/m²'),
-                'body_weight_kg': ('Weight',           'kg'),
-                'heart_rate':     ('Heart Rate',       'bpm'),
+            vital_map = {
+                'glucose_mgdl':   ('Blood Glucose', 'mg/dL'),
+                'hba1c_pct':      ('HbA1c',         '%'),
+                'systolic_bp':    ('Systolic BP',    'mmHg'),
+                'diastolic_bp':   ('Diastolic BP',   'mmHg'),
+                'bmi':            ('BMI',            'kg/m²'),
+                'body_weight_kg': ('Weight',         'kg'),
+                'heart_rate':     ('Heart Rate',     'bpm'),
             }
             if not ts.empty:
-                last_row = ts.iloc[-1]
-                for col, (label, unit) in vital_labels.items():
-                    if col in last_row.index and not pd.isna(last_row[col]):
-                        latest_vitals[label] = {
-                            'value': round(float(last_row[col]), 1),
-                            'unit': unit,
-                        }
-
+                row = ts.iloc[-1]
+                for col, (label, unit) in vital_map.items():
+                    if col in row.index and not pd.isna(row[col]):
+                        latest_vitals[label] = {'value': round(float(row[col]), 1), 'unit': unit}
             trends = {}
             for col, label in [('glucose_mgdl', 'Glucose'), ('hba1c_pct', 'HbA1c'), ('systolic_bp', 'Systolic BP')]:
                 if col in ts.columns and len(ts) >= 2:
-                    first_val, last_val = ts[col].iloc[0], ts[col].iloc[-1]
-                    if not pd.isna(first_val) and not pd.isna(last_val):
-                        trends[label] = round(last_val - first_val, 1)
-
-            enrollment_date = pts.metadata.get('enrollment_date', '')
-            if enrollment_date:
-                try:
-                    enrollment_date = datetime.strptime(enrollment_date, '%Y-%m-%d').strftime('%b %d, %Y')
-                except ValueError:
-                    pass
-
+                    fv, lv = ts[col].iloc[0], ts[col].iloc[-1]
+                    if not pd.isna(fv) and not pd.isna(lv):
+                        trends[label] = round(lv - fv, 1)
+            enroll_str = pts.metadata.get('enrollment_date', '')
+            try:
+                enroll_str = datetime.strptime(enroll_str, '%Y-%m-%d').strftime('%b %d, %Y')
+            except ValueError:
+                pass
             clinical_history = {
-                'age':   sf.get('age'),
-                'sex':   'Male' if sf.get('sex') == 'M' else 'Female' if sf.get('sex') == 'F' else None,
+                'age': sf.get('age'),
+                'sex': 'Male' if sf.get('sex') == 'M' else 'Female' if sf.get('sex') == 'F' else None,
                 'conditions':      conditions,
-                'enrollment_date': enrollment_date,
+                'enrollment_date': enroll_str,
                 'latest_vitals':   latest_vitals,
                 'trends':          trends,
                 'data_points':     pts.metadata.get('data_points_count', len(ts)),
@@ -1234,20 +1388,79 @@ def patient_detail(patient_id):
                 'last_encounter':  ts.index[-1].strftime('%b %d, %Y') if not ts.empty else None,
             }
         except Exception as e:
-            print(f"[patient_detail] Synthea clinical history error for {patient_id}: {e}")
+            print(f"[patient_view] Synthea clinical history error for {patient_id}: {e}")
 
-    return render_template('patient_detail.html', patient=patient,
-                           active_tab='overview', clinical_history=clinical_history)
+    # ── Confounders & sleep rows ──────────────────────────────────────────
+    confounders = _load_confounders().get(patient_id, {})
+    sleep_rows  = []
+    for i in range(len(dates)):
+        tst   = sleep_duration_data[i]
+        rem_h = rem_data[i]
+        dp_h  = deep_data[i]
+        # Support both legacy "%b %d" keys and new ISO keys
+        flags = confounders.get(iso_dates[i], confounders.get(dates[i], []))
+        sleep_rows.append({
+            'date':             dates[i],
+            'iso_date':         iso_dates[i],
+            'tst':              tst,
+            'rem_pct':          round(rem_h / max(tst, 0.01) * 100, 1),
+            'deep_pct':         round(dp_h  / max(tst, 0.01) * 100, 1),
+            'efficiency':       sleep_efficiency_data[i],
+            'latency':          sleep_latency_data[i],
+            'waso':             waso_data[i],
+            'spo2':             spo2_data[i],
+            'flagged':          bool(flags),
+            'confounder_labels': flags,
+        })
+
+    n = len(sleep_efficiency_data)
+    avg_eff  = round(sum(sleep_efficiency_data) / n, 1) if n else 0
+    avg_rem  = round(sum(r / max(s, 0.01) * 100 for r, s in zip(rem_data, sleep_duration_data)) / n, 1) if n else 0
+    avg_waso = int(round(sum(waso_data) / n))           if n else 0
+    avg_spo2 = round(sum(spo2_data) / n, 1)             if n else 0
+
+    return {
+        'patient':           patient,
+        'clinical_history':  clinical_history,
+        'sleep_rows':        sleep_rows,
+        'confounders':       confounders,
+        'avg_eff':           avg_eff,
+        'avg_rem':           avg_rem,
+        'avg_waso':          avg_waso,
+        'avg_spo2':          avg_spo2,
+        'standard_wearable': standard_wearable,
+        'auto_confounders':  _auto_detect_confounders(patient),
+    }
 
 
-@app.route('/patient/<patient_id>/model-lab')
-def model_lab(patient_id):
-    """Show the Model Lab — ML model selection, training, and results."""
-    patients = load_patient_data()
-    patient  = next((p for p in patients if p['id'] == patient_id), None)
-
-    if not patient:
+@app.route('/patient/<patient_id>')
+def patient_detail(patient_id):
+    view = _compute_patient_view_data(patient_id)
+    if view is None:
         return "Patient not found", 404
+    return render_template('patient_detail.html',
+                           patient=view['patient'],
+                           active_tab='overview',
+                           clinical_history=view['clinical_history'])
+
+
+@app.route('/patient/<patient_id>/risk-analysis-lab')
+def risk_analysis_lab(patient_id):
+    """Show the Risk Analysis Lab — ML model selection, training, and results."""
+    view = _compute_patient_view_data(patient_id)
+    if not view:
+        return "Patient not found", 404
+
+    patient = view['patient']
+
+    from datetime import datetime as _dt
+    flagged_nights = []
+    for iso, reasons in sorted(view['auto_confounders'].items()):
+        try:
+            display = _dt.strptime(iso, '%Y-%m-%d').strftime('%b %d')
+        except ValueError:
+            display = iso
+        flagged_nights.append({'iso': iso, 'date': display, 'reasons': reasons})
 
     # ── Determine data source from patient ID pattern ────────────────────────
     # PT-3xxx → Synthea, everything else → Oura
@@ -1334,9 +1547,9 @@ def model_lab(patient_id):
     ]
 
     return render_template(
-        'model_lab.html',
+        'risk_analysis_lab.html',
         patient=patient,
-        active_tab='model-lab',
+        active_tab='risk-analysis-lab',
         feature_groups=feature_groups,
         feature_display_names=feature_display_names,
         data_points=data_points,
@@ -1346,11 +1559,12 @@ def model_lab(patient_id):
         confidence_scores=confidence_scores,
         experiments=experiments,
         data_source=ds_key,
+        flagged_nights=flagged_nights,
     )
 
 
-@app.route('/patient/<patient_id>/data-explorer')
-def data_explorer(patient_id):
+@app.route('/patient/<patient_id>/cohort-data-explorer')
+def cohort_data_explorer(patient_id):
     """Data Explorer — interactive multi-signal time series chart."""
     patients = load_patient_data()
     patient  = next((p for p in patients if p['id'] == patient_id), None)
@@ -1390,7 +1604,7 @@ def data_explorer(patient_id):
             if os.path.isfile(fhir_path):
                 synthea_ts = SyntheaAdapter().load_from_fhir(fhir_path, patient_id).time_series
         except Exception as e:
-            print(f"[data-explorer] Could not load Synthea FHIR: {e}")
+            print(f"[cohort-data-explorer] Could not load Synthea FHIR: {e}")
 
     if standard_ts is not None and not standard_ts.empty:
         idx      = standard_ts.index
@@ -1447,9 +1661,9 @@ def data_explorer(patient_id):
     features_by_name = {f['name']: f for f in features_list}
 
     return render_template(
-        'data_explorer.html',
+        'cohort_data_explorer.html',
         patient=patient,
-        active_tab='data-explorer',
+        active_tab='cohort-data-explorer',
         feature_groups=feature_groups,
         features_by_name=features_by_name,
         source_label=source_label,
@@ -1458,6 +1672,71 @@ def data_explorer(patient_id):
         data_source=ds_key,
     )
 
+
+
+@app.route('/api/confounders/<patient_id>')
+def get_confounders(patient_id):
+    return jsonify(_load_confounders().get(patient_id, {}))
+
+
+@app.route('/api/confounders/<patient_id>', methods=['POST'])
+def set_confounder(patient_id):
+    body  = request.get_json(silent=True) or {}
+    date  = (body.get('date') or '').strip()
+    flags = body.get('confounders', [])
+    if not date:
+        return jsonify({'error': 'date required'}), 400
+    data = _load_confounders()
+    pt   = data.setdefault(patient_id, {})
+    if flags:
+        pt[date] = flags
+    else:
+        pt.pop(date, None)
+    _save_confounders(data)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/confounders/<patient_id>/<path:date>', methods=['DELETE'])
+def delete_confounder(patient_id, date):
+    data = _load_confounders()
+    data.get(patient_id, {}).pop(date, None)
+    _save_confounders(data)
+    return jsonify({'ok': True})
+
+
+@app.route('/patient/<patient_id>/report')
+def patient_report(patient_id):
+    """Print-optimized patient report (save as PDF via browser)."""
+    view = _compute_patient_view_data(patient_id)
+    if view is None:
+        return "Patient not found", 404
+    return render_template('patient_report.html',
+                           patient=view['patient'],
+                           clinical_history=view['clinical_history'],
+                           sleep_rows=view['sleep_rows'],
+                           confounders=view['confounders'],
+                           confounder_types=CONFOUNDER_TYPES,
+                           avg_eff=view['avg_eff'],
+                           avg_rem=view['avg_rem'],
+                           avg_waso=view['avg_waso'],
+                           avg_spo2=view['avg_spo2'],
+                           report_date=datetime.now().strftime('%B %d, %Y'))
+
+
+@app.route('/patient/<patient_id>/report.docx')
+def patient_report_docx(patient_id):
+    """Download patient report as a Word-compatible HTML document."""
+    from flask import make_response
+    patients = load_patient_data()
+    if not next((p for p in patients if p['id'] == patient_id), None):
+        return "Patient not found", 404
+    html = patient_report(patient_id)
+    if isinstance(html, tuple):
+        return html
+    resp = make_response(html)
+    resp.headers['Content-Type']        = 'application/vnd.ms-word'
+    resp.headers['Content-Disposition'] = f'attachment; filename="{patient_id}_report.doc"'
+    return resp
 
 
 @app.route('/patient/<patient_id>/ai-assistant')
@@ -1671,6 +1950,241 @@ def _build_notebook(cohort_json: str, n: int, stats: dict) -> dict:
             ]},
         ],
     }
+
+
+@app.route('/api/notebooks/inject-chart', methods=['POST'])
+def inject_chart():
+    """
+    Inject a matplotlib cell reproducing the current cohort-data-explorer chart into a notebook.
+    Body: {patient_id, notebook (optional), features: [{key, label, unit, color, values}], dates: [str]}
+    If notebook is omitted or blank, creates a new one.
+    """
+    body       = request.get_json(silent=True) or {}
+    patient_id = (body.get('patient_id') or '').strip()
+    nb_name    = (body.get('notebook') or '').strip()
+    features   = body.get('features', [])
+    dates      = body.get('dates', [])
+
+    if not patient_id:
+        return jsonify({'error': 'patient_id required'}), 400
+    if not features:
+        return jsonify({'error': 'no features selected'}), 400
+
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    n   = len(dates)
+
+    # Build the matplotlib cell source
+    colors_repr = repr([f['color'] for f in features])
+    labels_repr = repr([f['label'] for f in features])
+    units_repr  = repr([f['unit']  for f in features])
+    dates_repr  = repr(dates)
+    data_repr   = repr([[round(float(v), 3) if v is not None else None
+                         for v in f.get('values', [])] for f in features])
+
+    cell_source = (
+        f'# ── Data Explorer chart — {patient_id} ({len(features)} signals · {n} days)'
+        f'  (added {now}) ──\n'
+        f'import numpy as np\nimport matplotlib.pyplot as plt\n\n'
+        f'dates    = {dates_repr}\n'
+        f'signals  = {data_repr}\n'
+        f'labels   = {labels_repr}\n'
+        f'units    = {units_repr}\n'
+        f'colors   = {colors_repr}\n\n'
+        f'# Normalize each signal to 0–1 for overlay\n'
+        f'def norm(vals):\n'
+        f'    mn, mx = min(v for v in vals if v is not None), max(v for v in vals if v is not None)\n'
+        f'    rng = mx - mn\n'
+        f'    return [(v - mn)/rng if v is not None and rng else 0.5 for v in vals]\n\n'
+        f'x = range(len(dates))\n'
+        f'tick_step = max(1, len(dates)//7)\n'
+        f'fig, ax = plt.subplots(figsize=(14, 5))\n'
+        f'for i, (sig, label, color, unit) in enumerate(zip(signals, labels, colors, units)):\n'
+        f'    y = norm(sig)\n'
+        f'    ax.plot(x, y, color=color, linewidth=2, alpha=0.85, label=f"{{label}} ({{unit}})")\n\n'
+        f'ax.set_xticks(range(0, len(dates), tick_step))\n'
+        f'ax.set_xticklabels([dates[i] for i in range(0, len(dates), tick_step)], rotation=45, fontsize=8)\n'
+        f'ax.set_ylabel("Normalized value (0–1 per signal)", fontsize=10)\n'
+        f'ax.set_title("Data Explorer — {patient_id} · {len(features)} signals", fontsize=13, fontweight="bold")\n'
+        f'ax.legend(loc="upper right", fontsize=9, ncol=2)\n'
+        f'ax.spines[["top","right"]].set_visible(False)\n'
+        f'plt.tight_layout()\nplt.show()\n'
+    )
+
+    os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
+
+    if nb_name:
+        fpath = os.path.join(NOTEBOOKS_DIR, nb_name)
+        if not os.path.isfile(fpath):
+            return jsonify({'error': f'Notebook "{nb_name}" not found'}), 404
+        with open(fpath, 'r', encoding='utf-8') as f:
+            nb = json.load(f)
+    else:
+        nb_name = f"{patient_id}_chart_{datetime.now().strftime('%Y%m%d_%H%M%S')}.ipynb"
+        fpath   = os.path.join(NOTEBOOKS_DIR, nb_name)
+        nb = {
+            'nbformat': 4, 'nbformat_minor': 5,
+            'metadata': {
+                'kernelspec': {'display_name': 'Python 3', 'language': 'python', 'name': 'python3'},
+                'language_info': {'name': 'python', 'version': '3.12.0'},
+            },
+            'cells': [
+                {'cell_type': 'markdown', 'id': 'intro', 'metadata': {}, 'source':
+                 [f'# Data Explorer Chart — {patient_id}\n\nGenerated by JupyterHealth Workbench on {now}\n']},
+                {'cell_type': 'code', 'execution_count': None, 'id': 'imports', 'metadata': {},
+                 'outputs': [], 'source': ['import numpy as np\nimport matplotlib.pyplot as plt\n']},
+            ],
+        }
+
+    nb.setdefault('cells', []).append({
+        'cell_type': 'code', 'execution_count': None,
+        'id': f'chart-{uuid.uuid4().hex[:8]}', 'metadata': {}, 'outputs': [],
+        'source': [cell_source],
+    })
+
+    with open(fpath, 'w', encoding='utf-8') as f:
+        json.dump(nb, f, indent=2)
+
+    # Best-effort Jupyter REST API push
+    try:
+        import urllib.request
+        jup_url = f'{JUPYTER_BASE_URL}/api/contents/{NOTEBOOKS_DIR}/{nb_name}'
+        payload = json.dumps({'type': 'file', 'format': 'text',
+                              'content': json.dumps(nb)}).encode()
+        req = urllib.request.Request(jup_url, data=payload, method='PUT',
+                                     headers={'Content-Type': 'application/json'})
+        urllib.request.urlopen(req, timeout=2)
+    except Exception:
+        pass
+
+    return jsonify({
+        'ok': True,
+        'notebook': nb_name,
+        'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{nb_name}',
+    })
+
+
+@app.route('/api/notebooks/inject-cell', methods=['POST'])
+def inject_cell():
+    """
+    Inject a generated Python cell into an existing notebook file.
+    Uses the Jupyter Contents REST API (PUT /api/contents/{path}) to write the
+    updated .ipynb, so the change is visible next time Jupyter opens the file.
+    """
+    body          = request.get_json(silent=True) or {}
+    notebook_name = (body.get('notebook') or '').strip()
+    patient_ids   = body.get('patient_ids', [])
+    analysis_type = body.get('analysis_type', 'sleep_comparison')
+    metrics       = body.get('metrics', ['avg_rem_pct', 'avg_efficiency'])
+    date_range    = int(body.get('date_range', 14))
+
+    if not notebook_name:
+        return jsonify({'error': 'notebook name required'}), 400
+
+    fpath = os.path.join(NOTEBOOKS_DIR, notebook_name)
+    if not os.path.isfile(fpath):
+        return jsonify({'error': f'Notebook "{notebook_name}" not found'}), 404
+
+    # Build the Python source for the new cell
+    patients       = load_patient_data()
+    sleep_summaries = _compute_sleep_summaries(patients)
+    pt_map         = {s['id']: s for s in sleep_summaries}
+    selected_pts   = [pt_map[pid] for pid in patient_ids if pid in pt_map] or sleep_summaries
+    pt_json        = json.dumps(selected_pts, indent=2)
+    now            = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    metric_labels = {
+        'avg_rem_pct':   'REM %',   'avg_deep_pct': 'Deep %',
+        'avg_tst':       'TST (h)', 'avg_efficiency': 'Efficiency %',
+        'avg_latency':   'Latency (min)', 'avg_waso': 'WASO (min)', 'avg_spo2': 'SpO₂ %',
+    }
+    m_list  = repr(metrics)
+    m_labels = repr({k: metric_labels.get(k, k) for k in metrics})
+
+    if analysis_type == 'sleep_comparison':
+        cell_source = (
+            f'# ── Sleep Comparison — {len(selected_pts)} patients · {date_range}-day avg'
+            f'  (added {now}) ──\n'
+            f'import pandas as pd, matplotlib.pyplot as plt, json\n\n'
+            f'data = json.loads({repr(pt_json)})\n'
+            f'df = pd.DataFrame(data).set_index("id")\n'
+            f'metrics = {m_list}\n'
+            f'labels  = {m_labels}\n'
+            f'risk_colors = {{"high":"#ef4444","medium":"#f59e0b","low":"#10b981"}}\n'
+            f'colors = [risk_colors.get(df.loc[pid,"risk"], "#3b82f6") for pid in df.index]\n\n'
+            f'fig, axes = plt.subplots(1, max(1,len(metrics)), figsize=(4*max(1,len(metrics)), 5))\n'
+            f'if len(metrics)==1: axes=[axes]\n'
+            f'for ax, m in zip(axes, metrics):\n'
+            f'    ax.bar(df.index, df[m], color=colors, alpha=0.85, edgecolor="white")\n'
+            f'    ax.set_title(labels[m], fontsize=11, fontweight="bold")\n'
+            f'    ax.tick_params(axis="x", rotation=60, labelsize=8)\n'
+            f'    ax.spines[["top","right"]].set_visible(False)\n'
+            f'plt.suptitle("Sleep Comparison — {date_range}-Day Avg · {len(selected_pts)} Patients",'
+            f'fontsize=13, fontweight="bold")\n'
+            f'plt.tight_layout()\nplt.show()\n'
+        )
+    elif analysis_type == 'cohort_stats':
+        cell_source = (
+            f'# ── Cohort Statistics (added {now}) ──\n'
+            f'import pandas as pd, matplotlib.pyplot as plt, json\n\n'
+            f'data = json.loads({repr(pt_json)})\n'
+            f'df = pd.DataFrame(data)\n'
+            f'metrics = {m_list}\n'
+            f'labels  = {m_labels}\n\n'
+            f'fig, axes = plt.subplots(1, max(1,len(metrics)), figsize=(3.5*max(1,len(metrics)), 5))\n'
+            f'if len(metrics)==1: axes=[axes]\n'
+            f'for ax, m in zip(axes, metrics):\n'
+            f'    groups = [df[df["risk"]==r][m].dropna().tolist() for r in ["high","medium","low"]]\n'
+            f'    bp = ax.boxplot(groups, labels=["High","Med","Low"], patch_artist=True)\n'
+            f'    for patch, color in zip(bp["boxes"], ["#fecaca","#fef3c7","#dcfce7"]):\n'
+            f'        patch.set_facecolor(color)\n'
+            f'    ax.set_title(labels[m], fontsize=11, fontweight="bold")\n'
+            f'    ax.spines[["top","right"]].set_visible(False)\n'
+            f'plt.suptitle("Distribution by Risk — {len(selected_pts)} Patients", fontsize=13, fontweight="bold")\n'
+            f'plt.tight_layout()\nplt.show()\n'
+        )
+    else:
+        cell_source = (
+            f'# ── {analysis_type} — {len(selected_pts)} patients (added {now}) ──\n'
+            f'import pandas as pd, json\n\n'
+            f'data = json.loads({repr(pt_json)})\n'
+            f'df = pd.DataFrame(data)\nprint(df)\n'
+        )
+
+    # Load the notebook, append the cell, write back via Jupyter REST API
+    with open(fpath, 'r', encoding='utf-8') as f:
+        nb = json.load(f)
+
+    new_cell = {
+        'cell_type': 'code',
+        'execution_count': None,
+        'id': f'injected-{uuid.uuid4().hex[:8]}',
+        'metadata': {},
+        'outputs': [],
+        'source': [cell_source],
+    }
+    nb.setdefault('cells', []).append(new_cell)
+
+    # Write locally (always works)
+    with open(fpath, 'w', encoding='utf-8') as f:
+        json.dump(nb, f, indent=2)
+
+    # Also try Jupyter REST API so a live Jupyter session picks up the change
+    jupyter_url = f'{JUPYTER_BASE_URL}/api/contents/{NOTEBOOKS_DIR}/{notebook_name}'
+    try:
+        import urllib.request
+        payload = json.dumps({'type': 'file', 'format': 'text',
+                              'content': json.dumps(nb)}).encode()
+        req = urllib.request.Request(jupyter_url, data=payload, method='PUT',
+                                     headers={'Content-Type': 'application/json'})
+        urllib.request.urlopen(req, timeout=2)
+    except Exception:
+        pass  # local write already done; REST push is best-effort
+
+    return jsonify({
+        'ok': True,
+        'notebook': notebook_name,
+        'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{notebook_name}',
+    })
 
 
 if __name__ == '__main__':

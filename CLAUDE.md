@@ -10,7 +10,7 @@ The workbench supports **two disease contexts** through a unified interface:
 
 | Context       | Data Source                       | Condition                          | PI / Study                          |
 | ------------- | --------------------------------- | ---------------------------------- | ----------------------------------- |
-| Liver Disease | Oura Ring V2 API + EHR Flowsheets | Hepatic Encephalopathy (cirrhosis) | Dr. Adam Buckholz, Cornell/Columbia |
+| Liver Disease | Oura Ring V2 API + EHR Flowsheets | Hepatic Encephalopathy (cirrhosis) | Dr. Adam Buckholz, Cornell Medicine |
 | Synthetic     | Synthea FHIR Bundles              | Multiple (demo/testing)            | Future development                  |
 
 ## Clinical Context
@@ -18,7 +18,7 @@ The workbench supports **two disease contexts** through a unified interface:
 ### Liver Disease / Hepatic Encephalopathy (Primary Study)
 
 - **Condition**: Hepatic encephalopathy — confusion caused by liver failing to clear toxins (ammonia)
-- **Patient cohort**: ~140 patients enrolled across Cornell/Columbia (target 150)
+- **Patient cohort**: ~140 patients enrolled at Cornell Medicine (target 150)
 - **Data collected**: 20,000+ days of Oura ring data over 6 years
 - **Key finding from pilot**: Subtle REM sleep and circadian rhythm changes in covert disease patients
 - **Clinical gap**: Only 10% of clinicians perform proper screening; current methods use cumbersome pen-and-paper cognitive tests
@@ -69,8 +69,8 @@ oura-clinical-workbench/
 │   ├── base.html                    # Shared layout (nav bar, patient header)
 │   ├── dashboard.html               # Main coordinator dashboard (patient list)
 │   ├── patient_detail.html          # Overview tab (existing biometrics view)
-│   ├── data_explorer.html           # Raw signal overlay + data browsing
-│   ├── model_lab.html               # ML model selection, training, results
+│   ├── cohort_data_explorer.html           # Raw signal overlay + data browsing
+│   ├── risk_analysis_lab.html               # ML model selection, training, results
 │   └── ai_assistant.html            # LLM explainability / Trust Workbench
 │
 ├── static/                          # Static assets (CSS, JS if extracted)
@@ -140,8 +140,8 @@ The Cognitive Match Score = IR Precision of generated text against top-3 SHAP fe
 | ----------------------------------- | ------------------- | ---------------------------------------------------- |
 | `GET /`                             | dashboard.html      | Patient list with sparklines, status badges, filters |
 | `GET /patient/<id>`                 | patient_detail.html | Overview tab — biometric time series                 |
-| `GET /patient/<id>/data-explorer`   | data_explorer.html  | Raw signal overlay, feature browsing                 |
-| `GET /patient/<id>/model-lab`       | model_lab.html      | ML model selection, training, results                |
+| `GET /patient/<id>/cohort-data-explorer`   | cohort_data_explorer.html  | Raw signal overlay, feature browsing                 |
+| `GET /patient/<id>/risk-analysis-lab`       | risk_analysis_lab.html      | ML model selection, training, results                |
 | `GET /patient/<id>/ai-assistant`    | ai_assistant.html   | LLM explainability interface                         |
 | `POST /api/run-experiment`          | JSON                | Run a model experiment, return results               |
 | `GET /api/experiments/<patient_id>` | JSON                | List saved experiments for a patient                 |

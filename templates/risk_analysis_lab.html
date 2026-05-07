@@ -94,6 +94,44 @@
         color: #94a3b8;
     }
 
+    /* ── Flagged nights panel ────────────────────────────────────────────────── */
+    .flagged-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    .flagged-badge {
+        font-size: 11px; font-weight: 600; padding: 2px 8px;
+        background: #fef3c7; color: #92400e;
+        border: 1px solid #fde68a; border-radius: 999px;
+    }
+    .flagged-intro {
+        font-size: 11px; color: #64748b; margin-bottom: 10px; line-height: 1.5;
+    }
+    .flagged-list {
+        display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;
+        max-height: 180px; overflow-y: auto;
+    }
+    .flagged-item {
+        background: #fffbeb; border: 1px solid #fde68a; border-radius: 7px;
+        padding: 7px 9px;
+    }
+    .flagged-date {
+        font-size: 11px; font-weight: 600; color: #78350f; display: block;
+        margin-bottom: 3px;
+    }
+    .flagged-reasons { display: flex; flex-wrap: wrap; gap: 4px; }
+    .flagged-chip {
+        font-size: 10px; padding: 2px 6px; border-radius: 4px;
+        background: #fef9c3; color: #713f12; border: 1px solid #fde68a;
+    }
+    .exclude-toggle {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 12px; color: #334155; cursor: pointer;
+        padding: 8px 0 0; border-top: 1px solid #f1f5f9; margin-top: 4px;
+    }
+    .exclude-toggle input { accent-color: #f59e0b; cursor: pointer; width: 14px; height: 14px; }
+    .flagged-empty { font-size: 12px; color: #94a3b8; font-style: italic; }
+
     /* ── Input Features ──────────────────────────────────────────────────────── */
     .feature-group {
         border-bottom: 1px solid #f1f5f9;
@@ -185,40 +223,6 @@
         padding: 12px 0;
     }
 
-    /* ── Raw Signal Overlay ──────────────────────────────────────────────────── */
-    .overlay-chart-wrap {
-        background: #f8fafc;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 8px;
-    }
-
-    .overlay-svg {
-        display: block;
-        width: 100%;
-    }
-
-    .overlay-legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        min-height: 16px;
-    }
-
-    .overlay-legend-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 10px;
-        color: #64748b;
-    }
-
-    .overlay-legend-swatch {
-        width: 16px;
-        height: 3px;
-        border-radius: 2px;
-        flex-shrink: 0;
-    }
 
     /* ── Model Select + Run ──────────────────────────────────────────────────── */
     .model-bar {
@@ -858,6 +862,37 @@
             </p>
         </div>
 
+        <!-- Flagged Nights ──────────────────────────────────────────────────── -->
+        <div class="lab-card">
+            <div class="flagged-header">
+                <h3 class="card-title" style="margin-bottom:0">Flagged Nights</h3>
+                {% if flagged_nights %}
+                <span class="flagged-badge">{{ flagged_nights | length }} detected</span>
+                {% endif %}
+            </div>
+            <p class="flagged-intro">Nights auto-detected from physiological thresholds (SpO₂, temp deviation, HRV drop, fragmented sleep). Review before training.</p>
+            {% if flagged_nights %}
+            <div class="flagged-list">
+                {% for night in flagged_nights %}
+                <div class="flagged-item" data-iso="{{ night.iso }}">
+                    <span class="flagged-date">{{ night.date }}</span>
+                    <div class="flagged-reasons">
+                        {% for reason in night.reasons %}
+                        <span class="flagged-chip">{{ reason }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <label class="exclude-toggle">
+                <input type="checkbox" id="excludeFlagged" onchange="onFeatureChange()">
+                Exclude flagged nights from training
+            </label>
+            {% else %}
+            <p class="flagged-empty">No anomalous nights detected in this window.</p>
+            {% endif %}
+        </div>
+
         <!-- Input Features ──────────────────────────────────────────────────── -->
         <div class="lab-card" id="fsPanel">
 
@@ -982,16 +1017,6 @@
 
         </div>
 
-        <!-- Raw Signal Overlay ──────────────────────────────────────────────── -->
-        <div class="lab-card">
-            <h3 class="card-title">Raw Signal Overlay</h3>
-            <div class="overlay-chart-wrap">
-                <svg id="overlayChart" class="overlay-svg"
-                     aria-label="Raw signal overlay of selected features"></svg>
-            </div>
-            <div id="overlayLegend" class="overlay-legend"></div>
-        </div>
-
     </aside><!-- /.sidebar -->
 
 
@@ -1056,7 +1081,7 @@
         <!-- Feature Importance ──────────────────────────────────────────────── -->
         {% if feature_importance %}
         <div class="lab-card">
-            <h3 class="card-title">Feature Importance</h3>
+            <h3 class="card-title">SHAP Feature Importance</h3>
             <div class="importance-chart-wrap">
                 {% set max_imp = feature_importance[0].importance %}
                 {% set fi_rows = feature_importance | length %}
@@ -1150,7 +1175,6 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         renderHyperparams('xgboost');
-        drawOverlayChart();
         drawConfidenceChart();
         tournRenderSummary();
         tournDrawChart();
@@ -1164,7 +1188,6 @@
         currentDays = (days === 'all') ? 0 : Math.min(parseInt(days), DATA_POINTS);
         document.getElementById('dpCount').textContent =
             currentDays === 0 ? DATA_POINTS : currentDays;
-        drawOverlayChart();
         drawConfidenceChart();
     }
 
@@ -1177,7 +1200,7 @@
     }
 
     // ── Feature Checkboxes ────────────────────────────────────────────────────
-    function onFeatureChange() { drawOverlayChart(); }
+    function onFeatureChange() { }
 
     function getSelectedFeatures() {
         return [...document.querySelectorAll('input[name="feature"]:checked')]
@@ -1254,12 +1277,19 @@
             </svg>
             Running…`;
 
+        const excludeEl      = document.getElementById('excludeFlagged');
+        const excludeFlagged = excludeEl && excludeEl.checked;
+        const excludedDates  = excludeFlagged
+            ? Array.from(document.querySelectorAll('.flagged-item')).map(el => el.dataset.iso).filter(Boolean)
+            : [];
+
         const payload = {
             patient_id:           PATIENT_ID,
             model_type:           document.getElementById('modelSelect').value,
             features,
             hyperparameters:      getHyperparams(),
             analysis_window_days: currentDays,
+            excluded_dates:       excludedDates,
         };
 
         try {
@@ -1470,7 +1500,6 @@
     window.loadExperiment = loadExperiment;
 
     // ── Overlay Chart (demo random-walk per selected feature) ─────────────────
-    const OVERLAY_COLORS = ['#3b82f6', '#06b6d4', '#f59e0b'];
 
     function seededRand(seed) {
         let s = seed;
@@ -1486,63 +1515,6 @@
         return vals;
     }
 
-    function drawOverlayChart() {
-        const wrap   = document.querySelector('.overlay-chart-wrap');
-        const svg    = document.getElementById('overlayChart');
-        const legend = document.getElementById('overlayLegend');
-        const W      = wrap.clientWidth || 248;
-        const H      = 96;
-        const pad    = { top: 8, right: 8, bottom: 18, left: 8 };
-        const plotW  = W - pad.left - pad.right;
-        const plotH  = H - pad.top  - pad.bottom;
-
-        const selected = getSelectedFeatures().slice(0, 3);
-        const n        = currentDays === 0 ? DATA_POINTS : Math.min(currentDays, DATA_POINTS);
-        let   html     = '';
-        let   legHTML  = '';
-
-        selected.forEach((feat, idx) => {
-            const seed = feat.split('').reduce((a, c) => a + c.charCodeAt(0), 7);
-            const vals = demoSeries(seed, n);
-            const vmin = Math.min(...vals);
-            const vmax = Math.max(...vals);
-            const span = vmax - vmin || 0.01;
-            const xS   = i => pad.left + (i / Math.max(1, n - 1)) * plotW;
-            const yS   = v => pad.top  + (1 - (v - vmin) / span)  * plotH;
-
-            let path = `M ${xS(0)} ${yS(vals[0])}`;
-            for (let i = 1; i < n; i++) path += ` L ${xS(i)} ${yS(vals[i])}`;
-            html += `<path d="${path}" fill="none" stroke="${OVERLAY_COLORS[idx]}"
-                          stroke-width="1.5" stroke-linecap="round"/>`;
-
-            const label = document.querySelector(`input[value="${feat}"]`)
-                              ?.closest('label')
-                              ?.querySelector('.feature-label')
-                              ?.textContent.trim() || feat;
-            legHTML += `
-                <span class="overlay-legend-item">
-                    <span class="overlay-legend-swatch" style="background:${OVERLAY_COLORS[idx]};"></span>
-                    ${label}
-                </span>`;
-        });
-
-        if (selected.length === 0) {
-            html += `<text x="${W / 2}" y="${H / 2 + 4}" text-anchor="middle"
-                          font-family="'Inter',sans-serif" font-size="11" fill="#94a3b8">
-                         No features selected
-                     </text>`;
-        }
-
-        html += `<text x="${W / 2}" y="${H - 3}" text-anchor="middle"
-                      font-family="'Inter',sans-serif" font-size="9" fill="#94a3b8">
-                     Last ${n} days
-                 </text>`;
-
-        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-        svg.setAttribute('height',  H);
-        svg.innerHTML    = html;
-        legend.innerHTML = legHTML;
-    }
 
     // ── Confidence Chart ──────────────────────────────────────────────────────
     const ALERT_THRESHOLD = 0.75;
@@ -1651,7 +1623,6 @@
 
     // Redraw responsive charts on viewport change
     window.addEventListener('resize', () => {
-        drawOverlayChart();
         drawConfidenceChart();
         tournDrawChart();
     });

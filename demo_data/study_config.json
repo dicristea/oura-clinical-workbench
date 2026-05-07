@@ -1,4 +1,11 @@
 {
+  "enrollment": {
+    "enrolled": 140,
+    "target": 150,
+    "days_of_data": "20,000+",
+    "years_of_data": 6,
+    "institutions": "Cornell Medicine"
+  },
   "conditions_of_interest": [
     {
       "name": "Covert Hepatic Encephalopathy",
