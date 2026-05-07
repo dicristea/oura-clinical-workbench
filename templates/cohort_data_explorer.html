@@ -1032,6 +1032,46 @@
         if (visible.length === 0) {
             parts.push(`<text x="${(W / 2).toFixed(1)}" y="${(SVG_H / 2).toFixed(1)}" text-anchor="middle" font-size="13" fill="#94a3b8" font-family="Inter,sans-serif">Select at least one signal to display the chart.</text>`);
         } else {
+            // ── Cohort bands (drawn first, behind patient lines) ─────────────
+            const COHORT_STYLE = {
+                all:   { fill: 'rgba(99,102,241,0.10)',  stroke: 'rgba(99,102,241,0.45)'  },
+                stage: { fill: 'rgba(16,185,129,0.10)',  stroke: 'rgba(16,185,129,0.45)'  },
+                age:   { fill: 'rgba(245,158,11,0.10)',  stroke: 'rgba(245,158,11,0.45)'  },
+            };
+            const activeCohorts = window.__activeCohorts || new Set(['patient']);
+            const bands = CHART_DATA.cohort_bands || {};
+
+            Object.entries(COHORT_STYLE).forEach(([cohortId, style]) => {
+                if (!activeCohorts.has(cohortId)) return;
+                const cohortBands = bands[cohortId];
+                if (!cohortBands) return;
+
+                visible.forEach(feat => {
+                    const bd = cohortBands[feat.name];
+                    if (!bd) return;
+
+                    const patVals = getSlice(feat.values);
+                    const mn  = Math.min(...patVals);
+                    const mx  = Math.max(...patVals);
+                    const rng = mx - mn || 1;
+
+                    const bMean = getSlice(bd.mean);
+                    const bStd  = getSlice(bd.std);
+                    const upper = bMean.map((m, i) => Math.min(1, (m + bStd[i] - mn) / rng));
+                    const lower = bMean.map((m, i) => Math.max(0, (m - bStd[i] - mn) / rng));
+
+                    // Filled band polygon: upper L→R then lower R→L
+                    const upPts  = upper.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v).toFixed(1)}`).join(' ');
+                    const dnPts  = lower.map((v, i) => `${xPos(n-1-i).toFixed(1)},${yPos(lower[n-1-i]).toFixed(1)}`).join(' ');
+                    parts.push(`<polygon points="${upPts} ${dnPts}" fill="${style.fill}"/>`);
+
+                    // Dashed mean line
+                    const meanPts = bMean.map((m, i) => `${xPos(i).toFixed(1)},${yPos(Math.min(1, Math.max(0, (m - mn) / rng))).toFixed(1)}`).join(' ');
+                    parts.push(`<polyline points="${meanPts}" fill="none" stroke="${style.stroke}" stroke-width="1.5" stroke-dasharray="5 3" stroke-linecap="round"/>`);
+                });
+            });
+
+            // ── Patient lines (drawn on top of bands) ────────────────────────
             visible.forEach(feat => {
                 const vals = getSlice(feat.values);
                 const norm = normalize(vals);
@@ -1158,6 +1198,9 @@
     window.selectAll     = selectAll;
     window.clearAll      = clearAll;
     window.setWindow     = setWindow;
+
+    // Redraw when cohort selection changes
+    document.addEventListener('cohortChanged', drawChart);
 
     // ── Initial render + debounced resize ───────────────────────────────────
     drawChart();
@@ -1287,6 +1330,7 @@
 
     // Active cohort set — "patient" on by default
     const activeCohorts = new Set(['patient']);
+    window.__activeCohorts = activeCohorts;  // read by drawChart()
 
     // ── Toggle handler (called from onclick in HTML) ──────────────────────────
     window.toggleCohort = function (el) {

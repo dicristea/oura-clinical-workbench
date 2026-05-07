@@ -169,6 +169,11 @@
                role="tab" aria-selected="{{ 'true' if active_tab == 'risk-analysis-lab' else 'false' }}">
                 Risk Analysis
             </a>
+            <a href="/patient/{{ patient.id }}/cohort-data-explorer"
+               class="tab {% if active_tab == 'cohort-data-explorer' %}tab-active{% endif %}"
+               role="tab" aria-selected="{{ 'true' if active_tab == 'cohort-data-explorer' else 'false' }}">
+                Data Explorer
+            </a>
         </nav>
         <a href="/patient/{{ patient.id }}/report" target="_blank" class="export-btn"
            title="Open print-ready report (save as PDF or Word)">

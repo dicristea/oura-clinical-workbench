@@ -1660,6 +1660,37 @@ def cohort_data_explorer(patient_id):
 
     features_by_name = {f['name']: f for f in features_list}
 
+    # Generate synthetic cohort bands (mean ± std) per feature per cohort.
+    # Values are in the same units as the patient's data so JS can normalize
+    # them on the same scale as the patient's own signal.
+    cohort_band_cfg = [
+        ('all',   0.00,  1.30),   # all 140 patients — widest spread
+        ('stage', 0.05,  0.90),   # Child-Pugh B stage-matched (47 pts)
+        ('age',  -0.03,  0.70),   # age/sex-matched (23 pts)
+    ]
+    cohort_bands: dict = {}
+    cb_seed_base = abs(hash(patient_id)) % (2 ** 31)
+    for cohort_id, bias_frac, spread_frac in cohort_band_cfg:
+        cb_rng = np.random.default_rng(cb_seed_base + abs(hash(cohort_id)) % 100_000)
+        feat_bands: dict = {}
+        for feat in features_list:
+            vals      = np.array(feat['values'], dtype=float)
+            feat_mean = float(vals.mean())
+            feat_rng  = float(vals.max() - vals.min()) if vals.max() != vals.min() else (abs(feat_mean) * 0.2 or 1.0)
+            bias      = bias_frac * feat_rng
+            # Gentle random walk so the band isn't perfectly flat
+            walk = np.cumsum(cb_rng.normal(0, feat_rng * 0.015, N_DAYS))
+            walk -= walk.mean()
+            cohort_mean = np.clip(feat_mean + bias + walk,
+                                  vals.min() - feat_rng * 0.25,
+                                  vals.max() + feat_rng * 0.25)
+            cohort_std  = np.full(N_DAYS, feat_rng * 0.18 * spread_frac)
+            feat_bands[feat['name']] = {
+                'mean': [round(float(v), 3) for v in cohort_mean.tolist()],
+                'std':  [round(float(v), 3) for v in cohort_std.tolist()],
+            }
+        cohort_bands[cohort_id] = feat_bands
+
     return render_template(
         'cohort_data_explorer.html',
         patient=patient,
@@ -1667,7 +1698,7 @@ def cohort_data_explorer(patient_id):
         feature_groups=feature_groups,
         features_by_name=features_by_name,
         source_label=source_label,
-        chart_data={'dates': dates, 'features': features_list},
+        chart_data={'dates': dates, 'features': features_list, 'cohort_bands': cohort_bands},
         total_days=N_DAYS,
         data_source=ds_key,
     )
