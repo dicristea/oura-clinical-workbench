@@ -155,7 +155,30 @@ patient_report.html       ← standalone (no extends; print-only page)
 - `README.md` — full rewrite
 - `HANDOFF.md`, `CLAUDE.md`, `RULES.md` — rename references updated
 
-**Commit not yet pushed.**
+**All committed and pushed (commit `052eded`).**
+
+---
+
+### Last Session — 2026-05-10 (session 5)
+
+**New features shipped:**
+1. **Cohort comparison bands in per-patient Data Explorer** — `cohort_data_explorer()` route now generates synthetic `cohort_bands` dict (mean ± std per feature per cohort) using a per-patient seeded numpy RNG. Three cohorts: All Patients (140, wider spread), Stage-Matched Child-Pugh B (47), Age-Matched (23). Bands injected into `chart_data.cohort_bands`. In the template, `drawChart()` reads `window.__activeCohorts` (exposed from the cohort IIFE) and draws a filled `<polygon>` (10% opacity) + dashed mean `<polyline>` (45% opacity) behind patient lines for each active cohort. Colors: indigo / green / amber. `document.addEventListener('cohortChanged', drawChart)` triggers instant redraw on chip toggle.
+2. **Data Explorer tab added to patient nav** — `base.html` was missing the tab entirely. Added `<a href="/patient/{{ patient.id }}/cohort-data-explorer">Data Explorer</a>` alongside Biometrics and Risk Analysis.
+3. **Flagged night markers on explorer chart** — `cohort_data_explorer()` now calls `_compute_patient_view_data()` to get `auto_confounders` and passes `flagged_dates` (list of `{date, reasons}`) into `chart_data`. `drawChart()` draws amber dashed vertical lines + downward triangle caps at those dates.
+4. **7-day rolling mean toggle** — Checkbox at the bottom of the Signals sidebar. `showRollingMean` state variable; `rollingMean(vals, w)` causal helper. When enabled, draws a thicker (stroke-width 3, opacity 0.6) line per visible signal using the same normalization as the raw data.
+5. **Signal statistics table** — Appears below the chart whenever signals are selected. Shows Mean, SD, Min, Max, Trend (% change first→last quartile, ↑↓→ arrow with color) per signal. `updateStats()` called at the end of every `drawChart()` call.
+6. **CSV export button** — Next to "Add to Notebook" in the chart header. Client-side Blob download of visible signals × dates, respecting current window and feature selection.
+7. **PT-1042 display name** — Changed from `DEMO_HE_PATIENT_ID` to `'Synthea Demo'` in `_make_demo_he_patient()`.
+
+**Files changed this session:**
+- `app.py` — `cohort_data_explorer()`: cohort band generation; `_compute_patient_view_data()` call for flagged dates; `flagged_dates` added to `chart_data`; PT-1042 name → `'Synthea Demo'`
+- `templates/cohort_data_explorer.html` — `.stats-section` / `.stats-table` CSS; rolling mean checkbox HTML; Export CSV button HTML; stats table HTML; `showRollingMean` state; `rollingMean()` helper; flagged markers in `drawChart()`; rolling mean lines in `drawChart()`; `updateStats()`; `toggleRollingMean()`; `exportCSV()`; `window.__activeCohorts` exposure; `cohortChanged` listener
+- `templates/base.html` — Added Data Explorer tab to patient nav
+
+**Commits pushed:**
+- `052eded` — session 4 features (large)
+- `c290d09` — cohort bands + patient nav tab
+- `25937dc` — flagged markers, rolling mean, stats table, CSV export
 
 ### Known Bugs
 | Bug | Impact | Status |
@@ -179,7 +202,8 @@ patient_report.html       ← standalone (no extends; print-only page)
 - [ ] **PT-1042 clinical history override** — optionally hand-craft MELD-Na, ammonia, bilirubin, INR values for PT-1042 to complete the HE story (currently seeded-random but clinically stable)
 
 ### Open Questions for Next Session
+- After the Buckholz meeting (2026-05-07): which features resonated? Which backlog items should be promoted to active work?
 - Should the Notebook Builder's "Add to Existing" dropdown refresh without a page reload (fetch on open)?
 - For the real Oura API integration: should it replace the OMH/IEEE demo layer or run alongside it (allowing mixed real + synthetic cohorts)?
-- Key Biometrics chart: should the "All" window also expand to show a third Y-axis for SpO₂, or keep the 3-series layout as-is?
-- After the Buckholz meeting: which features resonated? Which backlog items should be promoted to active work?
+- Key Biometrics chart: should the "All" window expand to show a third Y-axis for SpO₂, or keep the 3-series layout?
+- Highest-value next feature identified: **longitudinal overlay chart** on the dashboard Cohort Data Explorer tab — select 2–4 patients and overlay their trajectories on one chart. User confirmed interest; not yet implemented.
