@@ -39,7 +39,12 @@
 # (`numpy`), charts (`matplotlib`), and simple statistics (`scipy`).
 # If you get `ModuleNotFoundError`, run this in a terminal:
 # `pip install pandas numpy matplotlib scipy openpyxl`
-# (and `pip install pyreadr` if any files end in `.rds`, R's file format).
+#
+# **About `.rds` files (R's format).** Adam's file contains R features that
+# Python's `pyreadr` can't open, such as labelled values and columns that
+# hold whole lists. When that happens, Step 3 asks **R** (`Rscript`, with the
+# `haven` package) to convert the file to a CSV once, and caches the result.
+# R must be installed for this. Run `which Rscript` in a terminal to check.
 
 # %%
 import os
@@ -75,7 +80,8 @@ SEX_COLORS = {"Female": "#c2185b", "Male": "#1565c0", "Unknown": "#9e9e9e"}
 # **peek** at its first rows instead of being fully loaded.
 
 # %%
-DATA_DIR = Path(os.environ.get("JH_DATA_DIR", "~/JupyterHealth/deidentified_data")).expanduser()
+# Default: the "de-identified data" folder that sits next to the repo (JupyterHealth/de-identified data)
+DATA_DIR = Path(os.environ.get("JH_DATA_DIR", "../../de-identified data")).expanduser().resolve()
 
 # Optional: if the auto-pick in Step 3 chooses the wrong files, type the file names here.
 DAY_FILE = None          # e.g. "daily_summary.csv": one row per participant per day
@@ -126,6 +132,33 @@ inventory
 # that.
 
 # %%
+R_TO_CSV = r"""
+args <- commandArgs(trailingOnly = TRUE)
+x <- readRDS(args[1])
+x <- x[, !vapply(x, is.list, logical(1)), drop = FALSE]
+x[] <- lapply(x, function(v) if (inherits(v, "haven_labelled")) haven::as_factor(v) else v)
+write.csv(x, args[2], row.names = FALSE, na = "")
+"""
+
+
+def read_rds(path: Path) -> pd.DataFrame:
+    try:
+        import pyreadr
+        return next(iter(pyreadr.read_r(str(path)).values()))
+    except Exception:
+        pass
+    # pyreadr can't read labelled or list columns, so let R convert it once.
+    # List columns (minute-by-minute arrays) are dropped; the 5-min string is kept.
+    import subprocess
+    cache = OUTPUT_DIR / "_cache" / (path.stem + ".csv")
+    if not cache.exists() or cache.stat().st_mtime < path.stat().st_mtime:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        script = cache.parent / "rds_to_csv.R"
+        script.write_text(R_TO_CSV)
+        subprocess.run(["Rscript", str(script), str(path), str(cache)], check=True)
+    return pd.read_csv(cache, low_memory=False, dtype={"class_5_min": str})
+
+
 def read_any(path: Path, nrows: int | None = None) -> pd.DataFrame:
     """Open csv / excel / parquet / rds / json / spss / stata into a pandas table."""
     ext = path.suffix.lower()
@@ -137,8 +170,7 @@ def read_any(path: Path, nrows: int | None = None) -> pd.DataFrame:
         df = pd.read_parquet(path)
         return df.head(nrows) if nrows else df
     if ext == ".rds":
-        import pyreadr  # pip install pyreadr
-        df = next(iter(pyreadr.read_r(str(path)).values()))
+        df = read_rds(path)
         return df.head(nrows) if nrows else df
     if ext == ".json":
         df = pd.read_json(path, lines=path.stat().st_size > 50e6)
@@ -197,7 +229,10 @@ ROLE_PATTERNS: dict[str, tuple[str, list[str]]] = {
     "sleep_score":   ("Oura sleep score",          [r"sleep_score", r"score_sleep"]),
     "bedtime_start": ("Bedtime start (timestamp)", [r"bedtime_start", r"sleep_start", r"bed_start"]),
     "bedtime_end":   ("Bedtime end (timestamp)",   [r"bedtime_end", r"sleep_end", r"wake_time", r"bed_end"]),
-    "hypnogram":     ("Sleep-stage string (5-min)", [r"hypnogram", r"phase", r"sleep_stage", r"5_?min"]),
+    "hypnogram":     ("Sleep-stage string (5-min)", [r"hypnogram", r"sleep_phase", r"sleep_stage"]),
+    # Oura's class_5_min is an ACTIVITY string (0 non-wear … 5 high), not sleep stages
+    "activity_class":("Activity-class string (5-min)", [r"class_5_min", r"activity_class"]),
+    "psqi":          ("PSQI sleep-quality questionnaire", [r"psqi"]),
     # physiology
     "hrv":           ("HRV (rMSSD)",               [r"hrv", r"rmssd"]),
     "resting_hr":    ("Resting / lowest HR",       [r"resting_h", r"lowest_h", r"rhr", r"min_h(eart_)?r"]),
@@ -208,15 +243,22 @@ ROLE_PATTERNS: dict[str, tuple[str, list[str]]] = {
     "readiness":     ("Oura readiness score",      [r"readiness"]),
     # activity
     "steps":         ("Steps",                     [r"step"]),
-    "active_cal":    ("Active calories",           [r"active_cal", r"cal_active", r"calorie"]),
+    "active_cal":    ("Calories (active or total)", [r"active_cal", r"cal_active", r"calorie"]),
     "inactivity":    ("Inactivity / sedentary",    [r"inactiv", r"sedentar"]),
     "activity_score":("Oura activity score",       [r"activity_score"]),
     "wear_time":     ("Wear time / non-wear",      [r"wear", r"non_wear"]),
     # clinical (liver)
     "meld":          ("MELD / MELD-Na",            [r"meld"]),
-    "child_pugh":    ("Child-Pugh",                [r"child", r"pugh", r"\bctp\b"]),
-    "he":            ("Hepatic encephalopathy (HE)", [r"\bhe\b", r"^he_", r"_he$", r"enceph", r"\bche\b", r"\bmhe\b", r"overt"]),
-    "ascites":       ("Ascites",                   [r"ascit"]),
+    "child_pugh":    ("Child-Pugh",                [r"child", r"pugh", r"\bctp\b", r"ctp_class"]),
+    "ctp_group":     ("Child-Pugh group (A vs B/C)", [r"ctp_cat"]),
+    "he":            ("Hepatic encephalopathy (HE)", [r"\bhe\b", r"^anyhe$", r"_he$", r"enceph", r"\bmhe\b"]),
+    "overt_he":      ("Overt HE (ever)",           [r"anyohe", r"overt"]),
+    "covert_he":     ("Covert HE by PHES",         [r"che_phes", r"\bche\b"]),
+    "he_meds":       ("HE medication at enrolment", [r"^he_meds$"]),
+    "decomp":        ("Decompensated cirrhosis",   [r"^decomp"]),
+    "variceal":      ("Variceal bleeding history", [r"varic"]),
+    "frailty":       ("Liver Frailty Index",       [r"frailty_index", r"\blfi\b"]),
+    "ascites":       ("Ascites",                   [r"^ascites$", r"ascit"]),
     "ammonia":       ("Ammonia",                   [r"ammon", r"nh3"]),
     "albumin":       ("Albumin",                   [r"albumin"]),
     "bilirubin":     ("Bilirubin",                 [r"bili"]),
@@ -226,7 +268,7 @@ ROLE_PATTERNS: dict[str, tuple[str, list[str]]] = {
     "etiology":      ("Liver disease cause",       [r"etiolog", r"cause", r"nash|masld|alcohol.*liver|hcv|hbv"]),
     "hospitalized":  ("Hospitalization",           [r"hospital", r"admi"]),
     # cognitive tests / PROs
-    "phes":          ("PHES score",                [r"phes"]),
+    "phes":          ("PHES score",                [r"phes_score", r"phes"]),
     "stroop":        ("Stroop test",               [r"stroop"]),
     "animal_naming": ("Animal naming test",        [r"animal"]),
     "nct":           ("Number connection test",    [r"\bnct", r"connection"]),
@@ -242,7 +284,10 @@ ROLE_PATTERNS: dict[str, tuple[str, list[str]]] = {
 }
 
 COLUMN_OVERRIDES: dict[str, str] = {
-    # "rem": "rem_sleep_minutes",
+    # Adam's Sept 22 2026 file: "name" is the de-identified participant ID, and there are
+    # no calendar dates, only "days_since_start" (study day 1–180).
+    "id": "name",
+    "date": "days_since_start",
 }
 
 
@@ -295,6 +340,12 @@ print("Participant-level table:", part_name)
 # VLOOKUP in Excel. The result is one table called `df`: **one row = one
 # person on one day**, with that person's age and sex copied onto each of
 # their rows.
+#
+# **No calendar dates.** Adam's file has `days_since_start` (study day 1–180)
+# instead of real dates. That's good for privacy, but it means we can't line
+# days up across people by calendar or season. Where the notebook would use
+# a date, it uses **study day** instead. For weekday vs. weekend it uses the
+# file's own `day_type` column.
 
 # %%
 day = tables[day_name].copy()
@@ -311,7 +362,9 @@ else:
 
 ROLES = map_roles(df.columns)
 ID, DATE = ROLES["id"], ROLES["date"]
-df[DATE] = pd.to_datetime(df[DATE], errors="coerce")
+DAY_IS_NUMBER = pd.api.types.is_numeric_dtype(df[DATE])
+if not DAY_IS_NUMBER:
+    df[DATE] = pd.to_datetime(df[DATE], errors="coerce")
 df = df.sort_values([ID, DATE]).reset_index(drop=True)
 
 role_table = pd.DataFrame(
@@ -364,7 +417,10 @@ dictionary
 days_per_person = df.groupby(ID)[DATE].nunique()
 print(f"Participants:            {df[ID].nunique():,}")
 print(f"Participant-days (rows): {len(df):,}")
-print(f"Date range:              {df[DATE].min():%Y-%m-%d} → {df[DATE].max():%Y-%m-%d}")
+if DAY_IS_NUMBER:
+    print(f"Study days covered:      day {df[DATE].min()} → day {df[DATE].max()} (no calendar dates in this file)")
+else:
+    print(f"Date range:              {df[DATE].min():%Y-%m-%d} → {df[DATE].max():%Y-%m-%d}")
 print(f"Days per person: median {days_per_person.median():.0f}, "
       f"mean {days_per_person.mean():.0f}, min {days_per_person.min()}, max {days_per_person.max()}")
 
@@ -500,18 +556,116 @@ missing
 # lot for a clinician dashboard.
 
 # %%
-sleep_col = ROLES["total_sleep"] or next(iter(present.values()), None)
+sleep_col = ROLES["total_sleep"] or ROLES["steps"] or next(iter(present.values()), None)
 if sleep_col:
     tmp = df[[ID, DATE, sleep_col]].copy()
-    tmp["study_week"] = ((tmp[DATE] - tmp.groupby(ID)[DATE].transform("min")).dt.days // 7)
+    days_in = tmp[DATE] - tmp.groupby(ID)[DATE].transform("min")
+    tmp["study_week"] = (days_in if DAY_IS_NUMBER else days_in.dt.days) // 7
     grid = tmp.assign(has=tmp[sleep_col].notna()).pivot_table(index=ID, columns="study_week", values="has", aggfunc="sum")
     grid = grid.loc[grid.sum(axis=1).sort_values(ascending=False).index]
     fig, ax = plt.subplots(figsize=(10, 5))
     im = ax.imshow(grid.values, aspect="auto", cmap="Blues", vmin=0, vmax=7, interpolation="nearest")
-    ax.set(title=f"Nights with data per week ({sleep_col})", xlabel="week since that person's first day", ylabel="participants (sorted)")
+    ax.set(title=f"Days with data per week ({sleep_col})", xlabel="week since that person's first day", ylabel="participants (sorted)")
     ax.set_yticks([])
-    plt.colorbar(im, ax=ax, label="nights with data (0–7)")
+    plt.colorbar(im, ax=ax, label="days with data (0–7)")
     plt.show()
+
+# %% [markdown]
+# ## Step 8b · No sleep stages? Use the 5-minute activity string instead
+#
+# **Important finding:** Adam's file has **no sleep columns**: no total sleep,
+# REM, deep sleep, efficiency or latency. Henry's overview notebook found the
+# same. What it does have is `class_5_min`, Oura's **activity class** for
+# every 5 minutes of the day (288 digits = 24 h):
+#
+# | digit | meaning |
+# |---|---|
+# | 0 | non-wear (ring off) |
+# | 1 | **rest** (includes sleep) |
+# | 2 | inactive (sitting still, awake) |
+# | 3 / 4 / 5 | low / medium / high activity |
+#
+# Oura's activity day runs **4 am → 4 am**, so the first digit is 04:00 to
+# 04:05. The first chart below checks that assumption: if it's right, rest
+# should peak in the middle of the night.
+#
+# From the string we build **sleep proxies**:
+# * **Rest time (24 h)**: all the "1"s in the day.
+# * **Main night rest bout**: the longest stretch of rest between 6 pm and
+#   noon the next morning. Breaks of up to 10 minutes are allowed, so getting
+#   up briefly doesn't split the night. This is our best stand-in for a night's
+#   sleep, and it needs the *next* day's string too.
+# * **Rest onset / midpoint**: when that bout starts and its middle point, a
+#   rough **bedtime** and **circadian timing** marker.
+#
+# ⚠️ These are **proxies, not real sleep**. "Rest" can include lying awake.
+# They're good for comparing people and spotting changes, but not for saying
+# "this person slept 6.2 h". Ask Adam whether the Oura *sleep* export exists
+# for this cohort.
+
+# %%
+ACTIVITY_CODES = {"0": "Non-wear", "1": "Rest", "2": "Inactive", "3": "Low", "4": "Medium", "5": "High"}
+ACTIVITY_COLORS = ["#e0e0e0", "#3949ab", "#90caf9", "#ffcc80", "#ff9800", "#e65100"]
+DAY_STARTS_AT = 4   # hour of day of the first 5-min slot (Oura activity day starts 04:00)
+SLOTS = 288
+
+ACT = ROLES["activity_class"]
+if ACT:
+    strings = df[ACT].astype("string")
+    strings = strings.where(strings.str.fullmatch(rf"[0-5]{{{SLOTS}}}", na=False))
+    print(f"Days with a complete {SLOTS}-slot activity string: {strings.notna().mean():.1%}")
+
+    df["rest_h"] = strings.str.count("1") * 5 / 60
+    df["inactive_h"] = strings.str.count("2") * 5 / 60
+    df["active_h"] = strings.str.count("[345]") * 5 / 60
+
+    # Average day: share of people in each class at each time of day
+    slots = np.array([list(s) for s in strings.dropna()], dtype=np.int8)
+    shares = np.stack([(slots == k).mean(axis=0) for k in range(6)])
+    hours = DAY_STARTS_AT + np.arange(SLOTS) * 5 / 60
+    fig, ax = plt.subplots(figsize=(11, 3.4))
+    ax.stackplot(hours, shares, labels=list(ACTIVITY_CODES.values()), colors=ACTIVITY_COLORS)
+    ticks = np.arange(DAY_STARTS_AT, DAY_STARTS_AT + 25, 2)
+    ax.set_xticks(ticks, [f"{t % 24:02d}:00" for t in ticks])
+    ax.set(xlim=(hours[0], hours[-1]), ylim=(0, 1), ylabel="share of all days",
+           title="An average day: what the ring saw at each time of day")
+    ax.legend(loc="upper left", bbox_to_anchor=(1, 1), fontsize=8)
+    plt.tight_layout()
+    plt.show()
+    # the very last slot of each string is often "rest" padding, so skip it and smooth a little
+    smooth = np.convolve(shares[1][:-1], np.ones(7) / 7, mode="same")
+    peak = hours[3 + smooth[3:-3].argmax()] % 24
+    print(f"Rest peaks at about {int(peak):02d}:{int(peak % 1 * 60):02d}. "
+          f"{'✅ middle of the night, so the 4 am start looks right' if peak < 6 or peak > 23 else '❌ check DAY_STARTS_AT'}")
+
+    # Main night rest bout: from 6 pm on this day to noon on the next day
+    win_start = (18 - DAY_STARTS_AT) * 12
+    win_end = SLOTS + (12 - DAY_STARTS_AT) * 12
+    next_day_step = 1 if DAY_IS_NUMBER else pd.Timedelta(days=1)
+    next_string = strings.groupby(df[ID]).shift(-1)
+    is_next_day = df.groupby(ID)[DATE].shift(-1) == df[DATE] + next_day_step
+    bout_re = re.compile(r"1(?:[0-5]{0,2}1)*")
+
+    def clock(hours_after_6pm):
+        minutes = int(round((18 + hours_after_6pm) * 60)) % 1440
+        return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+    def main_rest_bout(today, tomorrow):
+        if pd.isna(today) or pd.isna(tomorrow):
+            return (np.nan, np.nan, np.nan)
+        window = (today + tomorrow)[win_start:win_end]
+        best = max(bout_re.finditer(window), key=lambda m: m.end() - m.start(), default=None)
+        if best is None or best.end() - best.start() < 24:   # under 2 h is not a night
+            return (np.nan, np.nan, np.nan)
+        return ((best.end() - best.start()) * 5 / 60, best.start() * 5 / 60, (best.start() + best.end()) / 2 * 5 / 60)
+
+    bouts = [main_rest_bout(t, n if ok else np.nan) for t, n, ok in zip(strings, next_string, is_next_day)]
+    df[["night_rest_h", "rest_onset_6pm", "rest_mid_6pm"]] = pd.DataFrame(bouts, index=df.index)
+    print(f"Nights with a main rest bout: {df['night_rest_h'].notna().mean():.1%} of rows; "
+          f"median {df['night_rest_h'].median():.1f} h, typical onset {clock(df['rest_onset_6pm'].median())}, "
+          f"typical midpoint {clock(df['rest_mid_6pm'].median())}")
+else:
+    print("No 5-minute activity string found.")
 
 # %% [markdown]
 # ## Step 9 · Cleaning: units, impossible values and outliers
@@ -577,6 +731,7 @@ PLAUSIBLE = {
     "total_sleep_h": (0.5, 16), "rem_pct": (0, 60), "deep_pct": (0, 60), "light_pct": (0, 100),
     "efficiency_pct": (20, 100), "latency_min": (0, 240), "hrv": (2, 250), "resting_hr": (25, 140),
     "avg_hr": (30, 180), "temp_dev": (-5, 5), "resp_rate": (5, 40), "spo2": (70, 100), "steps": (0, 80_000),
+    "night_rest_h": (2, 16),
 }
 cleaning_log = []
 for col, (lo, hi) in PLAUSIBLE.items():
@@ -592,8 +747,11 @@ METRICS = {
     "latency_min": "Sleep latency (min)", "sleep_score": "Oura sleep score", "hrv": "HRV (ms)",
     "resting_hr": "Resting HR (bpm)", "avg_hr": "Average HR (bpm)", "temp_dev": "Temp deviation (°C)",
     "resp_rate": "Respiratory rate (/min)", "spo2": "SpO₂ (%)", "readiness": "Readiness score",
-    "steps": "Steps / day", "activity_score": "Activity score", "active_cal": "Active calories",
+    "steps": "Steps / day", "activity_score": "Activity score", "active_cal": "Calories / day",
     "inactivity": "Inactivity",
+    "night_rest_h": "Night rest bout (h, sleep proxy)", "rest_onset_6pm": "Rest onset (h after 6 pm)",
+    "rest_mid_6pm": "Rest midpoint (h after 6 pm)", "rest_h": "Rest time, 24 h (h)",
+    "inactive_h": "Inactive time (h)", "active_h": "Active time (h)",
 }
 METRICS = {k: v for k, v in METRICS.items() if k in clean and clean[k].notna().any()}
 
@@ -716,7 +874,8 @@ sex_results
 # %%
 if "age" in person_avg and person_avg["age"].notna().any():
     person_avg["age_group"] = pd.cut(person_avg["age"], bins=[0, 49, 64, 200], labels=["<50", "50–64", "65+"])
-    key_metrics = [c for c in ["total_sleep_h", "rem_pct", "deep_pct", "efficiency_pct", "hrv", "resting_hr"] if c in cols]
+    key_metrics = [c for c in ["total_sleep_h", "night_rest_h", "rest_mid_6pm", "rem_pct", "deep_pct", "efficiency_pct",
+                               "hrv", "resting_hr", "avg_hr", "steps"] if c in cols]
     summary = person_avg.groupby(["age_group", "sex"], observed=True)[key_metrics].median().round(1)
     summary["people"] = person_avg.groupby(["age_group", "sex"], observed=True).size()
     display(summary.rename(columns=METRICS))
@@ -808,16 +967,20 @@ if "temp_dev" in valid:
 
 # %%
 PERSON = days_per_person.idxmax()
-timeline_metrics = [c for c in ["total_sleep_h", "rem_pct", "deep_pct", "hrv", "resting_hr", "temp_dev", "steps", "spo2"] if c in cols]
+timeline_metrics = [c for c in ["total_sleep_h", "night_rest_h", "rest_mid_6pm", "rem_pct", "deep_pct", "hrv",
+                                 "resting_hr", "avg_hr", "resp_rate", "temp_dev", "steps", "spo2"] if c in cols]
 
 p = clean[clean[ID] == PERSON].set_index(DATE)
+if DAY_IS_NUMBER:  # fill in missing study days as blanks so gaps show and the 7-day window is really 7 days
+    p = p.reindex(range(int(p.index.min()), int(p.index.max()) + 1))
 fig, axes = plt.subplots(len(timeline_metrics), 1, figsize=(11, 1.9 * len(timeline_metrics)), sharex=True)
 for ax, col in zip(np.atleast_1d(axes), timeline_metrics):
     ax.plot(p.index, p[col], lw=0.6, color="#90a4ae")
-    ax.plot(p.index, p[col].rolling("7D", min_periods=3).mean(), lw=2, color="#283593")
-    out = p[p[f"{col}_outlier"]]
+    ax.plot(p.index, p[col].rolling(7 if DAY_IS_NUMBER else "7D", min_periods=3).mean(), lw=2, color="#283593")
+    out = p[p[f"{col}_outlier"].eq(True)]
     ax.scatter(out.index, out[col], color="red", s=8, zorder=3)
     ax.set_ylabel(METRICS[col], fontsize=8)
+np.atleast_1d(axes)[-1].set_xlabel("study day" if DAY_IS_NUMBER else "date")
 fig.suptitle(f"Participant {PERSON}: daily values (grey) and 7-day average (blue)")
 plt.tight_layout()
 plt.show()
@@ -832,7 +995,7 @@ plt.show()
 # hepatic encephalopathy.
 
 # %%
-var_metrics = [c for c in ["total_sleep_h", "rem_pct", "hrv", "resting_hr"] if c in cols]
+var_metrics = [c for c in ["total_sleep_h", "night_rest_h", "rest_mid_6pm", "rem_pct", "hrv", "resting_hr", "avg_hr"] if c in cols]
 person_sd = valid.groupby(ID)[var_metrics].std()
 person_sd["sex"] = people["sex"]
 fig, axes = plt.subplots(1, len(var_metrics), figsize=(3.3 * len(var_metrics), 3.2))
@@ -853,9 +1016,13 @@ person_sd.groupby("sex")[var_metrics].median().round(2).rename(columns=METRICS)
 # rather than raw day-to-day changes.
 
 # %%
-week_metrics = [c for c in ["total_sleep_h", "steps", "hrv"] if c in cols]
-valid["weekday"] = valid[DATE].dt.day_name().str[:3]
-order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+week_metrics = [c for c in ["total_sleep_h", "night_rest_h", "steps", "hrv"] if c in cols]
+if DAY_IS_NUMBER and "day_type" in valid:  # no dates, but the file says weekday vs weekend
+    valid["weekday"] = valid["day_type"].astype(str)
+    order = ["Weekday", "Weekend"]
+else:
+    valid["weekday"] = valid[DATE].dt.day_name().str[:3]
+    order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 fig, axes = plt.subplots(1, len(week_metrics), figsize=(4 * len(week_metrics), 3.2))
 for ax, col in zip(np.atleast_1d(axes), week_metrics):
     for s in ["Female", "Male"]:
@@ -876,6 +1043,10 @@ plt.show()
 #
 # Bedtime is a **circadian** marker. Late, drifting bedtimes are something
 # the pilot findings hinted at in covert HE.
+#
+# **If there's no bedtime column** (true for Adam's Sept 2026 file), we use
+# the **rest onset** from Step 8b instead. The activity string is already in
+# local time (Oura's day starts at 4 am local), so no timezone fix is needed.
 
 # %%
 TIMEZONE = "America/New_York"
@@ -886,6 +1057,11 @@ if BS:
     # hours after 6 pm, so 11 pm = 5 and 1 am = 7 (keeps nights continuous)
     clean["bedtime_hrs_after_6pm"] = ((local.dt.hour + local.dt.minute / 60) - 18) % 24
     clean["bedtime_local"] = local
+    BEDTIME_SOURCE = "bedtime timestamp, New York time"
+elif "rest_onset_6pm" in clean:
+    clean["bedtime_hrs_after_6pm"] = clean["rest_onset_6pm"]
+    BEDTIME_SOURCE = "rest onset from the activity string (proxy)"
+if "bedtime_hrs_after_6pm" in clean:
     b = clean.loc[clean["is_valid"]]
     fig, ax = plt.subplots(figsize=(8, 3.3))
     for s in ["Female", "Male"]:
@@ -893,13 +1069,13 @@ if BS:
                 alpha=0.6, color=SEX_COLORS[s], label=s)
     ticks = np.arange(0, 19, 2)
     ax.set_xticks(ticks, [f"{(18 + t) % 24:02d}:00" for t in ticks])
-    ax.set(title="Bedtime (local New York time)", xlabel="time of night", ylabel="nights")
+    ax.set(title=f"Bedtime ({BEDTIME_SOURCE})", xlabel="time of night", ylabel="nights")
     ax.legend()
     plt.show()
     per_person_bedtime_sd = b.groupby(ID)["bedtime_hrs_after_6pm"].std()
     print(f"Typical person's bedtime varies by ± {per_person_bedtime_sd.median():.1f} h night to night")
 else:
-    print("No bedtime timestamp column found. Check the sleep files from the Oura export.")
+    print("No bedtime timestamp or activity string found. Check the sleep files from the Oura export.")
 
 # %% [markdown]
 # ## Step 17 · Reading the 5-minute sleep-stage string (hypnogram)
@@ -992,7 +1168,8 @@ print("Strongest pairs:\n", pairs.head(8).round(2).rename(lambda t: t).to_string
 # sleep instead.
 
 # %%
-clinical_roles = ["he", "ascites", "hospitalized", "lactulose", "rifaximin", "alcohol", "opioids", "sleep_apnea"]
+clinical_roles = ["he", "overt_he", "covert_he", "he_meds", "ctp_group", "decomp", "ascites", "variceal",
+                  "hospitalized", "lactulose", "rifaximin", "alcohol", "opioids", "sleep_apnea"]
 person_clin = df.groupby(ID).first()
 for role in clinical_roles:
     c = ROLES[role]
@@ -1005,9 +1182,10 @@ for role in clinical_roles:
     a, b = sorted(vals, key=str)
     tbl = person_avg.join(person_clin[c])
     print(f"\n── {ROLE_PATTERNS[role][0]} ({c}): {a} vs {b} ──")
-    display(compare_two_groups(tbl, c, a, b, [m for m in ["total_sleep_h", "rem_pct", "deep_pct", "efficiency_pct", "latency_min", "hrv", "resting_hr", "steps"] if m in cols]))
+    display(compare_two_groups(tbl, c, a, b, [m for m in ["total_sleep_h", "night_rest_h", "rest_mid_6pm", "rem_pct", "deep_pct", "efficiency_pct",
+                                                    "latency_min", "hrv", "resting_hr", "avg_hr", "resp_rate", "steps"] if m in cols]))
 
-for role in ["meld", "child_pugh", "ammonia", "phes", "stroop", "animal_naming"]:
+for role in ["meld", "child_pugh", "ammonia", "phes", "stroop", "animal_naming", "psqi", "pro", "frailty", "age"]:
     c = ROLES[role]
     if c and pd.api.types.is_numeric_dtype(df[c]):
         score = pd.to_numeric(df.groupby(ID)[c].mean(), errors="coerce")
@@ -1104,13 +1282,18 @@ def pct(x):
 
 lines = [
     f"- **{df[ID].nunique()} participants**, {len(df):,} participant-days "
-    f"({df[DATE].min():%b %Y} – {df[DATE].max():%b %Y}); median {days_per_person.median():.0f} days per person.",
+    + (f"(study days {df[DATE].min()}–{df[DATE].max()}, no calendar dates); " if DAY_IS_NUMBER
+       else f"({df[DATE].min():%b %Y} – {df[DATE].max():%b %Y}); ")
+    + f"median {days_per_person.median():.0f} days per person.",
     f"- Sex: " + ", ".join(f"{k} {v}" for k, v in sex_counts.items()) + ".",
 ]
 if "age" in people:
     lines.append(f"- Age: median {people['age'].median():.0f} (range {people['age'].min():.0f}–{people['age'].max():.0f}).")
 lines.append(f"- Valid days (≥80% data): {pct(df['is_valid'].mean() * 100)}.")
-for col in [c for c in ["total_sleep_h", "rem_pct", "deep_pct", "hrv", "resting_hr", "steps"] if c in cols]:
+if not ROLES["total_sleep"]:
+    lines.append("- Sleep: no sleep-stage or sleep-duration columns in this file. A rest-based proxy from the "
+                 "5-min activity string is used instead (see Step 8b).")
+for col in [c for c in ["total_sleep_h", "night_rest_h", "rem_pct", "deep_pct", "hrv", "resting_hr", "avg_hr", "steps"] if c in cols]:
     lines.append(f"- {METRICS[col]}: cohort median {valid[col].median():.1f}.")
 if "p-value" in sex_results:
     sig = sex_results.loc[sex_results["significant (strict)"] == "yes", "measure"].tolist()

@@ -1,0 +1,110 @@
+{% extends "base_layout.html" %}
+{% block title %}EHR Launch{% endblock %}
+
+{% block head %}
+<style>
+    .topnav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 200; height: 64px; background: #fff;
+        border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        display: flex; align-items: center; gap: 16px; padding: 0 32px;
+    }
+    .topnav-brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: #1e293b; text-decoration: none; }
+    .topnav-brand-sub { font-size: 12px; font-weight: 400; color: #64748b; padding-left: 10px; border-left: 1px solid #e2e8f0; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 92px 32px 40px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .lead { font-size: 13px; color: #64748b; margin-bottom: 20px; max-width: 900px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 18px 20px; margin-bottom: 18px; }
+    .card h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .hint { font-size: 12px; color: #64748b; }
+    table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.t th { text-align: left; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    table.t td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
+    code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+    .btn { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; text-decoration: none; cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: #3b82f6; color: #3b82f6; }
+    .btn.primary { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    .notice { font-size: 13px; padding: 10px 14px; border-radius: 8px; background: #fef3c7; color: #92400e; margin-bottom: 14px; }
+    .warn { color: #d97706; font-weight: 600; }
+    ol.steps { padding-left: 18px; font-size: 13px; color: #475569; line-height: 1.9; }
+    .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; margin-top: 6px; }
+    .flow span { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+    .flow b { color: #94a3b8; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } .page { padding: 84px 16px 32px; } }
+</style>
+{% endblock %}
+
+{% block topnav %}
+<nav class="topnav" role="navigation" aria-label="Main navigation">
+    <a class="topnav-brand" href="/">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        JupyterHealth <span class="topnav-brand-sub">Research Workbench</span>
+    </a>
+    <a class="btn" href="/" style="margin-left:auto">← Back to dashboard</a>
+</nav>
+{% endblock %}
+
+{% block main %}
+<div class="page">
+    <h1>EHR Launch · SMART on FHIR</h1>
+    <p class="lead">Open this workbench from inside an EHR on the patient in context, the way Bill Chen's Medplum demo does. The EHR provides the patient's MRN, and we match it to a workbench patient. Wearable data stays outside the EHR (JP, Sep 29). Medplum is the sandbox; Epic uses the same flow later. <strong>All patients here are synthetic.</strong></p>
+
+    {% if error %}<div class="notice">{{ error }}</div>{% endif %}
+
+    <div class="card">
+        <h2>How a launch works</h2>
+        <div class="flow">
+            <span>Clinician opens patient in EHR</span><b>→</b><span>Apps → this workbench</span><b>→</b>
+            <span>/ehr/launch (iss, launch)</span><b>→</b><span>EHR login + scope consent</span><b>→</b>
+            <span>/ehr/callback → token + Patient</span><b>→</b><span>MRN → /patient/&lt;id&gt;</span>
+        </div>
+    </div>
+
+    <div class="grid2">
+        <div class="card">
+            <h2>Connection settings</h2>
+            <table class="t">
+                <tr><td>Client ID</td><td>{% if smart.client_id %}<code>{{ smart.client_id }}</code>{% else %}<span class="warn">not set</span>: <code>SMART_CLIENT_ID</code>{% endif %}</td></tr>
+                <tr><td>Launch URL</td><td><code>{{ launch_url }}</code></td></tr>
+                <tr><td>Redirect URL</td><td><code>{{ redirect_uri }}</code></td></tr>
+                <tr><td>Scopes</td><td><code>{{ smart.scope }}</code></td></tr>
+                <tr><td>MRN system</td><td><code>{{ mrn_system }}</code></td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h2>Connect Medplum</h2>
+            <ol class="steps">
+                <li><a class="btn" href="/ehr/fhir-bundle.json">Download synthetic patients (FHIR Bundle)</a>, then upload it in Medplum → <strong>Batch</strong>.</li>
+                <li>Medplum → Admin → Project → <strong>Clients → New</strong>: Launch URI <code>{{ launch_url }}</code>, Redirect URI <code>{{ redirect_uri }}</code>.</li>
+                <li>Restart the workbench with <code>SMART_CLIENT_ID=…</code> (and <code>SMART_CLIENT_SECRET</code> if given).</li>
+                <li>Open a patient in Medplum → <strong>Apps</strong> → this client → <em>Choose scope</em> → <em>Set Scope</em>.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Synthetic patients and their MRNs</h2>
+        <p class="hint" style="margin-bottom:8px">Use <strong>Simulate launch</strong> to test the matching without an EHR.</p>
+        <table class="t">
+            <thead><tr><th>Patient</th><th>Name</th><th>Data source</th><th>MRN</th><th></th></tr></thead>
+            <tbody>
+            {% for p in patients %}
+                <tr><td><strong>{{ p.id }}</strong><span class="badge-synthetic sm">Synthetic</span></td>
+                    <td>{{ p.name }}</td><td>{{ p.data_source | default('—') }}</td><td><code>{{ p.smart_mrn }}</code></td>
+                    <td style="text-align:right"><a class="btn primary" href="/ehr/simulate?mrn={{ p.smart_mrn }}">Simulate launch</a></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Recent launches</h2>
+        {% if log %}
+        <table class="t"><thead><tr><th>Time</th><th>From</th><th>MRN</th><th>Opened</th></tr></thead><tbody>
+            {% for l in log %}<tr><td>{{ l.time }}</td><td>{{ l.source }}</td><td>{{ l.mrn }}</td><td>{{ l.patient }}</td></tr>{% endfor %}
+        </tbody></table>
+        {% else %}<p class="hint">No launches yet in this session.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

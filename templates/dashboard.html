@@ -624,6 +624,7 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
         <button class="dash-tab active" id="tabOverview"   onclick="switchTab('overview')">Cohort Overview</button>
         <button class="dash-tab"        id="tabExplorer"   onclick="switchTab('explorer')">Cohort Data Explorer</button>
         <button class="dash-tab"        id="tabNotebooks"  onclick="switchTab('notebooks')">Notebooks</button>
+        <a class="dash-tab" href="/ehr" style="text-decoration:none">EHR Launch</a>
     </div>
 
     <!-- ── Study context strip ───────────────────────────────────────── -->
@@ -845,6 +846,7 @@ window.__sleepSummaries = {{ sleep_summaries | tojson }};
                             <a class="pt-id-link"
                                href="/patient/{{ patient.id }}"
                                onclick="event.stopPropagation()">{{ patient.id }}</a>
+                            {% if is_synthetic(patient) %}<span class="badge-synthetic sm">Synthetic</span>{% endif %}
                         </td>
                         <td>
                             {% set rl = patient.risk_level | default('') %}

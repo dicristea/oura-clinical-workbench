@@ -180,6 +180,22 @@ patient_report.html       ← standalone (no extends; print-only page)
 - `c290d09` — cohort bands + patient nav tab
 - `25937dc` — flagged markers, rolling mean, stats table, CSV export
 
+### Last Session — 2026-10-06 (session 6, branch `claude/eloquent-fermi-ribg11`)
+
+**Real de-identified data explored** (`../de-identified data/De-identified Data for Adam Sept 22 2026.rds`, outside the repo):
+- `notebooks/deid_oura_data_exploration.py` (jupytext, from Claude Cowork) adapted to the real file and run end to end. `.rds` is read through `Rscript` + `haven` (pyreadr can't read labelled or list columns); the CSV cache and outputs go to `../exploration_outputs/` (outside the repo). The executed `.ipynb` is gitignored.
+- Key facts: 118 participants, 15,690 days, **no sleep-stage columns, no calendar dates** (only `days_since_start`, 1–180), no labs or temperature. `class_5_min` is Oura **activity** class (starts 04:00 local, verified empirically). The notebook derives a **night rest bout** sleep proxy from it (Step 8b).
+- Only 9/32 workbench parameters exist in the real data. See `docs/deid-data-vs-workbench.md` (updated with results).
+- Local env: added `matplotlib`, `scipy`, `pyreadr`, `jupytext`, `jupyter-ai` to `.venv` (not to requirements.txt).
+
+- **Oct 14:** added `notebooks/he_trajectories_phenotypes.py` (trajectories by baseline group, per-person slopes, candidate change points, k-means phenotypes, and notes on why event dates are missing and where to get them). Hardened `.gitignore` (`*.rds`, data folders, `exploration_outputs/`, `*.chat`). **The repo is public.**
+- **Sister app (superseded name):** `../he-clinician-dashboard`, now `../clinician-ehr-wearable-dashboard`. Simplified clinician view with Patients, Cohort and Notebooks tabs. This repo stays as the research prototype.
+
+- **Oct 14 (later):** added the **EHR Launch** tab (`/ehr`): SMART on FHIR EHR launch with PKCE (`/ehr/launch`, `/ehr/callback`), MRN matching (`synthetic_mrn()` → `JH-PT1042`, system `https://jupyterhealth.org/fhir/identifier/mrn`), `/ehr/simulate`, and `/ehr/fhir-bundle.json` (synthetic Patients to upload via Medplum → Batch). New template `templates/ehr_launch.html`. Synthetic badge on the patient subbar and roster via the `is_synthetic()` context processor. `app.secret_key` is now set (from `FLASK_SECRET_KEY`, or random per process). Added `openpyxl` to `requirements.txt`: without it the Excel demo patients silently failed to load (10 vs. 13 patients).
+- Sister app renamed: **`../clinician-ehr-wearable-dashboard`** (private GitHub repo). The old `../he-clinician-dashboard` folder was deleted.
+
+**Not committed yet:** edits to both notebook `.py` files, `.gitignore`, `requirements.txt`, `app.py`, `templates/` (base, base_layout, dashboard, ehr_launch), the docs file and this file. Check with JP before pushing `docs/deid-data-vs-workbench.md` (it contains group-level results).
+
 ### Known Bugs
 | Bug | Impact | Status |
 |---|---|---|

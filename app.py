@@ -3,7 +3,13 @@ Clinical Coordinator Dashboard - Flask App
 Exact mockup implementation
 """
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, session, url_for
+import base64
+import hashlib
+import secrets
+import urllib.error
+import urllib.parse
+import urllib.request
 import pandas as pd
 from datetime import datetime, timedelta
 from functools import lru_cache
@@ -15,6 +21,7 @@ import uuid
 import numpy as np
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY') or secrets.token_hex(32)
 
 
 class _NumpyEncoder(json.JSONEncoder):
@@ -2235,6 +2242,142 @@ def inject_cell():
         'notebook': notebook_name,
         'jupyter_url': f'{JUPYTER_BASE_URL}/lab/tree/{NOTEBOOKS_DIR}/{notebook_name}',
     })
+
+
+# ── Synthetic badge ───────────────────────────────────────────────────────────
+# Every patient in this workbench is synthetic demo data (see Security Rules in HANDOFF.md),
+# so the badge is on unless a future real-data loader sets is_real_data=True.
+@app.context_processor
+def inject_synthetic_flag():
+    return {'is_synthetic': lambda p: not (p or {}).get('is_real_data', False)}
+
+
+# ── EHR launch: SMART on FHIR (Medplum now, Epic later) ─────────────────────
+# Flow: EHR opens /ehr/launch?iss=…&launch=… → redirect to the EHR's authorize endpoint (PKCE) →
+# /ehr/callback?code=… → token + launched Patient → MRN identifier → open /patient/<id>.
+SMART = {
+    'client_id':     os.environ.get('SMART_CLIENT_ID', ''),
+    'client_secret': os.environ.get('SMART_CLIENT_SECRET', ''),
+    'scope':         os.environ.get('SMART_SCOPES', 'launch openid fhirUser patient/Patient.r'),
+    'redirect_uri':  os.environ.get('SMART_REDIRECT_URI', ''),
+}
+MRN_SYSTEM = os.environ.get('SMART_MRN_SYSTEM', 'https://jupyterhealth.org/fhir/identifier/mrn')
+EHR_LAUNCH_LOG = []  # in memory only, last 20 launches
+
+
+def synthetic_mrn(patient_id):
+    return 'JH-' + ''.join(ch for ch in patient_id if ch.isalnum()).upper()
+
+
+def _ehr_log(**entry):
+    EHR_LAUNCH_LOG.insert(0, {'time': datetime.now().strftime('%b %d %H:%M:%S'), **entry})
+    del EHR_LAUNCH_LOG[20:]
+
+
+def _smart_http_json(url, form=None, token=None):
+    headers = {'Accept': 'application/json'}
+    body = None
+    if form is not None:
+        body = urllib.parse.urlencode(form).encode()
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        if SMART['client_secret']:
+            creds = f"{SMART['client_id']}:{SMART['client_secret']}".encode()
+            headers['Authorization'] = 'Basic ' + base64.b64encode(creds).decode()
+    if token:
+        headers['Authorization'] = f'Bearer {token}'
+    with urllib.request.urlopen(urllib.request.Request(url, data=body, headers=headers), timeout=15) as res:
+        return json.loads(res.read())
+
+
+def _smart_redirect_uri():
+    return SMART['redirect_uri'] or url_for('ehr_callback', _external=True)
+
+
+def _ehr_open_patient(mrn, source):
+    match = next((p['id'] for p in load_patient_data() if synthetic_mrn(p['id']) == mrn), None) if mrn else None
+    _ehr_log(source=source, mrn=mrn or '—', patient=match or 'no match')
+    if not match:
+        return redirect(url_for('ehr_launch_page', error=f"No workbench patient matches MRN {mrn or '(none on the FHIR Patient)'}."))
+    session['ehr_context'] = {'patient': match, 'mrn': mrn, 'source': source, 'time': datetime.now().strftime('%H:%M')}
+    return redirect(f'/patient/{match}')
+
+
+def _fhir_patient_resource(p):
+    """Synthetic FHIR R4 Patient for uploading to Medplum (Batch page) so it can launch this app."""
+    text = p.get('name') or p['id']
+    parts = text.split()
+    return {
+        'resourceType': 'Patient',
+        'identifier': [{'system': MRN_SYSTEM, 'value': synthetic_mrn(p['id'])}],
+        'name': [{'family': parts[-1], 'given': parts[:-1], 'text': text}],
+        'meta': {'tag': [{'system': 'https://jupyterhealth.org/tags', 'code': 'synthetic', 'display': 'Synthetic demo patient'}]},
+    }
+
+
+@app.route('/ehr')
+def ehr_launch_page():
+    patients = load_patient_data()
+    return render_template('ehr_launch.html', smart=SMART, mrn_system=MRN_SYSTEM, log=EHR_LAUNCH_LOG,
+                           launch_url=url_for('ehr_launch', _external=True), redirect_uri=_smart_redirect_uri(),
+                           patients=[{**p, 'smart_mrn': synthetic_mrn(p['id'])} for p in patients],
+                           error=request.args.get('error'))
+
+
+@app.route('/ehr/fhir-bundle.json')
+def ehr_fhir_bundle():
+    bundle = {'resourceType': 'Bundle', 'type': 'transaction', 'entry': [
+        {'resource': _fhir_patient_resource(p), 'request': {'method': 'POST', 'url': 'Patient',
+         'ifNoneExist': f"identifier={MRN_SYSTEM}|{synthetic_mrn(p['id'])}"}}
+        for p in load_patient_data()]}
+    res = jsonify(bundle)
+    res.headers['Content-Disposition'] = 'attachment; filename=workbench-synthetic-patients.json'
+    return res
+
+
+@app.route('/ehr/launch')
+def ehr_launch():
+    iss, launch = request.args.get('iss'), request.args.get('launch')
+    if not iss:
+        return redirect(url_for('ehr_launch_page', error="Launch is missing the 'iss' (FHIR server) parameter."))
+    if not SMART['client_id']:
+        return redirect(url_for('ehr_launch_page', error='SMART_CLIENT_ID is not set. Register this app in Medplum first.'))
+    try:
+        cfg = _smart_http_json(iss.rstrip('/') + '/.well-known/smart-configuration')
+    except (urllib.error.URLError, ValueError) as exc:
+        return redirect(url_for('ehr_launch_page', error=f'Could not read SMART configuration from {iss}: {exc}'))
+    verifier = secrets.token_urlsafe(64)
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
+    state = secrets.token_urlsafe(16)
+    session['smart'] = {'iss': iss, 'state': state, 'verifier': verifier, 'token_endpoint': cfg['token_endpoint']}
+    params = {'response_type': 'code', 'client_id': SMART['client_id'], 'redirect_uri': _smart_redirect_uri(),
+              'scope': SMART['scope'], 'state': state, 'aud': iss,
+              'code_challenge': challenge, 'code_challenge_method': 'S256'}
+    if launch:
+        params['launch'] = launch
+    return redirect(cfg['authorization_endpoint'] + '?' + urllib.parse.urlencode(params))
+
+
+@app.route('/ehr/callback')
+def ehr_callback():
+    st = session.pop('smart', None)
+    if request.args.get('error'):
+        return redirect(url_for('ehr_launch_page', error=f"EHR returned an error: {request.args.get('error_description') or request.args['error']}"))
+    if not st or request.args.get('state') != st['state']:
+        return redirect(url_for('ehr_launch_page', error="Launch state didn't match. Start the launch again from the EHR."))
+    try:
+        tok = _smart_http_json(st['token_endpoint'], form={
+            'grant_type': 'authorization_code', 'code': request.args.get('code', ''),
+            'redirect_uri': _smart_redirect_uri(), 'client_id': SMART['client_id'], 'code_verifier': st['verifier']})
+        fhir_patient = _smart_http_json(f"{st['iss'].rstrip('/')}/Patient/{tok['patient']}", token=tok['access_token'])
+    except (urllib.error.URLError, KeyError, ValueError) as exc:
+        return redirect(url_for('ehr_launch_page', error=f'Token or Patient request failed: {exc}'))
+    mrn = next((i.get('value') for i in fhir_patient.get('identifier', []) if i.get('system') == MRN_SYSTEM), None)
+    return _ehr_open_patient(mrn, source=urllib.parse.urlparse(st['iss']).netloc)
+
+
+@app.route('/ehr/simulate')
+def ehr_simulate():
+    return _ehr_open_patient(request.args.get('mrn', '').strip(), source='simulated launch')
 
 
 if __name__ == '__main__':

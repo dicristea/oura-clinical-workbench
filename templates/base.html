@@ -147,6 +147,7 @@
     <div class="subbar-divider"></div>
 
     <span class="patient-label">{{ patient.id }}</span>
+    {% if is_synthetic(patient) %}<span class="badge-synthetic">Synthetic · de-identified demo</span>{% endif %}
 
     {% set risk  = patient.risk_level if patient.risk_level is defined and patient.risk_level else '' %}
     {% if risk == 'high' %}
@@ -192,6 +193,10 @@
 
 {% block main %}
 <main class="main-content">
+    {% set ehr = session.get('ehr_context') %}
+    {% if ehr and ehr.patient == patient.id %}
+    <div class="ehr-banner">Opened from the EHR ({{ ehr.source }}) · MRN {{ ehr.mrn }} · {{ ehr.time }}</div>
+    {% endif %}
     {% block content %}{% endblock %}
 </main>
 {% endblock %}

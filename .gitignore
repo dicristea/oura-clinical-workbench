@@ -29,3 +29,18 @@ Thumbs.db
 
 # Don't commit real patient data!
 data.xlsx
+
+# De-identified study data (HE study, Dr. Buckholz): local only, never on GitHub.
+# Data lives outside the repo in ../de-identified data/; these rules catch accidental copies.
+*.rds
+*.RData
+*.rda
+*.sav
+*.dta
+*.parquet
+de-identified data/
+deidentified_data/
+exploration_outputs/
+_cache/
+# Jupyter AI chat files can contain pasted data or outputs
+*.chat
