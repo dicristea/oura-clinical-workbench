@@ -9,6 +9,7 @@ import pandas as pd
 class DataSource(Enum):
     OURA = "oura"
     SYNTHEA = "synthea"
+    HEPATOLOGY = "hepatology"
     OPEN_WEARABLES = "open_wearables"   # Open Wearables unified API (Oura Q1 2026)
 
 
@@ -24,6 +25,13 @@ DEFAULT_FEATURE_GROUPS: dict[DataSource, dict[str, list[str]]] = {
         "Vital Signs":       ["heart_rate", "systolic_bp", "diastolic_bp", "respiratory_rate", "body_temperature"],
         "Body Composition":  ["body_weight_kg", "bmi"],
         "Metabolic":         ["glucose_mgdl", "hba1c_pct", "total_cholesterol_mgdl", "ldl_cholesterol_mgdl"],
+    },
+    DataSource.HEPATOLOGY: {
+        "Physiological": [
+            "average_heart_rate", "average_hrv", "respiratory_rate", "spo2_pct",
+        ],
+        "Activity": ["step_count", "average_met_minutes", "total_calories"],
+        "Data Quality": ["valid80", "non_wear_pct", "non_wear_time"],
     },
     # Open Wearables normalized field names — same groups as Oura, different API keys.
     # Wire up by swapping OuraAdapter → OpenWearablesAdapter once Oura integration ships (Q1 2026).
@@ -48,9 +56,12 @@ class PatientTimeSeries:
         static_features: Time-invariant attributes — demographics, genetic status,
                          baseline clinical scores, etc.
                          Example: {"age": 65, "sex": "M"}
-        time_series:    DatetimeIndex DataFrame where each column is a feature and
-                         each row is one observation (daily for Oura, per-visit for
-                         Missing values are NaN.
+        time_series:    DataFrame where each column is a feature and each row is one
+                         observation. Calendar-based sources use a DatetimeIndex;
+                         relative longitudinal studies may use an integer study-day
+                         index. Missing values are NaN.
+        time_axis:      ``"calendar_date"`` for a DatetimeIndex or ``"study_day"``
+                         for a relative integer day index.
         metadata:       Free-form dict for cohort info, risk level, enrollment
                          dates, study arm, etc.
                          Example: {"cohort": "de_novo", "risk_level": "high",
@@ -67,16 +78,28 @@ class PatientTimeSeries:
     time_series: pd.DataFrame = field(default_factory=pd.DataFrame)
     metadata: dict = field(default_factory=dict)
     feature_groups: dict[str, list[str]] = field(default_factory=dict)
+    time_axis: str = "calendar_date"
 
     def __post_init__(self) -> None:
-        # Validate time_series index is datetime (allow empty DataFrame)
-        if not self.time_series.empty and not isinstance(
-            self.time_series.index, pd.DatetimeIndex
-        ):
+        if self.time_axis not in {"calendar_date", "study_day"}:
             raise ValueError(
-                "PatientTimeSeries.time_series must have a DatetimeIndex. "
-                f"Got {type(self.time_series.index).__name__}."
+                "time_axis must be 'calendar_date' or 'study_day', "
+                f"got {self.time_axis!r}."
             )
+
+        # Validate the time index while allowing empty DataFrames.
+        if not self.time_series.empty:
+            if self.time_axis == "calendar_date" and not isinstance(
+                self.time_series.index, pd.DatetimeIndex
+            ):
+                raise ValueError(
+                    "calendar_date time series must have a DatetimeIndex. "
+                    f"Got {type(self.time_series.index).__name__}."
+                )
+            if self.time_axis == "study_day":
+                numeric_index = pd.to_numeric(self.time_series.index, errors="coerce")
+                if pd.isna(numeric_index).any():
+                    raise ValueError("study_day time series must have a numeric index.")
 
         # Apply default feature groups when none are supplied
         if not self.feature_groups:
@@ -116,5 +139,8 @@ class PatientTimeSeries:
         if self.time_series.empty:
             return self.time_series.copy()
 
-        cutoff = self.time_series.index.max() - pd.Timedelta(days=days - 1)
+        if self.time_axis == "study_day":
+            cutoff = self.time_series.index.max() - (days - 1)
+        else:
+            cutoff = self.time_series.index.max() - pd.Timedelta(days=days - 1)
         return self.time_series.loc[self.time_series.index >= cutoff].copy()

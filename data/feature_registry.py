@@ -211,11 +211,98 @@ SYNTHEA_FEATURES: list[FeatureConfig] = [
 ]
 
 
+# ── Hepatology study features ───────────────────────────────────────────────
+
+HEPATOLOGY_FEATURES: list[FeatureConfig] = [
+    FeatureConfig(
+        name="average_heart_rate",
+        display_name="Average Heart Rate",
+        group="Physiological",
+        unit="bpm",
+        description="Source-provided daily average heart rate; this is not assumed to be resting heart rate.",
+        default_selected=True,
+    ),
+    FeatureConfig(
+        name="average_hrv",
+        display_name="Average HRV",
+        group="Physiological",
+        unit="",
+        description="Source-provided daily HRV value; calculation method and unit require confirmation.",
+        default_selected=True,
+    ),
+    FeatureConfig(
+        name="respiratory_rate",
+        display_name="Average Respiratory Rate",
+        group="Physiological",
+        unit="breaths/min",
+        description="Daily average respiratory rate from the source dataset.",
+        default_selected=False,
+    ),
+    FeatureConfig(
+        name="spo2_pct",
+        display_name="SpO₂",
+        group="Physiological",
+        unit="%",
+        description="Daily oxygen saturation when available.",
+        default_selected=False,
+    ),
+    FeatureConfig(
+        name="step_count",
+        display_name="Step Count",
+        group="Activity",
+        unit="steps",
+        description="Daily step count.",
+        default_selected=True,
+    ),
+    FeatureConfig(
+        name="average_met_minutes",
+        display_name="Average MET Minutes",
+        group="Activity",
+        unit="",
+        description="Source-provided MET-derived daily measure; exact definition requires confirmation.",
+        default_selected=False,
+    ),
+    FeatureConfig(
+        name="total_calories",
+        display_name="Total Calories",
+        group="Activity",
+        unit="kcal",
+        description="Source-provided total daily calories.",
+        default_selected=False,
+    ),
+    FeatureConfig(
+        name="valid80",
+        display_name="Valid 80% Day",
+        group="Data Quality",
+        unit="flag",
+        description="Source quality flag indicating whether the daily record meets the 80% validity rule.",
+        default_selected=False,
+    ),
+    FeatureConfig(
+        name="non_wear_pct",
+        display_name="Non-wear Percentage",
+        group="Data Quality",
+        unit="%",
+        description="Percentage of the day classified as non-wear.",
+        default_selected=False,
+    ),
+    FeatureConfig(
+        name="non_wear_time",
+        display_name="Non-wear Time",
+        group="Data Quality",
+        unit="min",
+        description="Source-provided daily non-wear duration.",
+        default_selected=False,
+    ),
+]
+
+
 # ── Registry lookup ───────────────────────────────────────────────────────────
 
 _REGISTRY: dict[DataSource, list[FeatureConfig]] = {
     DataSource.OURA: OURA_FEATURES,
     DataSource.SYNTHEA: SYNTHEA_FEATURES,
+    DataSource.HEPATOLOGY: HEPATOLOGY_FEATURES,
 }
 
 

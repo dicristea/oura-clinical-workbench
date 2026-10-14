@@ -29,3 +29,5 @@ Thumbs.db
 
 # Don't commit real patient data!
 data.xlsx
+di_data/*.rds
+di_data/exports/
